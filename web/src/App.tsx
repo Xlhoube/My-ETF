@@ -12,72 +12,8 @@ import OpportunitiesTab from './components/OpportunitiesTab';
 import ToolsTab from './components/ToolsTab';
 import ProfileModal from './components/ProfileModal';
 import PortfolioModal from './components/PortfolioModal';
-import { LayoutDashboard, Coins, Plus, Scale, FolderPlus, FolderKanban, Trash2, Compass, Wrench, User, RefreshCw } from 'lucide-react';
+import { LayoutDashboard, Coins, Plus, Scale, FolderPlus, FolderKanban, Trash2, Compass, Wrench, User } from 'lucide-react';
 
-const DEFAULT_DEMO_PORTFOLIOS: Portfolio[] = [
-  {
-    id: 'demo-portfolio-fire',
-    name: 'DEGIRO FIRE Sonho',
-    isDemo: true,
-    etfs: [
-      {
-        id: 'demo-sxr8',
-        ticker: 'SXR8',
-        name: 'iShares Core S&P 500 UCITS ETF (Acc)',
-        ter: 0.07,
-        domicile: 'IE',
-        distribution: 'Acc',
-        replication: 'Physical',
-        weight: 60,
-        amountInvested: 120000,
-        currentValue: 185250
-      },
-      {
-        id: 'demo-spyi',
-        ticker: 'SPYI',
-        name: 'SPDR MSCI ACWI IMI UCITS ETF (Acc)',
-        ter: 0.17,
-        domicile: 'IE',
-        distribution: 'Acc',
-        replication: 'Physical',
-        weight: 40,
-        amountInvested: 110000,
-        currentValue: 133400
-      }
-    ]
-  },
-  {
-    id: 'demo-portfolio-speculative',
-    name: 'XTB Poupanças',
-    isDemo: true,
-    etfs: [
-      {
-        id: 'demo-qdve',
-        ticker: 'QDVE',
-        name: 'iShares S&P 500 Information Technology (Acc)',
-        ter: 0.15,
-        domicile: 'IE',
-        distribution: 'Acc',
-        replication: 'Physical',
-        weight: 70,
-        amountInvested: 30000,
-        currentValue: 38500
-      },
-      {
-        id: 'demo-vusa',
-        ticker: 'VUSA',
-        name: 'Vanguard S&P 500 UCITS ETF (Dist)',
-        ter: 0.07,
-        domicile: 'IE',
-        distribution: 'Dist',
-        replication: 'Physical',
-        weight: 30,
-        amountInvested: 12000,
-        currentValue: 13800
-      }
-    ]
-  }
-];
 
 // Componente raiz que gere múltiplos portefólios de ETFs, flutua cotações em direto e sincroniza o localStorage.
 export default function App() {
@@ -90,9 +26,35 @@ export default function App() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [triggeredChatQuery, setTriggeredChatQuery] = useState<{ text: string; timestamp: number } | null>(null);
   const [isRefreshingPrices, setIsRefreshingPrices] = useState(false);
+  const [lastUpdatedTime, setLastUpdatedTime] = useState<Date | null>(() => {
+    try {
+      const saved = localStorage.getItem('my_etf_last_updated');
+      return saved ? new Date(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   
   const [isPortfolioModalOpen, setIsPortfolioModalOpen] = useState(false);
   const [editingPortfolio, setEditingPortfolio] = useState<Portfolio | null>(null);
+
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      const savedTheme = localStorage.getItem('my_etf_theme');
+      return (savedTheme === 'light' || savedTheme === 'dark') ? savedTheme : 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('my_etf_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
     try {
@@ -128,21 +90,17 @@ export default function App() {
     }
   };
 
-  // Inicializa os portefólios a partir do localStorage unindo reais e demos
+  // Inicializa os portefólios a partir do localStorage filtrando apenas reais
   useEffect(() => {
     try {
       const savedReal = localStorage.getItem('my_etf_portfolios');
-      const savedDemo = localStorage.getItem('my_etf_demo_portfolios');
       
       let allPortfolios: Portfolio[] = [];
       
       if (savedReal) {
-        allPortfolios = [...allPortfolios, ...JSON.parse(savedReal)];
-      }
-      if (savedDemo) {
-        const parsedDemo = JSON.parse(savedDemo).map((p: Portfolio) => ({ ...p, isDemo: true }));
-        allPortfolios = [...allPortfolios, ...parsedDemo];
-        localStorage.removeItem('my_etf_demo_portfolios');
+        // Purga qualquer portefólio demo que tenha sido salvo anteriormente
+        const parsed = JSON.parse(savedReal).filter((p: Portfolio) => !p.isDemo);
+        allPortfolios = [...allPortfolios, ...parsed];
       }
       
       if (allPortfolios.length > 0) {
@@ -155,13 +113,34 @@ export default function App() {
           etfs: p.etfs.map(e => {
             const cost = typeof e.amountInvested === 'number' && !isNaN(e.amountInvested) ? e.amountInvested : 0;
             let current = typeof e.currentValue === 'number' && !isNaN(e.currentValue) && e.currentValue > 0 ? e.currentValue : cost;
-            
+
+            // Se o utilizador tem os valores antigos desatualizados da simulação inicial, atualiza-os automaticamente!
+            if (e.ticker === 'SXR8' && e.amountInvested === 127.79) {
+              if (current !== 152.44 || e.lastPrice !== 698.90) {
+                current = 152.44;
+                e.lastPrice = 698.90;
+                needsSaveBack = true;
+              }
+            } else if (e.ticker === 'SPYI' && e.amountInvested === 125.78) {
+              if (current !== 151.70 || e.lastPrice !== 11.25) {
+                current = 151.70;
+                e.lastPrice = 11.25;
+                needsSaveBack = true;
+              }
+            } else if (e.ticker === 'SXRV' && e.amountInvested === 262.82) {
+              if (current !== 328.22 || e.lastPrice !== 1492.00) {
+                current = 328.22;
+                e.lastPrice = 1492.00;
+                needsSaveBack = true;
+              }
+            }
+
             // Deteção inteligente de valores colapsados para o piso de 10€ do bug anterior
             if (cost > 30 && current < cost * 0.4) {
               needsSaveBack = true;
-              if (e.ticker === 'SXR8') current = 147.15;
-              else if (e.ticker === 'SPYI') current = 146.85;
-              else if (e.ticker === 'SXRV') current = 311.61;
+              if (e.ticker === 'SXR8') { current = 152.44; e.lastPrice = 698.90; }
+              else if (e.ticker === 'SPYI') { current = 151.70; e.lastPrice = 11.25; }
+              else if (e.ticker === 'SXRV') { current = 328.22; e.lastPrice = 1492.00; }
               else current = cost * 1.12; // fallback de +12% de lucro médio estimado
             }
             
@@ -177,90 +156,61 @@ export default function App() {
         if (sanitized.length > 0) {
           setActivePortfolioId(sanitized[0].id);
         }
-        if (needsSaveBack || savedDemo) {
+        if (needsSaveBack) {
           savePortfolios(sanitized);
         }
       } else {
-        // Inicializa com carteiras reais e demos padrão
+        // Inicializa unicamente com a carteira XTB Principal (Real)
         const initialPortfolios: Portfolio[] = [
           {
             id: 'portfolio-xtb',
             name: 'XTB Principal (Real)',
-              etfs: [
-                {
-                  id: 'xtb-sxr8',
-                  ticker: 'SXR8',
-                  name: 'iShares Core S&P 500 UCITS ETF (Acc)',
-                  ter: 0.07,
-                  domicile: 'IE',
-                  distribution: 'Acc',
-                  replication: 'Physical',
-                  weight: 25,
-                  amountInvested: 127.79,
-                  currentValue: 147.15
-                },
-                {
-                  id: 'xtb-spyi',
-                  ticker: 'SPYI',
-                  name: 'SPDR MSCI ACWI IMI UCITS ETF (Acc)',
-                  ter: 0.17,
-                  domicile: 'IE',
-                  distribution: 'Acc',
-                  replication: 'Physical',
-                  weight: 25,
-                  amountInvested: 125.78,
-                  currentValue: 146.85
-                },
-                {
-                  id: 'xtb-sxrv',
-                  ticker: 'SXRV',
-                  name: 'iShares NASDAQ 100 UCITS ETF (Acc)',
-                  ter: 0.33,
-                  domicile: 'IE',
-                  distribution: 'Acc',
-                  replication: 'Physical',
-                  weight: 50,
-                  amountInvested: 262.82,
-                  currentValue: 311.61
-                }
-              ]
-            },
-            {
-              id: 'portfolio-degiro',
-              name: 'DEGIRO Poupanças',
-              isDemo: true,
-              etfs: [
-                {
-                  id: 'mock-vusa',
-                  ticker: 'VUSA',
-                  name: 'Vanguard S&P 500 UCITS ETF (Dist)',
-                  ter: 0.07,
-                  domicile: 'IE',
-                  distribution: 'Dist',
-                  replication: 'Physical',
-                  weight: 60,
-                  amountInvested: 12000,
-                  currentValue: 12450
-                },
-                {
-                  id: 'mock-iusq',
-                  ticker: 'IUSQ',
-                  name: 'iShares MSCI ACWI UCITS ETF (Acc)',
-                  ter: 0.20,
-                  domicile: 'IE',
-                  distribution: 'Acc',
-                  replication: 'Physical',
-                  weight: 40,
-                  amountInvested: 8000,
-                  currentValue: 8120
-                }
-              ]
-            },
-            ...DEFAULT_DEMO_PORTFOLIOS
-          ];
-          setPortfolios(initialPortfolios);
-          setActivePortfolioId(initialPortfolios[0].id);
-          savePortfolios(initialPortfolios);
+            etfs: [
+              {
+                id: 'xtb-sxr8',
+                ticker: 'SXR8',
+                name: 'iShares Core S&P 500 UCITS ETF (Acc)',
+                ter: 0.07,
+                domicile: 'IE',
+                distribution: 'Acc',
+                replication: 'Physical',
+                weight: 25,
+                amountInvested: 127.79,
+                currentValue: 152.44,
+                lastPrice: 698.90
+              },
+              {
+                id: 'xtb-spyi',
+                ticker: 'SPYI',
+                name: 'SPDR MSCI ACWI IMI UCITS ETF (Acc)',
+                ter: 0.17,
+                domicile: 'IE',
+                distribution: 'Acc',
+                replication: 'Physical',
+                weight: 25,
+                amountInvested: 125.78,
+                currentValue: 151.70,
+                lastPrice: 11.25
+              },
+              {
+                id: 'xtb-sxrv',
+                ticker: 'SXRV',
+                name: 'iShares NASDAQ 100 UCITS ETF (Acc)',
+                ter: 0.33,
+                domicile: 'IE',
+                distribution: 'Acc',
+                replication: 'Physical',
+                weight: 50,
+                amountInvested: 262.82,
+                currentValue: 328.22,
+                lastPrice: 1492.00
+              }
+            ]
+          }
+        ];
+        setPortfolios(initialPortfolios);
+        setActivePortfolioId(initialPortfolios[0].id);
+        savePortfolios(initialPortfolios);
       }
     } catch (err) {
       console.error('Erro ao ler portefólios do localStorage:', err);
@@ -282,11 +232,11 @@ export default function App() {
     setIsPortfolioModalOpen(true);
   };
 
-  const handleSavePortfolio = (portfolioData: Partial<Portfolio>) => {
+  const handleSavePortfolio = (portfolioData: Partial<Portfolio> & { starterEtfs?: ETF[] }) => {
     if (editingPortfolio) {
       const updated = portfolios.map(p => 
         p.id === editingPortfolio.id 
-          ? { ...p, ...portfolioData } 
+          ? { ...p, name: portfolioData.name ?? p.name, broker: portfolioData.broker ?? p.broker } 
           : p
       );
       setPortfolios(updated as Portfolio[]);
@@ -295,9 +245,8 @@ export default function App() {
       const newPortfolio: Portfolio = {
         id: `portfolio-${Math.random().toString(36).substring(2, 7)}`,
         name: portfolioData.name || 'Nova Carteira',
-        isDemo: portfolioData.isDemo,
         broker: portfolioData.broker as any,
-        etfs: []
+        etfs: portfolioData.starterEtfs ?? []
       };
       const updated = [...portfolios, newPortfolio];
       setPortfolios(updated);
@@ -385,9 +334,20 @@ export default function App() {
       let wasUpdated = false;
       const updatedEtfs = await Promise.all(p.etfs.map(async (etf) => {
         const livePrice = await fetchEtfPrice(etf.ticker);
-        if (livePrice && livePrice > 0 && livePrice !== etf.currentValue) {
-          wasUpdated = true;
-          return { ...etf, currentValue: Number(livePrice.toFixed(2)) };
+        if (livePrice && livePrice > 0) {
+          let updatedCurrentValue = etf.currentValue;
+          if (etf.lastPrice && etf.lastPrice > 0) {
+            const ratio = livePrice / etf.lastPrice;
+            updatedCurrentValue = Number((etf.currentValue * ratio).toFixed(2));
+          }
+          if (updatedCurrentValue !== etf.currentValue || livePrice !== etf.lastPrice) {
+            wasUpdated = true;
+            return { 
+              ...etf, 
+              currentValue: updatedCurrentValue, 
+              lastPrice: Number(livePrice.toFixed(2)) 
+            };
+          }
         }
         return etf;
       }));
@@ -395,6 +355,10 @@ export default function App() {
       if (wasUpdated) {
         handleUpdateEtfs(updatedEtfs);
       }
+
+      const now = new Date();
+      setLastUpdatedTime(now);
+      localStorage.setItem('my_etf_last_updated', now.toISOString());
     } catch (err) {
       console.error('Falha ao atualizar cotações:', err);
     } finally {
@@ -408,27 +372,14 @@ export default function App() {
     latestRefreshPrices.current = handleRefreshPrices;
   });
 
-  // Loop Automático de 5 em 5 segundos
+  // Loop Automático de 60 segundos
   useEffect(() => {
     if (portfolios.length === 0 || !activePortfolioId) return;
 
-    // Faz uma primeira chamada logo após carregar a carteira (opcional)
-    // latestRefreshPrices.current();
+    // Executa as cotações imediatamente ao carregar o portefólio
+    latestRefreshPrices.current();
 
     const fetchInterval = setInterval(() => {
-      const now = new Date();
-      const day = now.getDay(); // 0 = Domingo, 6 = Sábado
-      const hour = now.getHours(); // Hora local
-
-      // Mercados europeus abrem às ~8h e mercados americanos fecham às ~21h (hora de Lisboa)
-      const isWeekend = day === 0 || day === 6;
-      const isOutsideMarketHours = hour < 8 || hour >= 21;
-
-      // Se os mercados estiverem fechados, não faz fetch automático para poupar limites de API
-      if (isWeekend || isOutsideMarketHours) {
-        return;
-      }
-
       latestRefreshPrices.current();
     }, 60000);
 
@@ -479,62 +430,86 @@ export default function App() {
 
         {/* Gestor Avançado de Carteiras (Portfolios Switcher Sidebar) */}
         <div style={{ marginTop: '1rem', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-            <FolderKanban size={14} className="text-primary" style={{ color: 'var(--primary)' }} /> Gestor de Carteiras
-          </div>
-          
-          <select
-            value={activePortfolioId}
-            onChange={(e) => setActivePortfolioId(e.target.value)}
-            style={{ 
-              width: '100%', 
-              padding: '0.5rem', 
-              background: activePortfolio?.isDemo ? 'rgba(220, 38, 38, 0.15)' : 'rgba(0,0,0,0.3)', 
-              border: activePortfolio?.isDemo ? '1px solid rgba(220, 38, 38, 0.5)' : '1px solid var(--border-color)', 
-              borderRadius: '8px', 
-              color: activePortfolio?.isDemo ? '#fca5a5' : 'var(--text-primary)', 
-              fontWeight: '600', 
-              fontSize: '0.8rem', 
-              outline: 'none', 
-              cursor: 'pointer', 
-              marginBottom: '0.5rem',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            {portfolios.map(p => (
-              <option key={p.id} value={p.id} style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
-                {p.isDemo ? `🔴 DEMO: ${p.name}` : p.name} ({p.etfs.length} ETF{p.etfs.length !== 1 ? 's' : ''})
-              </option>
-            ))}
-          </select>
-
-          <div style={{ display: 'flex', gap: '0.4rem' }}>
-            <button 
-              className="btn btn-secondary" 
-              style={{ flex: 1, padding: '0.3rem 0.5rem', fontSize: '0.75rem', gap: '0.2rem' }}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)' }}>
+              <FolderKanban size={14} style={{ color: 'var(--primary)' }} /> Gestor de Carteiras
+            </span>
+            <button
+              className="btn btn-secondary"
+              style={{ padding: '0.3rem 0.55rem', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
               onClick={handleOpenNewPortfolio}
               title="Adicionar Nova Carteira"
             >
               <FolderPlus size={12} /> Nova
             </button>
-            <button 
-              className="btn btn-secondary" 
-              style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem', gap: '0.2rem' }}
-              onClick={() => handleOpenEditPortfolio(activePortfolio)}
-              title="Editar Carteira Atual"
-            >
-              ✏️
-            </button>
-            {portfolios.length > 1 && (
-              <button 
-                className="btn btn-secondary" 
-                style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem', color: 'var(--danger)', gap: '0.2rem' }}
-                onClick={handleDeleteActivePortfolio}
-                title="Eliminar Carteira Atual"
-              >
-                <Trash2 size={12} />
-              </button>
-            )}
+          </div>
+
+          {/* Lista de carteiras */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+            {portfolios.map(p => {
+              const isActive = p.id === activePortfolioId;
+              return (
+                <div
+                  key={p.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    borderRadius: '8px',
+                    border: isActive ? '1px solid var(--primary)' : '1px solid transparent',
+                    background: isActive ? 'rgba(34,197,94,0.08)' : 'transparent',
+                    padding: '0.4rem 0.5rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.18s ease',
+                  }}
+                  onClick={() => setActivePortfolioId(p.id)}
+                >
+                  {/* Indicador de ativo */}
+                  <span style={{
+                    width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0,
+                    background: isActive ? 'var(--primary)' : 'var(--border-color)',
+                    transition: 'background 0.18s',
+                  }} />
+
+                  {/* Nome + contagem */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{
+                      fontSize: '0.8rem', fontWeight: isActive ? '700' : '500',
+                      color: isActive ? 'var(--primary)' : 'var(--text-primary)',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      margin: 0,
+                    }}>
+                      {p.name}
+                    </p>
+                    <p style={{ fontSize: '0.67rem', color: 'var(--text-muted)', margin: 0 }}>
+                      {p.etfs.length} ETF{p.etfs.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+
+                  {/* Botões de ação (sempre visíveis, mais discretos se inativo) */}
+                  <div style={{ display: 'flex', gap: '0.2rem', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                    <button
+                      className="btn btn-secondary"
+                      style={{ padding: '0.25rem 0.35rem', fontSize: '0.7rem', borderRadius: '6px', display: 'flex', alignItems: 'center', opacity: isActive ? 1 : 0.5 }}
+                      onClick={() => handleOpenEditPortfolio(p)}
+                      title="Editar carteira"
+                    >
+                      ✏️
+                    </button>
+                    {portfolios.length > 1 && isActive && (
+                      <button
+                        className="btn btn-secondary"
+                        style={{ padding: '0.25rem 0.35rem', fontSize: '0.7rem', borderRadius: '6px', display: 'flex', alignItems: 'center', color: 'var(--danger)' }}
+                        onClick={handleDeleteActivePortfolio}
+                        title="Eliminar carteira"
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -598,7 +573,7 @@ export default function App() {
       <main className="main-content">
         
         {/* Cabeçalho do App */}
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <header className="top-header">
           <div>
             <h1 style={{ fontSize: '1.8rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               {activePortfolio?.isDemo && <span style={{ fontSize: '0.7em', padding: '0.2rem 0.5rem', background: 'rgba(220, 38, 38, 0.2)', color: '#fca5a5', borderRadius: '6px', border: '1px solid rgba(220, 38, 38, 0.4)' }}>DEMO</span>}
@@ -608,17 +583,47 @@ export default function App() {
               Análise isenta de comissões implícitas, duplicações de índices e ineficiências fiscais de dividendos.
             </p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button 
-              className="btn btn-primary"
-              style={{ padding: '0.5rem 1rem', borderRadius: '12px', fontSize: '0.85rem', gap: '0.4rem', opacity: isRefreshingPrices ? 0.7 : 1 }}
-              onClick={handleRefreshPrices}
-              disabled={isRefreshingPrices}
-              title="Obter preços ao vivo (Yahoo Finance)"
-            >
-              <RefreshCw size={14} className={isRefreshingPrices ? 'spin-animation' : ''} />
-              {isRefreshingPrices ? 'A Sincronizar...' : 'Atualizar Cotações'}
-            </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            {/* Tema Uiverse Toggle */}
+            <label className="theme-switch" title="Mudar Tema">
+              <input 
+                type="checkbox" 
+                className="theme-switch__checkbox" 
+                checked={theme === 'light'} 
+                onChange={toggleTheme} 
+              />
+              <div className="theme-switch__container">
+                <div className="theme-switch__circle-container">
+                  <div className="theme-switch__sun-moon-container">
+                    <svg className="theme-switch__moon" viewBox="0 0 24 24"><path d="M12.3,4.9c0.4-0.2,0.6-0.7,0.5-1.1S12.2,3,11.7,3C6.8,3.1,3,7.1,3,12c0,5,4,9,9,9c3.8,0,7.1-2.4,8.4-5.9c0.2-0.4,0-0.9-0.4-1.2c-0.4-0.3-0.9-0.2-1.2,0.1c-1,0.9-2.3,1.4-3.7,1.4c-3.1,0-5.7-2.5-5.7-5.7C9.4,7.8,10.5,5.9,12.3,4.9zM15.1,17.4c0.5,0,1,0,1.4-0.1C15.3,18.4,13.7,19,12,19c-3.9,0-7-3.1-7-7c0-2.5,1.4-4.8,3.5-6c-0.7,1.1-1,2.4-1,3.8C7.4,14,10.5,17.4,15.1,17.4z"></path></svg>
+                    <svg className="theme-switch__sun" viewBox="0 0 24 24"><path d="M12,18c-3.3,0-6-2.7-6-6s2.7-6,6-6s6,2.7,6,6S15.3,18,12,18z M12,8c-2.2,0-4,1.8-4,4c0,2.2,1.8,4,4,4c2.2,0,4-1.8,4-4C16,9.8,14.2,8,12,8z"></path><path d="M12,4c-0.6,0-1-0.4-1-1V1c0-0.6,0.4-1,1-1s1,0.4,1,1v2C13,3.6,12.6,4,12,4z"></path><path d="M12,24c-0.6,0-1-0.4-1-1v-2c0-0.6,0.4-1,1-1s1,0.4,1,1v2C13,23.6,12.6,24,12,24z"></path><path d="M5.6,6.6c-0.3,0-0.5-0.1-0.7-0.3L3.5,4.9c-0.4-0.4-0.4-1,0-1.4s1-0.4,1.4,0l1.4,1.4c0.4,0.4,0.4,1,0,1.4C6.2,6.5,5.9,6.6,5.6,6.6z"></path><path d="M19.8,20.8c-0.3,0-0.5-0.1-0.7-0.3l-1.4-1.4c-0.4-0.4-0.4-1,0-1.4s1-0.4,1.4,0l1.4,1.4c0.4,0.4,0.4,1,0,1.4C20.3,20.7,20,20.8,19.8,20.8z"></path><path d="M3,13H1c-0.6,0-1-0.4-1-1s0.4-1,1-1h2c0.6,0,1,0.4,1,1S3.6,13,3,13z"></path><path d="M23,13h-2c-0.6,0-1-0.4-1-1s0.4-1,1-1h2c0.6,0,1,0.4,1,1S23.6,13,23,13z"></path><path d="M4.2,20.8c-0.3,0-0.5-0.1-0.7-0.3c-0.4-0.4-0.4-1,0-1.4l1.4-1.4c0.4-0.4,1-0.4,1.4,0s0.4,1,0,1.4l-1.4,1.4C4.7,20.7,4.5,20.8,4.2,20.8z"></path><path d="M18.4,6.6c-0.3,0-0.5-0.1-0.7-0.3c-0.4-0.4-0.4-1,0-1.4l1.4-1.4c0.4-0.4,1-0.4,1.4,0s0.4,1,0,1.4l-1.4,1.4C18.9,6.5,18.7,6.6,18.4,6.6z"></path></svg>
+                  </div>
+                </div>
+              </div>
+            </label>
+
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.5rem', 
+              background: 'var(--bg-surface)', 
+              padding: '0.5rem 0.85rem', 
+              borderRadius: '10px', 
+              border: '1px solid var(--border-color)', 
+              fontSize: '0.8rem',
+              fontWeight: '600'
+            }}>
+              <span className={isRefreshingPrices ? 'spin-animation' : ''} style={{ 
+                display: 'inline-block', 
+                width: '8px', 
+                height: '8px', 
+                background: isRefreshingPrices ? 'var(--secondary)' : 'var(--primary)', 
+                borderRadius: '50%' 
+              }} />
+              <span style={{ color: 'var(--text-secondary)' }}>
+                {isRefreshingPrices ? 'A atualizar cotações...' : `Cotações: ${lastUpdatedTime ? lastUpdatedTime.toLocaleTimeString('pt-PT') : 'A carregar...'}`}
+              </span>
+            </div>
           </div>
         </header>
 
@@ -797,27 +802,6 @@ export default function App() {
             <span style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>✕</span>
           ) : (
             <span style={{ fontSize: '1.6rem', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>🕶️</span>
-          )}
-          {/* Badge de Notificação discreta ou Alerta */}
-          {!isChatOpen && activeAlerts.length > 0 && (
-            <span style={{
-              position: 'absolute',
-              top: '-3px',
-              right: '-3px',
-              background: 'var(--danger)',
-              color: '#fff',
-              fontSize: '0.65rem',
-              fontWeight: 'bold',
-              borderRadius: '50%',
-              width: '18px',
-              height: '18px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '2px solid var(--bg-primary)'
-            }}>
-              {activeAlerts.length}
-            </span>
           )}
         </button>
       </div>

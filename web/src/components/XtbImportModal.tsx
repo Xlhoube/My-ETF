@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ETF } from '../types';
-import { X, Upload, CheckCircle, RefreshCw, Clipboard, Trash2, Plus, Info } from 'lucide-react';
+import { X, Upload, CheckCircle, RefreshCw, Trash2, Plus, Info } from 'lucide-react';
 
 interface XtbImportModalProps {
   isOpen: boolean;
@@ -14,25 +14,12 @@ interface ScannerLog {
   type: 'info' | 'success' | 'warning';
 }
 
-const KNOWN_ETFS: Record<string, { name: string; ter: number; domicile: 'IE' | 'LU'; distribution: 'Acc' | 'Dist' }> = {
-  'SXR8': { name: 'iShares Core S&P 500 UCITS ETF (Acc)', ter: 0.07, domicile: 'IE', distribution: 'Acc' },
-  'IUSQ': { name: 'iShares MSCI ACWI UCITS ETF (Acc)', ter: 0.20, domicile: 'IE', distribution: 'Acc' },
-  'VWCE': { name: 'Vanguard FTSE All-World UCITS ETF (Acc)', ter: 0.22, domicile: 'IE', distribution: 'Acc' },
-  'VUSA': { name: 'Vanguard S&P 500 UCITS ETF (Dist)', ter: 0.07, domicile: 'IE', distribution: 'Dist' },
-  'VUAA': { name: 'Vanguard S&P 500 UCITS ETF (Acc)', ter: 0.07, domicile: 'IE', distribution: 'Acc' },
-  'EUNL': { name: 'iShares Core MSCI World UCITS ETF (Acc)', ter: 0.20, domicile: 'IE', distribution: 'Acc' },
-  'IWDA': { name: 'iShares Core MSCI World UCITS ETF (Acc)', ter: 0.20, domicile: 'IE', distribution: 'Acc' },
-  'QDVE': { name: 'iShares S&P 500 Information Technology (Acc)', ter: 0.15, domicile: 'IE', distribution: 'Acc' },
-  'IS3S': { name: 'iShares Edge MSCI World Value Factor (Acc)', ter: 0.30, domicile: 'IE', distribution: 'Acc' },
-  'LYXMS': { name: 'Lyxor MSCI Luxembourg S&P 500 (Acc)', ter: 0.15, domicile: 'LU', distribution: 'Acc' },
-};
+
 
 export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportModalProps) {
-  const [activeTab, setActiveTab] = useState<'image' | 'text'>('image');
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [pastedText, setPastedText] = useState('');
   const [logs, setLogs] = useState<ScannerLog[]>([]);
   const [scanStep, setScanStep] = useState(0); // 0: Import input, 1: Scan animation, 2: Review/Edit spreadsheet
   const [scanResults, setScanResults] = useState<ETF[]>([]);
@@ -42,11 +29,9 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
     if (isOpen) {
       setSelectedFile(null);
       setImagePreview(null);
-      setPastedText('');
       setLogs([]);
       setScanStep(0);
       setScanResults([]);
-      setActiveTab('image');
     }
   }, [isOpen]);
 
@@ -129,7 +114,8 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
               replication: 'Physical',
               weight: 25,
               amountInvested: 127.79,
-              currentValue: 147.15
+              currentValue: 152.44,
+              lastPrice: 698.90
             },
             {
               id: `xtb-${Math.random().toString(36).substring(2, 7)}`,
@@ -141,7 +127,8 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
               replication: 'Physical',
               weight: 25,
               amountInvested: 125.78,
-              currentValue: 146.85
+              currentValue: 151.70,
+              lastPrice: 11.25
             },
             {
               id: `xtb-${Math.random().toString(36).substring(2, 7)}`,
@@ -153,7 +140,8 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
               replication: 'Physical',
               weight: 50,
               amountInvested: 262.82,
-              currentValue: 311.61
+              currentValue: 328.22,
+              lastPrice: 1492.00
             }
           ]);
         }
@@ -161,89 +149,6 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
     });
   };
 
-  // Executa o parser heurístico ultra-preciso de texto copiado
-  const handleParseText = () => {
-    if (!pastedText.trim()) {
-      alert('Por favor, cole algum texto copiado da XTB.');
-      return;
-    }
-
-    const parsed: ETF[] = [];
-    const lines = pastedText.split('\n');
-
-    lines.forEach(line => {
-      Object.keys(KNOWN_ETFS).forEach(ticker => {
-        if (line.toUpperCase().includes(ticker)) {
-          // Extração heurística de números para encontrar o valor investido
-          const numberMatches = line.match(/(?:[\d\s]{2,})\d+(?:[.,]\d{2})?/g);
-          let detectedAmount = 1000; // valor padrão
-
-          if (numberMatches) {
-            const cleanedNumbers = numberMatches.map(num => {
-              const clean = num.replace(/\s/g, '').replace(',', '.');
-              return parseFloat(clean);
-            }).filter(val => val > 10 && val < 1000000);
-
-            if (cleanedNumbers.length > 0) {
-              // Pegamos o maior valor encontrado, que normalmente é o valor de mercado
-              detectedAmount = Math.max(...cleanedNumbers);
-            }
-          }
-
-          if (!parsed.some(item => item.ticker === ticker)) {
-            const meta = KNOWN_ETFS[ticker];
-            parsed.push({
-              id: `xtb-${Math.random().toString(36).substring(2, 7)}`,
-              ticker,
-              name: meta.name,
-              ter: meta.ter,
-              domicile: meta.domicile,
-              distribution: meta.distribution,
-              replication: 'Physical',
-              weight: 0,
-              amountInvested: detectedAmount,
-              currentValue: detectedAmount
-            });
-          }
-        }
-      });
-    });
-
-    // Se não encontrou nenhum ETF conhecido no texto, tenta extrair tickers genéricos de 4 letras
-    if (parsed.length === 0) {
-      const genericTickerRegex = /\b([A-Z]{4})\b/g;
-      let match;
-      const foundGenericTickers: string[] = [];
-      while ((match = genericTickerRegex.exec(pastedText.toUpperCase())) !== null) {
-        const potentialTicker = match[1];
-        if (!foundGenericTickers.includes(potentialTicker)) {
-          foundGenericTickers.push(potentialTicker);
-        }
-      }
-
-      foundGenericTickers.forEach(ticker => {
-        parsed.push({
-          id: `xtb-${Math.random().toString(36).substring(2, 7)}`,
-          ticker,
-          name: `${ticker} UCITS ETF`,
-          ter: 0.15,
-          domicile: 'IE',
-          distribution: 'Acc',
-          replication: 'Physical',
-          weight: 0,
-          amountInvested: 1500,
-          currentValue: 1500
-        });
-      });
-    }
-
-    if (parsed.length > 0) {
-      setScanResults(parsed);
-      setScanStep(2);
-    } else {
-      alert('Não conseguimos identificar os ETFs no texto colado. Experimente colar a tabela completa com tickers visíveis (Ex: SXR8, VWCE, VUSA).');
-    }
-  };
 
   // Funções de manipulação da folha de cálculo interativa do Step 2
   const handleUpdateResult = (id: string, field: keyof ETF, value: any) => {
@@ -269,7 +174,8 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
         replication: 'Physical',
         weight: 0,
         amountInvested: 1000,
-        currentValue: 1000
+        currentValue: 1000,
+        lastPrice: 115.00
       }
     ]);
   };
@@ -314,44 +220,8 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
           {scanStep === 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               
-              {/* Seleção de Métodos */}
-              <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)' }}>
-                <button 
-                  onClick={() => setActiveTab('image')}
-                  style={{
-                    flex: 1,
-                    padding: '1rem',
-                    background: 'none',
-                    border: 'none',
-                    color: activeTab === 'image' ? 'var(--primary)' : 'var(--text-muted)',
-                    borderBottom: activeTab === 'image' ? '2px solid var(--primary)' : 'none',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem'
-                  }}
-                >
-                  📷 Importar de Imagem (OCR)
-                </button>
-                <button 
-                  onClick={() => setActiveTab('text')}
-                  style={{
-                    flex: 1,
-                    padding: '1rem',
-                    background: 'none',
-                    border: 'none',
-                    color: activeTab === 'text' ? 'var(--primary)' : 'var(--text-muted)',
-                    borderBottom: activeTab === 'text' ? '2px solid var(--primary)' : 'none',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem'
-                  }}
-                >
-                  ✍️ Copiar & Colar Texto (100% Preciso)
-                </button>
-              </div>
-
-              {/* ABA 1: IMPORTAÇÃO POR IMAGEM */}
-              {activeTab === 'image' && (
+              {/* IMPORTAÇÃO POR IMAGEM */}
+              {(
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <div 
                     className={`drag-area ${dragActive ? 'active' : ''}`}
@@ -402,41 +272,7 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
                 </div>
               )}
 
-              {/* ABA 2: IMPORTAÇÃO POR COPIAR-COLAR */}
-              {activeTab === 'text' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start', background: 'rgba(255,255,255,0.02)', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    <Clipboard size={16} className="text-primary" style={{ color: 'var(--primary)', flexShrink: 0, marginTop: '0.1rem' }} />
-                    <p>
-                      Vá à sua conta <strong>XTB (xStation)</strong>, selecione e copie as linhas da tabela de posições abertas (Ctrl+A, Ctrl+C ou copie a listagem) e cole-as na caixa de texto abaixo. O nosso parser de regex irá extrair todos os ativos e quantias!
-                    </p>
-                  </div>
-                  
-                  <textarea
-                    style={{
-                      width: '100%',
-                      height: '160px',
-                      background: 'hsla(230, 20%, 5%, 0.4)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '12px',
-                      padding: '1rem',
-                      color: 'var(--text-primary)',
-                      fontFamily: 'monospace',
-                      fontSize: '0.8rem',
-                      resize: 'vertical'
-                    }}
-                    placeholder={`Cole aqui as linhas das posições. Exemplo:
-SXR8.DE iShares Core S&P 500 UCITS ETF EUR Acc 15 435.50 EUR 6 532.50
-VUSA.DE Vanguard S&P 500 UCITS ETF Dist 21 82.10 EUR 3 000.00`}
-                    value={pastedText}
-                    onChange={(e) => setPastedText(e.target.value)}
-                  />
 
-                  <button className="btn btn-primary" onClick={handleParseText}>
-                    🔍 Analisar e Extrair Ativos do Texto
-                  </button>
-                </div>
-              )}
 
             </div>
           )}
@@ -494,7 +330,8 @@ VUSA.DE Vanguard S&P 500 UCITS ETF Dist 21 82.10 EUR 3 000.00`}
                     <tr style={{ background: 'hsla(230, 20%, 5%, 0.5)', borderBottom: '1px solid var(--border-color)' }}>
                       <th style={{ padding: '0.75rem', width: '110px' }}>Ticker</th>
                       <th style={{ padding: '0.75rem' }}>Nome do ETF</th>
-                      <th style={{ padding: '0.75rem', width: '90px' }}>Montante (€)</th>
+                      <th style={{ padding: '0.75rem', width: '95px' }}>Investido (€)</th>
+                      <th style={{ padding: '0.75rem', width: '95px' }}>Valor Atual (€)</th>
                       <th style={{ padding: '0.75rem', width: '80px' }}>TER (%)</th>
                       <th style={{ padding: '0.75rem', width: '100px' }}>Domicílio</th>
                       <th style={{ padding: '0.75rem', width: '100px' }}>Distribuição</th>
@@ -530,6 +367,16 @@ VUSA.DE Vanguard S&P 500 UCITS ETF Dist 21 82.10 EUR 3 000.00`}
                             value={etf.amountInvested}
                             onChange={(e) => handleUpdateResult(etf.id, 'amountInvested', Number(e.target.value))}
                             style={{ width: '100%', padding: '0.4rem', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'rgba(0,0,0,0.2)', fontSize: '0.8rem', fontWeight: 'bold' }}
+                          />
+                        </td>
+                        {/* Current Value Input */}
+                        <td style={{ padding: '0.5rem' }}>
+                          <input 
+                            type="number"
+                            step="0.01"
+                            value={etf.currentValue}
+                            onChange={(e) => handleUpdateResult(etf.id, 'currentValue', Number(e.target.value))}
+                            style={{ width: '100%', padding: '0.4rem', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'rgba(0,0,0,0.2)', fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--primary)' }}
                           />
                         </td>
                         {/* TER Input */}

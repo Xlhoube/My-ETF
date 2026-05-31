@@ -15,6 +15,7 @@ export interface ETF {
   weight: number; // Peso na carteira em %, ex: 60 para 60%
   amountInvested: number; // Valor investido em euros, ex: 5000 (custo de aquisição)
   currentValue: number; // Valor de mercado atual em euros, ex: 5500
+  lastPrice?: number; // Cotação unitária da última atualização
 }
 
 export interface PortfolioAlert {

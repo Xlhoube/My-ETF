@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ETF } from '../types';
 import { calculateRebalancing, simulatePortfolioDrag, getActiveBroker } from '../utils/advisorEngine';
 import { Scale, TrendingDown, Sparkles, AlertCircle, Info } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface OptimizationTabProps {
   etfs: ETF[];
@@ -367,45 +368,39 @@ export default function OptimizationTab({ etfs, portfolioName, portfolioBroker, 
           </div>
         )}
 
-        {/* Gráfico Dinâmico CSS Puro */}
+        {/* Gráfico Dinâmico com Recharts */}
         {finalYear && (
-          <div style={{ background: 'hsla(230, 20%, 5%, 0.2)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: '700' }}>Progressão do Impacto de Custos (Crescimento de {formatMoney(dragResults.totalInvested)})</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '0.5rem' }}>
-              
-              {/* Barra do Portefólio Atual */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.35rem' }}>
-                  <span style={{ fontWeight: '600' }}>O teu Portefólio Atual</span>
-                  <strong>{formatMoney(finalYear.currentValue)}</strong>
-                </div>
-                <div style={{ height: '24px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                  <div style={{ 
-                    height: '100%', 
-                    background: 'var(--danger)', 
-                    width: `${(finalYear.currentValue / finalYear.optimizedValue) * 100}%`,
-                    borderRadius: '5px',
-                    transition: 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
-                  }} />
-                </div>
-              </div>
-
-              {/* Barra do Portefólio de Elite */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.35rem' }}>
-                  <span style={{ fontWeight: '600', color: 'var(--primary)' }}>Portefólio de Elite Otimizado</span>
-                  <strong style={{ color: 'var(--primary)' }}>{formatMoney(finalYear.optimizedValue)}</strong>
-                </div>
-                <div style={{ height: '24px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                  <div style={{ 
-                    height: '100%', 
-                    background: 'var(--primary)', 
-                    width: '100%',
-                    borderRadius: '5px'
-                  }} />
-                </div>
-              </div>
-
+          <div className="card" style={{ display: 'flex', flexDirection: 'column', minHeight: '350px' }}>
+            <h4 style={{ fontSize: '0.95rem', fontWeight: '700', marginBottom: '1rem' }}>Evolução Comparativa a {years} anos (Património)</h4>
+            <div style={{ flex: 1, minHeight: '300px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={dragResults.projection}
+                  margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="colorOpt" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorCurr" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--danger)" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="var(--danger)" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="year" tickFormatter={(v) => `Ano ${v}`} stroke="var(--border-color)" tick={{fill: 'var(--text-muted)', fontSize: 12}} />
+                  <YAxis tickFormatter={(v) => `${(v/1000).toFixed(0)}k€`} stroke="var(--border-color)" tick={{fill: 'var(--text-muted)', fontSize: 12}} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                  <RechartsTooltip 
+                    formatter={(value: any) => formatMoney(Number(value))}
+                    labelFormatter={(label) => `Ano ${label}`}
+                    contentStyle={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)', borderRadius: '12px', color: 'var(--text-primary)' }}
+                  />
+                  <Legend verticalAlign="top" height={36} wrapperStyle={{ color: 'var(--text-secondary)' }}/>
+                  <Area type="monotone" dataKey="optimizedValue" name="Portefólio de Elite (Otimizado)" stroke="var(--primary)" fillOpacity={1} fill="url(#colorOpt)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="currentValue" name="O teu Portefólio (Atual)" stroke="var(--danger)" fillOpacity={1} fill="url(#colorCurr)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
         )}

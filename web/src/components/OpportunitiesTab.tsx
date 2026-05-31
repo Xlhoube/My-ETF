@@ -1,19 +1,43 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ETF } from '../types';
-import { Compass, Search, Globe, MessageSquare, TrendingUp, Check, ChevronRight, Edit3, Save, PlusCircle, Trash } from 'lucide-react';
+import { Compass, Search, Globe, MessageSquare, TrendingUp, Check, ChevronRight, Edit3, Save, PlusCircle, Trash, RefreshCw } from 'lucide-react';
 
 interface OpportunitiesTabProps {
   etfs: ETF[];
   onAddEtf: (etf: ETF) => void;
 }
 
-// Interface para notícias financeiras simuladas
+// Interface para notícias financeiras ao vivo
 interface NewsItem {
   id: string;
   source: string;
   title: string;
   sentiment: 'bullish' | 'bearish' | 'neutral';
   time: string;
+  link?: string;
+}
+
+// Classifica o sentimento com base em palavras-chave do título
+function classifySentiment(title: string): 'bullish' | 'bearish' | 'neutral' {
+  const t = title.toLowerCase();
+  const bullishWords = ['grow', 'rise', 'surge', 'rally', 'gain', 'high', 'record', 'strong', 'positive', 'bull', 'jump', 'soar', 'boost', 'sobe', 'cresce', 'máximo', 'recorde'];
+  const bearishWords = ['drop', 'fall', 'decline', 'loss', 'risk', 'bear', 'crash', 'plunge', 'weak', 'sell', 'down', 'cai', 'queda', 'risco', 'mínimo', 'perde'];
+  if (bullishWords.some(w => t.includes(w))) return 'bullish';
+  if (bearishWords.some(w => t.includes(w))) return 'bearish';
+  return 'neutral';
+}
+
+// Formata uma data ISO como tempo relativo em português
+function formatRelativeTime(dateStr: string): string {
+  try {
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (diff < 60) return `Há ${diff}s`;
+    if (diff < 3600) return `Há ${Math.floor(diff / 60)}m`;
+    if (diff < 86400) return `Há ${Math.floor(diff / 3600)}h`;
+    return `Há ${Math.floor(diff / 86400)}d`;
+  } catch {
+    return 'Recente';
+  }
 }
 
 // Interface para discussões de investidores simuladas
@@ -141,37 +165,52 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
     }
   }, []);
 
-  // Notícias Financeiras Dinâmicas
-  const [news] = useState<NewsItem[]>([
-    {
-      id: 'n1',
-      source: 'Bloomberg',
-      title: 'BlackRock pondera reduzir TER do iShares NASDAQ 100 para competir com Amundi em Solo Europeu.',
-      sentiment: 'bullish',
-      time: 'Há 5m'
-    },
-    {
-      id: 'n2',
-      source: 'Financial Times',
-      title: 'Fluxo recorde de capital de retalho europeu flui para ETFs domiciliados na Irlanda no primeiro trimestre.',
-      sentiment: 'bullish',
-      time: 'Há 15m'
-    },
-    {
-      id: 'n3',
-      source: 'Reuters',
-      title: 'Incerteza nas taxas de juro do BCE impulsiona procura por ETFs de obrigações governamentais de curto prazo.',
-      sentiment: 'neutral',
-      time: 'Há 45m'
-    },
-    {
-      id: 'n4',
-      source: 'JustETF News',
-      title: 'Diferença de rendimento fiscal de 15% em dividendos de ações americanas torna ETFs irlandeses de acumulação líderes absolutos de mercado.',
-      sentiment: 'bullish',
-      time: 'Há 2h'
+  // Notícias Financeiras ao Vivo (via RSS → rss2json)
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+  const [newsError, setNewsError] = useState(false);
+  const [lastNewsUpdate, setLastNewsUpdate] = useState<Date | null>(null);
+
+  const fetchLiveNews = useCallback(async () => {
+    setNewsLoading(true);
+    setNewsError(false);
+    try {
+      const RSS_URL = encodeURIComponent('https://www.etftrends.com/feed/');
+      const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${RSS_URL}&count=8`);
+      if (!res.ok) throw new Error('Fetch failed');
+      const data = await res.json();
+      if (data.status !== 'ok' || !data.items?.length) throw new Error('No items');
+
+      const parsed: NewsItem[] = data.items.map((item: any, i: number) => ({
+        id: `live-${i}-${Date.now()}`,
+        source: 'ETF Trends',
+        title: item.title?.replace(/<[^>]+>/g, '') ?? 'Sem título',
+        sentiment: classifySentiment(item.title ?? ''),
+        time: formatRelativeTime(item.pubDate),
+        link: item.link
+      }));
+
+      setNews(parsed);
+      setLastNewsUpdate(new Date());
+    } catch {
+      setNewsError(true);
+      // fallback com notícias curadas caso a API falhe
+      setNews([
+        { id: 'fb1', source: 'ETF Trends', title: 'Fluxo recorde de capital de retalho europeu flui para ETFs domiciliados na Irlanda.', sentiment: 'bullish', time: 'Recente' },
+        { id: 'fb2', source: 'JustETF', title: 'ETFs de acumulação irlandeses lideram eficiência fiscal para investidores portugueses.', sentiment: 'bullish', time: 'Recente' },
+        { id: 'fb3', source: 'Reuters', title: 'Incerteza do BCE impulsiona procura por ETFs de obrigações de curto prazo.', sentiment: 'neutral', time: 'Recente' }
+      ]);
+    } finally {
+      setNewsLoading(false);
     }
-  ]);
+  }, []);
+
+  useEffect(() => {
+    fetchLiveNews();
+    // Atualiza a cada 15 minutos
+    const interval = setInterval(fetchLiveNews, 15 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [fetchLiveNews]);
 
   // Conversas de Investidores do Reddit/Bogleheads
   const [posts, setPosts] = useState<ForumPost[]>([
@@ -438,23 +477,52 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
         {/* Notícias e Rumores de Fóruns em Tempo Real */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
-          {/* Feed de Notícias Globais */}
+          {/* Feed de Notícias Globais — ao vivo */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <h4 style={{ fontSize: '1rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-              <Globe size={16} style={{ color: 'var(--primary)' }} /> World Financial News
-            </h4>
+            <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+              <h4 style={{ fontSize: '1rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <Globe size={16} style={{ color: 'var(--primary)' }} /> World Financial News
+                <span style={{ fontSize: '0.6rem', background: 'rgba(34,197,94,0.15)', color: 'var(--primary)', padding: '0.15rem 0.4rem', borderRadius: '4px', fontWeight: '800', letterSpacing: '0.05em', border: '1px solid rgba(34,197,94,0.25)' }}>⬤ AO VIVO</span>
+                <button
+                  onClick={fetchLiveNews}
+                  title="Atualizar agora"
+                  style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '0.2rem', display: 'flex', alignItems: 'center' }}
+                >
+                  <RefreshCw size={13} />
+                </button>
+              </h4>
+              {lastNewsUpdate && (
+                <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                  Última atualização: {lastNewsUpdate.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
+                  {newsError && <span style={{ color: 'var(--warning)', marginLeft: '0.4rem' }}>(Modo offline — fonte indisponível)</span>}
+                </p>
+              )}
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-              {news.map(n => (
-                <div key={n.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', paddingBottom: '0.6rem', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                  <div>
-                    <span style={{ fontSize: '0.65rem', background: 'rgba(34, 197, 94, 0.1)', color: 'var(--primary)', padding: '0.1rem 0.3rem', borderRadius: '4px', fontWeight: '700', textTransform: 'uppercase' }}>
-                      {n.source}
-                    </span>
-                    <p style={{ fontSize: '0.8rem', fontWeight: '500', color: 'var(--text-primary)', marginTop: '0.2rem' }}>{n.title}</p>
+              {newsLoading && !news.length ? (
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem' }}>A carregar notícias em tempo real...</p>
+              ) : news.map(n => {
+                const sentimentColor = n.sentiment === 'bullish' ? 'var(--primary)' : n.sentiment === 'bearish' ? 'var(--danger)' : 'var(--info)';
+                const sentimentBg = n.sentiment === 'bullish' ? 'rgba(34,197,94,0.1)' : n.sentiment === 'bearish' ? 'rgba(189,108,108,0.12)' : 'rgba(131,149,167,0.12)';
+                return (
+                  <div key={n.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', paddingBottom: '0.6rem', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontSize: '0.65rem', background: sentimentBg, color: sentimentColor, padding: '0.1rem 0.3rem', borderRadius: '4px', fontWeight: '700', textTransform: 'uppercase' }}>
+                        {n.source}
+                      </span>
+                      {n.link ? (
+                        <a href={n.link} target="_blank" rel="noopener noreferrer" style={{ display: 'block', fontSize: '0.8rem', fontWeight: '500', color: 'var(--text-primary)', marginTop: '0.2rem', textDecoration: 'none', lineHeight: '1.4' }}
+                          onMouseEnter={e => (e.currentTarget.style.color = sentimentColor)}
+                          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+                        >{n.title}</a>
+                      ) : (
+                        <p style={{ fontSize: '0.8rem', fontWeight: '500', color: 'var(--text-primary)', marginTop: '0.2rem', lineHeight: '1.4' }}>{n.title}</p>
+                      )}
+                    </div>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{n.time}</span>
                   </div>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{n.time}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -594,21 +662,21 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
                         type="text" 
                         value={opp.ticker} 
                         onChange={e => handleUpdateCuratedField(opp.ticker, 'ticker', e.target.value.toUpperCase())}
-                        style={{ width: '80px', padding: '0.4rem', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '6px', color: '#fff', fontWeight: '700', textAlign: 'center' }}
+                        style={{ width: '80px', padding: '0.4rem', background: 'var(--bg-app)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', fontWeight: '700', textAlign: 'center' }}
                         placeholder="Ticker"
                       />
                       <input 
                         type="text" 
                         value={opp.name} 
                         onChange={e => handleUpdateCuratedField(opp.ticker, 'name', e.target.value)}
-                        style={{ flex: 1, minWidth: '180px', padding: '0.4rem', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '6px', color: '#fff' }}
+                        style={{ flex: 1, minWidth: '180px', padding: '0.4rem', background: 'var(--bg-app)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)' }}
                         placeholder="Nome do Fundo"
                       />
                       <input 
                         type="text" 
                         value={opp.rating} 
                         onChange={e => handleUpdateCuratedField(opp.ticker, 'rating', e.target.value.toUpperCase())}
-                        style={{ width: '60px', padding: '0.4rem', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '6px', color: '#fff', textAlign: 'center' }}
+                        style={{ width: '60px', padding: '0.4rem', background: 'var(--bg-app)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', textAlign: 'center' }}
                         placeholder="Rating"
                       />
                     </div>
@@ -616,7 +684,7 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
                     <textarea
                       value={opp.rationale}
                       onChange={e => handleUpdateCuratedField(opp.ticker, 'rationale', e.target.value)}
-                      style={{ width: '100%', height: '60px', padding: '0.5rem', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-secondary)', fontSize: '0.8rem', resize: 'vertical' }}
+                      style={{ width: '100%', height: '60px', padding: '0.5rem', background: 'var(--bg-app)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-secondary)', fontSize: '0.8rem', resize: 'vertical' }}
                       placeholder="Nota de Fundamento Racional ou Alerta Fiscal"
                     />
 
@@ -627,7 +695,7 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
                           type="text" 
                           value={opp.category} 
                           onChange={e => handleUpdateCuratedField(opp.ticker, 'category', e.target.value)}
-                          style={{ width: '100px', padding: '0.25rem', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '4px', color: '#fff' }}
+                          style={{ width: '100px', padding: '0.25rem', background: 'var(--bg-app)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'var(--text-primary)' }}
                         />
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
@@ -637,7 +705,7 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
                           step="0.01"
                           value={opp.ter} 
                           onChange={e => handleUpdateCuratedField(opp.ticker, 'ter', Number(e.target.value))}
-                          style={{ width: '60px', padding: '0.25rem', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '4px', color: '#fff' }}
+                          style={{ width: '60px', padding: '0.25rem', background: 'var(--bg-app)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'var(--text-primary)' }}
                         />
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
@@ -645,7 +713,7 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
                         <select 
                           value={opp.domicile} 
                           onChange={e => handleUpdateCuratedField(opp.ticker, 'domicile', e.target.value)}
-                          style={{ padding: '0.25rem', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '4px', color: '#fff' }}
+                          style={{ padding: '0.25rem', background: 'var(--bg-app)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'var(--text-primary)' }}
                         >
                           <option value="IE">Irlanda (IE)</option>
                           <option value="LU">Luxemburgo (LU)</option>
@@ -656,7 +724,7 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
                         <select 
                           value={opp.distribution} 
                           onChange={e => handleUpdateCuratedField(opp.ticker, 'distribution', e.target.value)}
-                          style={{ padding: '0.25rem', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '4px', color: '#fff' }}
+                          style={{ padding: '0.25rem', background: 'var(--bg-app)', border: '1px solid var(--border-color)', borderRadius: '4px', color: 'var(--text-primary)' }}
                         >
                           <option value="Acc">Acumulação</option>
                           <option value="Dist">Distribuição</option>

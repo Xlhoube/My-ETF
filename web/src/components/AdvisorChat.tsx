@@ -116,15 +116,15 @@ export default function AdvisorChat({ etfs, triggeredQuery, onClearTrigger, port
 
   // Efeito para carregar a mensagem de introdução ácida do consultor de elite.
   useEffect(() => {
-    const defaultWelcomeMessage = etfs.length === 0
+    const welcomeText = etfs.length === 0
       ? "Olá. Sou o teu Consultor de Elite. Estou aqui para garantir que o teu capital não é comido vivo por gestoras gananciosas ou pelo leão do IRS. Para começar a auditar a sério, regista pelo menos um ETF na tua carteira. No entanto, se quiseres falar de conceitos fiscais gerais ou de erros normais, força!"
-      : "Portefólio registado. Estou pronto para auditar os teus custos, analisar a eficiência fiscal e expor os predadores que estão a reter o teu crescimento composto. Pergunta-me o que quiseres, ou clica nos atalhos rápidos abaixo.";
+      : "Portefólio registado. Estou pronto para responder a qualquer dúvida que tenhas sobre eficiência de custos, impostos (IRS) ou otimizações de ETFs. Pergunta-me o que quiseres, ou clica nos atalhos rápidos abaixo.";
 
     setMessages([
       {
         id: 'welcome-msg',
         sender: 'advisor',
-        text: defaultWelcomeMessage,
+        text: welcomeText,
         timestamp: new Date()
       }
     ]);

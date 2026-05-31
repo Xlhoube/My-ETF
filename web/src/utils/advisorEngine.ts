@@ -53,21 +53,21 @@ export function generatePortfolioAlerts(etfs: ETF[]): PortfolioAlert[] {
     const stats = calculatePortfolioStats(etfs);
 
     // 1. Alerta de Custo Médio (TER)
-    if (stats.averageTer > 0.22) {
+    if (stats.averageTer > 0.40) {
       alerts.push({
         id: 'high-ter-avg',
         type: 'danger',
         title: 'Comissões de Gestão Excessivas (TER)',
         message: `O teu TER médio ponderado é de ${stats.averageTer}%. Estás a alimentar a gestora de fundos em excesso!`,
-        details: `Um portefólio passivo de elite deve idealmente manter-se abaixo de 0.20%. Atualmente, pagas €${stats.yearlyTerCost} por ano de forma silenciosa.`
+        details: `Um portefólio passivo de elite deve manter-se abaixo de 0.30%. Atualmente, pagas €${stats.yearlyTerCost} por ano de forma silenciosa.`
       });
-    } else if (stats.averageTer > 0.15) {
+    } else if (stats.averageTer > 0.25) {
       alerts.push({
         id: 'med-ter-avg',
         type: 'warning',
         title: 'Eficiência de Custos Melhorável',
-        message: `O teu TER médio ponderado é de ${stats.averageTer}%. Existem alternativas mais baratas no mercado europeu.`,
-        details: `Investiga se existem emissores (como Vanguard, iShares ou Invesco) a replicar o mesmo índice com taxas abaixo de 0.10%.`
+        message: `O teu TER médio ponderado é de ${stats.averageTer}%. Existem alternativas mais baratas para alguns dos teus índices.`,
+        details: `Verifica se os teus ETFs de mercados desenvolvidos (S&P 500, MSCI World) têm alternativas com TER inferior a 0.15%. ETFs globais alargados ou de mercados emergentes justificam TERs até 0.50%.`
       });
     } else {
       alerts.push({
@@ -81,14 +81,14 @@ export function generatePortfolioAlerts(etfs: ETF[]): PortfolioAlert[] {
 
     // 2. Alertas Individuais por ETF (TER alto, Domicílio Ineficiente ou Distribuição de Dividendos)
     etfs.forEach(etf => {
-      // TER individual elevado
-      if (etf.ter > 0.25) {
+      // TER individual elevado — limiar generoso para não contradizer ETFs globais recomendados (VWCE 0.22%, SPYI 0.17%)
+      if (etf.ter > 0.45) {
         alerts.push({
           id: `high-ter-${etf.id}`,
           type: 'warning',
           title: `Custos Silenciosos em ${etf.ticker}`,
-          message: `O ETF ${etf.name} cobra um TER anual de ${etf.ter}%. Isto é considerado caro para gestão passiva.`,
-          details: 'Geralmente, ETFs acima de 0.25% devem ser justificados por mercados muito específicos (ex: mercados emergentes complexos). Se for um índice clássico (S&P 500, MSCI World, Nasdaq), tens alternativas por 0.05% a 0.15%.'
+          message: `O ETF ${etf.name} cobra um TER anual de ${etf.ter}%. É elevado para gestão passiva.`,
+          details: 'ETFs temáticos ou de mercados emergentes podem justificar TERs mais altos, mas verifica se existe uma alternativa mais barata que replica o mesmo índice.'
         });
       }
 
@@ -284,11 +284,71 @@ export function generateAdvisorReply(message: string, etfs: ETF[], portfolioName
       return "Sou o teu Arquiteto de Capital (Private Broker Edition). Com 25 anos de experiência na banca de investimento e gestão de grandes fortunas, o meu único propósito aqui é defender o teu capital dos predadores do sistema financeiro. \n\nPara que eu possa começar a auditar a sério a tua estratégia sob a ótica de custos estruturais, tracking error e eficiência fiscal, regista pelo menos um ETF na tua carteira. Se queres apenas esclarecer dúvidas conceituais sobre o leão do IRS ou truques de corretoras, força, estou pronto." + brokerTip;
     }
 
+    // Aporte / Rebalanceamento / Onde Comprar
+    if (msg.includes('rebalance') || msg.includes('reforc') || msg.includes('comprar') || msg.includes('investir') || msg.includes('aporte') || msg.includes('water-filling')) {
+      let rebalanceAmount = 1000;
+      const numberMatch = msg.match(/(?:reforco|reforçar|investir|aporte|de|€|\$)\s*(\d+(?:[.,]\d+)?)/);
+      if (numberMatch) {
+        const parsedNum = parseFloat(numberMatch[1].replace(',', '.'));
+        if (!isNaN(parsedNum) && parsedNum > 0) {
+          rebalanceAmount = parsedNum;
+        }
+      }
+
+      const rebalanceResults = calculateRebalancing(etfs, rebalanceAmount);
+      let response = `### ⚖️ PLANO DE REFORÇO INTELIGENTE (SEM IRS)\n\n`;
+      response += `*(Algoritmo water-filling de rebalanceamento por novos aportes ativado...)*\n\n`;
+      response += `Para um novo reforço de **${rebalanceAmount.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}**, a alocação matemática recomendada (sem vender ativos e evitando o IRS de 28% sobre mais-valias) é:\n\n`;
+      
+      let buyCount = 0;
+      rebalanceResults.forEach(r => {
+        if (r.amountToBuy > 0) {
+          response += `* **Comprar ${r.ticker}**: Adicionar **€${r.amountToBuy.toLocaleString('pt-PT')}** (Novo total: €${r.newAmount.toLocaleString('pt-PT')} | ${r.newWeight}% da carteira)\n`;
+          buyCount++;
+        } else {
+          response += `* **Manter ${r.ticker}**: Não reforçar (Atual: €${r.currentAmount.toLocaleString('pt-PT')} | Novo peso estimado: ${r.newWeight}%)\n`;
+        }
+      });
+
+      if (buyCount === 0) {
+        response += `\n*Nota: Os teus ativos já se encontram em perfeito alinhamento com os pesos alvo estabelecidos.*`;
+      } else {
+        response += `\nEsta distribuição direciona o teu capital exatamente para os ativos mais desvalorizados na proporção dos teus pesos alvo, reequilibrando a carteira organicamente.`;
+      }
+      
+      return response + brokerTip;
+    }
+
+    // Resumo de Carteira / Posições / Rentabilidade e Ganhos
+    if (msg.includes('carteira') || msg.includes('portefolio') || msg.includes('ativos') || msg.includes('posicoes') || msg.includes('quanto tenho') || msg.includes('lucro') || msg.includes('ganho') || msg.includes('rentabilidade')) {
+      const totalInvested = etfs.reduce((acc, curr) => acc + curr.amountInvested, 0);
+      const totalCurrent = etfs.reduce((acc, curr) => acc + (curr.currentValue || curr.amountInvested), 0);
+      const profitEuro = totalCurrent - totalInvested;
+      const profitPct = totalInvested > 0 ? (profitEuro / totalInvested) * 100 : 0;
+
+      let response = `### 📊 RESUMO ANALÍTICO DA TUA CARTEIRA\n\n`;
+      response += `* **Valor de Mercado Atual:** **${totalCurrent.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}**\n`;
+      response += `* **Total Investido:** **${totalInvested.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}**\n`;
+      response += `* **Rentabilidade Global:** **${profitEuro >= 0 ? '+' : ''}${profitEuro.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })} (${profitEuro >= 0 ? '+' : ''}${profitPct.toFixed(2)}%)**\n\n`;
+      
+      response += `#### Posições Ativas:\n`;
+      etfs.forEach(e => {
+        const etfProfitEuro = e.currentValue - e.amountInvested;
+        const etfProfitPct = e.amountInvested > 0 ? (etfProfitEuro / e.amountInvested) * 100 : 0;
+        response += `* **${e.ticker}** (${e.name}): Investido **€${e.amountInvested.toLocaleString('pt-PT')}** | Atual **€${e.currentValue.toLocaleString('pt-PT')}** | Rentabilidade **${etfProfitEuro >= 0 ? '+' : ''}€${etfProfitEuro.toFixed(2)} (${etfProfitEuro >= 0 ? '+' : ''}${etfProfitPct.toFixed(2)}%)** (TER: ${e.ter}%, ${e.domicile})\n`;
+      });
+
+      return response + brokerTip;
+    }
+
     // Resposta sobre impostos, IRS, fugas e dividendos (Acumulação vs Distribuição e Domiciliação)
     if (msg.includes('imposto') || msg.includes('fiscal') || msg.includes('irs') || msg.includes('dividendo') || msg.includes('retenc') || msg.includes('fuga') || msg.includes('leakage')) {
       const distCount = etfs.filter(e => e.distribution === 'Dist').length;
       const luCount = etfs.filter(e => e.domicile === 'LU').length;
       const usCount = etfs.filter(e => e.domicile === 'US').length;
+
+      const dragResults = simulatePortfolioDrag(etfs, 25, 7.0, 300);
+      const finalYear = dragResults.projection[dragResults.projection.length - 1];
 
       let response = "### ⚖️ ANÁLISE DE AUDITORIA FISCAL (PRIVATE BROKER)\n\n";
       response += `*(A consultar dados fiscais e diretivas dos mercados europeus...)*\n\n`;
@@ -298,7 +358,7 @@ export function generateAdvisorReply(message: string, etfs: ETF[], portfolioName
       }
 
       if (luCount > 0) {
-        response += `⚠️ **Dividend Leakage (Fuga Invisível):** Tens ${luCount} ETF(s) domiciliados no Luxemburgo [LU] contendo ações norte-americanas. Cruze os dados no JustETF e verás o problema: o Luxemburgo não beneficia do mesmo tratado fiscal que a Irlanda [IE] com os EUA. Tu perdes 30% dos dividendos retidos na fonte americana em vez de apenas 15%. Isto gera uma perda estrutural de cerca de 0.30% ao ano sobre o rendimento total, que é descontado diretamente do valor de cotização do teu fundo de forma invisível. \n\n`;
+        response += `⚠️ **Dividend Leakage (Fuga Invisível):** Tens ${luCount} ETF(s) domiciliados no Luxemburgo [LU] contendo ações norte-americanas. Cruze os dados no JustETF e verás o problema: o Luxemburgo não beneficia do mesmo tratado fiscal que a Irlanda [IE] com os EUA. Tu perdes 30% dos dividendos retidos na fonte americana invez de apenas 15%. Isto gera uma perda estrutural de cerca de 0.30% ao ano sobre o rendimento total, que é descontado diretamente do valor de cotização do teu fundo de forma invisível. \n\n`;
       }
 
       if (usCount > 0) {
@@ -306,9 +366,10 @@ export function generateAdvisorReply(message: string, etfs: ETF[], portfolioName
       }
 
       if (distCount === 0 && luCount === 0 && usCount === 0) {
-        response += `✅ **Estrutura Fiscal de Elite:** A tua carteira está otimizada com domiciliação na Irlanda [IE] e política de Acumulação. Estás a usufruir da máxima retenção reduzida na fonte americana (15%) e a adiar legalmente o IRS em Portugal a 100%. Isto é engenharia fiscal de nível de family office.`;
+        response += `✅ **Estrutura Fiscal de Elite:** A tua carteira está otimizada com domiciliação na Irlanda [IE] e política de Acumulação. Estás a usufruir da máxima retenção reduzida na fonte americana (15%) e a adiar legalmente o IRS em Portugal a 100%. Isto é engenharia fiscal de nível de family office.\n\n`;
       } else {
-        response += `💡 **Recomendação de Private Broker:** Para proteger o teu património e otimizar a rentabilidade de longo prazo, deves reorganizar estes ativos ineficientes. Foca a tua carteira em ETFs UCITS domiciliados na Irlanda (IE) e com estrutura de Acumulação.`;
+        response += `💡 **Perdas Projetadas (Arrasto Fiscal):** Com a tua alocação atual, estimamos uma **fuga fiscal de dividendos e taxas** acumulada de **€${finalYear.lostValue.toLocaleString('pt-PT')}** ao longo de **25 anos** (assumindo reforço mensal de **€300** e retorno de **7.0%**), comparativamente a uma carteira de elite otimizada na Irlanda de Acumulação.\n\n`;
+        response += `Recomendamos reorganizar estes ativos ineficientes. Foca a tua carteira em ETFs UCITS domiciliados na Irlanda (IE) e com estrutura de Acumulação.`;
       }
 
       return response + brokerTip;
@@ -316,18 +377,22 @@ export function generateAdvisorReply(message: string, etfs: ETF[], portfolioName
 
     // Resposta sobre comissões, TER, taxas ocultas ou spreads de corretagem
     if (msg.includes('comissao') || msg.includes('custo') || msg.includes('ter') || msg.includes('taxa') || msg.includes('caro') || msg.includes('perda') || msg.includes('spread') || msg.includes('corretora')) {
+      const dragResults = simulatePortfolioDrag(etfs, 25, 7.0, 300);
+      const finalYear = dragResults.projection[dragResults.projection.length - 1];
+
       let response = `### 💸 AUDITORIA DE CUSTOS E TAXAS OCULTAS\n\n`;
       response += `*(A analisar comissões de gestoras globais e informações de mercado...)*\n\n`;
       
       response += `Análise de TER ponderado: Atualmente o teu TER médio é de **${stats.averageTer}%**, gerando um encargo de **${stats.yearlyTerCost}€/ano** sobre um capital de **${stats.totalInvested.toLocaleString('pt-PT')}€**.\n\n`;
 
       if (stats.averageTer > 0.20) {
-        response += `⚠️ **Comissão de Gestão Excessiva:** Pagar mais de 0.20% de TER por um portefólio passivo é inaceitável na banca de elite moderna. Num cenário de taxas de juro do BCE e FED elevadas, e possível volatilidade macroeconómica reportada pela Reuters, os teus retornos reais líquidos estão comprometidos. Gestoras de fundos tradicionais adoram cobrar taxas elevadas por índices facilmente replicáveis. Encontra alternativas de baixo custo (ex: Vanguard ou iShares) no JustETF com TER na casa dos 0.05% a 0.07%.\n\n`;
+        response += `⚠️ **Comissão de Gestão Excessiva:** Pagar mais de 0.20% de TER por um portefólio passivo é inaceitável na banca de elite moderna. Num cenário de taxas de juro do BCE e FED elevadas, os teus retornos reais líquidos estão comprometidos. Gestoras de fundos tradicionais cobram taxas elevadas por índices facilmente replicáveis. Encontra alternativas de baixo custo (ex: Vanguard ou iShares) no JustETF com TER na casa dos 0.05% a 0.07%.\n\n`;
       } else {
         response += `✅ **Eficiência de TER:** O teu custo de gestão está bem controlado (${stats.averageTer}%). Estás na categoria de alta eficiência passiva.\n\n`;
       }
 
-      response += `💡 **Cuidado com as "Corretoras Grátis" (Spreads Ocultos):** Lembra-te que na banca de investimento não há almoços grátis. Corretoras com "taxa zero" ou comissões nulas costumam cobrar margens brutais no spread de compra/venda, taxas de conversão de moeda (FX Fee) que chegam a 0.50% ocultas no câmbio, ou taxas de custódia e levantamento silenciosas. Audita o teu extrato de transações de forma impiedosa.`;
+      response += `💡 **Impacto dos Custos Acumulados (Drag):** Se mantiveres esta estrutura ineficiente, perderás cerca de **€${finalYear.lostValue.toLocaleString('pt-PT')}** em taxas de gestão de fundos, ineficiência de dividendos e impostos ao longo de **25 anos** (assumindo reforço mensal de **€300** e retorno de **7.0%**), comparativamente a uma carteira de referência otimizada.\n\n`;
+      response += `Cuidado também com os spreads de compra/venda e conversões de moedas nas corretoras, que podem retirar rentabilidade silenciosamente no momento de cada ordem.`;
 
       return response + brokerTip;
     }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ETF, PortfolioAlert } from '../types';
 import { PiggyBank, Percent, Coins, ShieldAlert, AlertTriangle, CheckCircle, Info, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { getActiveBroker } from '../utils/advisorEngine';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 
 interface DashboardProps {
   etfs: ETF[];
@@ -41,7 +42,12 @@ export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfoli
     }
   };
 
-  const dangerAlertsCount = alerts.filter(a => a.type === 'danger').length;
+
+  const chartData = etfs.map(e => ({
+    name: e.ticker,
+    value: e.currentValue || e.amountInvested
+  }));
+  const CHART_COLORS = ['var(--primary)', '#f97316', '#38bdf8', '#a78bfa', '#f43f5e', '#facc15', '#2dd4bf'];
 
   const getAssociatedEtf = (alertId: string) => {
     // Procura por um ETF cujo id faça parte do alertId
@@ -341,73 +347,77 @@ export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfoli
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       
-      {/* Grelha de Estatísticas Financeiras Premium */}
-      <div className="stats-grid">
-        
-        {/* Total Investido */}
-        <div className="card">
-          <div className="stat-card">
-            <span className="stat-label">Total Investido (Custo)</span>
-            <span className="stat-value text-secondary" style={{ color: 'var(--text-muted)' }}>{formatMoney(totalInvested)}</span>
-            <div className="stat-icon">
-              <PiggyBank size={24} />
-            </div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Alocado em {etfs.length} ETF{etfs.length !== 1 ? 's' : ''}
-            </span>
+      <div className="dashboard-grid">
+        {/* Painel Principal de Gráficos (Orion UI Style) */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+          <h3 className="card-title" style={{ margin: 0 }}>Alocação do Portefólio</h3>
+          <div className="chart-container" style={{ flex: 1, minHeight: '300px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={85}
+                  outerRadius={110}
+                  paddingAngle={5}
+                  dataKey="value"
+                  stroke="none"
+                >
+                  {chartData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                  ))}
+                </Pie>
+                <RechartsTooltip 
+                  formatter={(value: any) => formatMoney(Number(value))}
+                  contentStyle={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)', borderRadius: '12px', color: 'var(--text-primary)' }}
+                />
+                <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: 'var(--text-secondary)' }}/>
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Valor de Mercado Atual */}
-        <div className="card" style={{ position: 'relative', overflow: 'hidden' }}>
-          <div className="stat-card">
-            <span className="stat-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              Valor de Mercado <span style={{ width: '6px', height: '6px', background: 'var(--primary)', borderRadius: '50%', display: 'inline-block' }} />
-            </span>
-            <span className="stat-value primary" style={{ transition: 'color 0.5s ease-out' }}>
-              {formatMoney(totalCurrent)}
-            </span>
-            <div className="stat-icon" style={{ color: 'var(--primary)' }}>
-              <Coins size={24} />
+        {/* Grelha de Estatísticas Financeiras Premium */}
+        <div className="stats-grid" style={{ gridTemplateColumns: '1fr' }}>
+          
+          <div className="card">
+            <div className="stat-card">
+              <span className="stat-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                Valor da carteira <span className="spin-animation" style={{ width: '6px', height: '6px', background: 'var(--primary)', borderRadius: '50%', display: 'inline-block' }} />
+              </span>
+              <span className="stat-value primary">
+                {formatMoney(totalCurrent)}
+              </span>
+              <div className="stat-icon" style={{ color: 'var(--primary)' }}>
+                <Coins size={24} />
+              </div>
             </div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '600' }}>
-              Preços de mercado em direto
-            </span>
           </div>
-        </div>
 
-        {/* Rentabilidade Global (Tempo Real) */}
-        <div className="card">
-          <div className="stat-card">
-            <span className="stat-label">Rentabilidade Global</span>
-            <span className={`stat-value ${profitEuro >= 0 ? 'text-success' : 'text-danger'}`} style={{ color: profitEuro >= 0 ? 'var(--primary)' : 'var(--danger)' }}>
-              {profitEuro >= 0 ? '+' : ''}{formatMoney(profitEuro)}
-            </span>
-            <div className="stat-icon" style={{ color: profitEuro >= 0 ? 'var(--primary)' : 'var(--danger)' }}>
-              <Percent size={24} />
+          <div className="card">
+            <div className="stat-card">
+              <span className="stat-label">Total investido</span>
+              <span className="stat-value" style={{ color: 'var(--text-primary)' }}>{formatMoney(totalInvested)}</span>
+              <div className="stat-icon">
+                <PiggyBank size={24} />
+              </div>
             </div>
-            <span style={{ fontSize: '0.75rem', fontWeight: '700', color: profitEuro >= 0 ? 'var(--primary)' : 'var(--danger)' }}>
-              {profitEuro >= 0 ? '▲' : '▼'} {profitPct.toFixed(2)}% de retorno
-            </span>
           </div>
-        </div>
 
-        {/* Custos do TER anual / Alertas Ativos */}
-        <div className="card">
-          <div className="stat-card">
-            <span className="stat-label">Fugas & Fricção Fiscal</span>
-            <span className="stat-value" style={{ color: dangerAlertsCount > 0 ? 'var(--danger)' : 'var(--text-primary)' }}>
-              {dangerAlertsCount} Alertas
-            </span>
-            <div className="stat-icon" style={{ color: dangerAlertsCount > 0 ? 'var(--danger)' : 'var(--text-muted)' }}>
-              <ShieldAlert size={24} />
+          <div className="card">
+            <div className="stat-card">
+              <span className="stat-label">Lucro</span>
+              <span className={`stat-value`} style={{ color: profitEuro >= 0 ? 'var(--primary)' : 'var(--danger)' }}>
+                {profitEuro >= 0 ? '+' : ''}{formatMoney(profitEuro)} ({profitEuro >= 0 ? '+' : ''}{profitPct.toFixed(2)}%)
+              </span>
+              <div className="stat-icon" style={{ color: profitEuro >= 0 ? 'var(--primary)' : 'var(--danger)' }}>
+                <Percent size={24} />
+              </div>
             </div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Inconsistências de domiciliação ou de distribuição
-            </span>
           </div>
-        </div>
 
+        </div>
       </div>
 
       {/* Secção de Alertas Gerados pelo Motor Cético */}
