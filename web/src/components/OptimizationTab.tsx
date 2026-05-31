@@ -380,12 +380,12 @@ export default function OptimizationTab({ etfs, portfolioName, portfolioBroker, 
                 >
                   <defs>
                     <linearGradient id="colorOpt" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#38bdf8" stopOpacity={0}/>
                     </linearGradient>
                     <linearGradient id="colorCurr" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--danger)" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="var(--danger)" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="year" tickFormatter={(v) => `Ano ${v}`} stroke="var(--border-color)" tick={{fill: 'var(--text-muted)', fontSize: 12}} />
@@ -397,8 +397,8 @@ export default function OptimizationTab({ etfs, portfolioName, portfolioBroker, 
                     contentStyle={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)', borderRadius: '12px', color: 'var(--text-primary)' }}
                   />
                   <Legend verticalAlign="top" height={36} wrapperStyle={{ color: 'var(--text-secondary)' }}/>
-                  <Area type="monotone" dataKey="optimizedValue" name="Portefólio de Elite (Otimizado)" stroke="var(--primary)" fillOpacity={1} fill="url(#colorOpt)" strokeWidth={2} />
-                  <Area type="monotone" dataKey="currentValue" name="O teu Portefólio (Atual)" stroke="var(--danger)" fillOpacity={1} fill="url(#colorCurr)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="optimizedValue" name="Portefólio de Elite (Otimizado)" stroke="#38bdf8" fillOpacity={1} fill="url(#colorOpt)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="currentValue" name="O teu Portefólio (Atual)" stroke="#2563eb" fillOpacity={1} fill="url(#colorCurr)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
