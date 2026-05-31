@@ -295,10 +295,10 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
               </div>
 
               {/* Terminal de Logs OCR */}
-              <div style={{ background: '#05050a', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1rem', fontFamily: 'monospace', fontSize: '0.75rem', height: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1rem', fontFamily: 'monospace', fontSize: '0.75rem', height: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 {logs.map((log, idx) => (
                   <div key={idx} style={{ 
-                    color: log.type === 'success' ? '#4ade80' : log.type === 'warning' ? '#facc15' : '#e2e8f0',
+                    color: log.type === 'success' ? 'var(--primary)' : log.type === 'warning' ? 'var(--primary)' : 'var(--text-primary)',
                     lineHeight: '1.4'
                   }}>
                     <span style={{ color: 'var(--text-muted)', marginRight: '0.5rem' }}>[{log.time}]</span>

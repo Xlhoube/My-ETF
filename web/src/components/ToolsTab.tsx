@@ -73,13 +73,13 @@ export default function ToolsTab({ etfs }: ToolsTabProps) {
       return {
         title: "🔥 Fase 4: Quase Fora da Matrix",
         desc: "Fase de escape iminente. A velocidade dos juros compostos nesta fase é superior aos teus reforços ativos. O teu portefólio move-se sozinho!",
-        color: '#22c55e'
+        color: 'var(--primary)'
       };
     } else {
       return {
         title: "👑 Fase 5: Independência Financeira Absoluta (FIRE)",
         desc: "REFORMADO E LIVRE! O teu portefólio de ETFs de elite sustenta o teu estilo de vida para sempre. Parabéns investidor, escapaste à Matrix de IRS e trabalho obrigatório!",
-        color: '#22c55e'
+        color: 'var(--primary)'
       };
     }
   };
@@ -237,7 +237,7 @@ export default function ToolsTab({ etfs }: ToolsTabProps) {
             <div style={{ display: 'flex', gap: '0.75rem', background: 'var(--info-glow)', border: '1px solid rgba(131, 149, 167, 0.25)', padding: '1rem', borderRadius: '12px', fontSize: '0.82rem', lineHeight: '1.5' }}>
               <FileText size={20} className="text-secondary" style={{ color: 'var(--secondary)', flexShrink: 0, marginTop: '0.1rem' }} />
               <div>
-                <strong style={{ color: '#fff' }}>Enquadramento Legal Português (IRS Modelo 3):</strong>
+                <strong style={{ color: 'var(--text-primary)' }}>Enquadramento Legal Português (IRS Modelo 3):</strong>
                 <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                   Os ETFs são valores mobiliários estrangeiros. Se utilizas uma corretora internacional não domiciliada em Portugal (como XTB, DEGIRO, Trading212 ou Interactive Brokers), és obrigado por lei a preencher o <strong>Anexo J</strong> para declarar qualquer mais-valia de venda ou dividendos recebidos no estrangeiro.
                 </p>
@@ -272,7 +272,7 @@ export default function ToolsTab({ etfs }: ToolsTabProps) {
                         <span style={{ color: 'var(--primary)', fontWeight: '700' }}>G01</span>
                         <span style={{ color: 'var(--text-primary)' }}>{e.domicile === 'IE' ? '372 (IE)' : '442 (LU)'}</span>
                         <span>2026</span>
-                        <span style={{ color: '#22c55e' }}>{e.currentValue ? e.currentValue.toFixed(0) : '---'} €</span>
+                        <span style={{ color: 'var(--primary)' }}>{e.currentValue ? e.currentValue.toFixed(0) : '---'} €</span>
                         <span style={{ color: 'var(--text-secondary)' }}>{e.amountInvested.toFixed(0)} €</span>
                       </div>
                     ))}
@@ -368,7 +368,7 @@ export default function ToolsTab({ etfs }: ToolsTabProps) {
               }}>
                 <Sparkles size={20} style={{ color: incomeTier === 'under_21k' ? 'var(--secondary)' : 'var(--primary)', flexShrink: 0, marginTop: '0.1rem' }} />
                 <div>
-                  <strong style={{ fontSize: '0.85rem', color: '#fff', display: 'block' }}>
+                  <strong style={{ fontSize: '0.85rem', color: 'var(--text-primary)', display: 'block' }}>
                     Recomendação Simples: {incomeTier === 'under_21k' ? 'Juntar tudo no IRS (Opção de Englobamento)' : 'Pagar a Taxa Fixa de 28% (Opção Padrão)'}
                   </strong>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem', lineHeight: '1.4' }}>

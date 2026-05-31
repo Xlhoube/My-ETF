@@ -47,7 +47,7 @@ export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfoli
     name: e.ticker,
     value: e.currentValue || e.amountInvested
   }));
-  const CHART_COLORS = ['var(--primary)', '#f97316', '#38bdf8', '#a78bfa', '#f43f5e', '#facc15', '#2dd4bf'];
+  const CHART_COLORS = ['#0284c7', '#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd', '#e0f2fe'];
 
   const getAssociatedEtf = (alertId: string) => {
     // Procura por um ETF cujo id faça parte do alertId

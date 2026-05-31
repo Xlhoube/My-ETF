@@ -63,9 +63,9 @@ const ETF_LIBRARY: EtfTemplate[] = [
 
 // Risk-profile descriptions
 const RISK_OPTIONS: { id: RiskProfile; label: string; desc: string; icon: typeof Shield; color: string }[] = [
-  { id: 'conservador', label: 'Conservador',  desc: 'Foco em preservar capital. Inclui obrigações e ETFs globais diversificados com baixa volatilidade.',                       icon: Shield,      color: '#60a5fa' },
+  { id: 'conservador', label: 'Conservador',  desc: 'Foco em preservar capital. Inclui obrigações e ETFs globais diversificados com baixa volatilidade.',                       icon: Shield,      color: 'var(--primary)' },
   { id: 'moderado',    label: 'Moderado',     desc: 'Equilíbrio entre crescimento e segurança. ETFs globais com exposição controlada a setores de maior retorno.',            icon: BarChart2,   color: 'var(--primary)' },
-  { id: 'agressivo',   label: 'Agressivo',    desc: 'Maximizar retorno a longo prazo. Foco em tecnologia, mercados emergentes e setores de alto crescimento.',                icon: Zap,         color: '#f97316' },
+  { id: 'agressivo',   label: 'Agressivo',    desc: 'Maximizar retorno a longo prazo. Foco em tecnologia, markets emergentes e setores de alto crescimento.',                icon: Zap,         color: 'var(--primary)' },
 ];
 
 const THEME_OPTIONS: { id: Theme; label: string; icon: typeof Globe }[] = [
@@ -620,8 +620,8 @@ export default function PortfolioModal({ isOpen, onClose, onSave, existingPortfo
               {recommendations.some(r => r.isTopPick) && (
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
-                    <span style={{ fontSize: '0.72rem', fontWeight: '800', color: '#f59e0b', letterSpacing: '0.05em', textTransform: 'uppercase' }}>⭐ Escolha do Consultor</span>
-                    <div style={{ flex: 1, height: '1px', background: 'rgba(245,158,11,0.25)' }} />
+                    <span style={{ fontSize: '0.72rem', fontWeight: '800', color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>⭐ Escolha do Consultor</span>
+                    <div style={{ flex: 1, height: '1px', background: 'rgba(56, 189, 248, 0.25)' }} />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {recommendations.filter(r => r.isTopPick).map(r => {
@@ -632,25 +632,25 @@ export default function PortfolioModal({ isOpen, onClose, onSave, existingPortfo
                           onClick={() => toggleEtf(r.ticker)}
                           style={{
                             ...cardBase,
-                            border: selected ? '2px solid #f59e0b' : '1.5px solid rgba(245,158,11,0.4)',
-                            background: selected ? 'rgba(245,158,11,0.08)' : 'rgba(245,158,11,0.03)',
+                            border: selected ? '2px solid var(--primary)' : '1.5px solid rgba(56, 189, 248, 0.4)',
+                            background: selected ? 'rgba(56, 189, 248, 0.08)' : 'rgba(56, 189, 248, 0.03)',
                             cursor: 'pointer',
                             position: 'relative',
                           }}
                         >
                           <div style={{
                             width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0, marginTop: '2px',
-                            border: selected ? '2px solid #f59e0b' : '2px solid rgba(245,158,11,0.4)',
-                            background: selected ? '#f59e0b' : 'transparent',
+                            border: selected ? '2px solid var(--primary)' : '2px solid rgba(56, 189, 248, 0.4)',
+                            background: selected ? 'var(--primary)' : 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s',
                           }}>
-                            {selected && <Check size={11} style={{ color: '#000' }} />}
+                            {selected && <Check size={11} style={{ color: 'var(--bg-primary)' }} />}
                           </div>
                           <div style={{ flex: 1 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                              <strong style={{ fontSize: '0.95rem', color: '#f59e0b' }}>{r.ticker}</strong>
+                              <strong style={{ fontSize: '0.95rem', color: 'var(--primary)' }}>{r.ticker}</strong>
                               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{r.name}</span>
-                              <span style={{ marginLeft: 'auto', fontSize: '0.7rem', fontWeight: '700', color: '#f59e0b', background: 'rgba(245,158,11,0.12)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                              <span style={{ marginLeft: 'auto', fontSize: '0.7rem', fontWeight: '700', color: 'var(--primary)', background: 'rgba(56, 189, 248, 0.12)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                                 Peso sugerido: {r.suggestedWeight}%
                               </span>
                             </div>
@@ -690,7 +690,7 @@ export default function PortfolioModal({ isOpen, onClose, onSave, existingPortfo
                           style={{
                             ...cardBase,
                             border: selected ? '1.5px solid var(--primary)' : '1px solid var(--border-color)',
-                            background: selected ? 'rgba(34,197,94,0.06)' : 'rgba(255,255,255,0.01)',
+                            background: selected ? 'rgba(56, 189, 248, 0.06)' : 'rgba(255,255,255,0.01)',
                             cursor: 'pointer',
                           }}
                         >
@@ -700,13 +700,13 @@ export default function PortfolioModal({ isOpen, onClose, onSave, existingPortfo
                             background: selected ? 'var(--primary)' : 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s',
                           }}>
-                            {selected && <Check size={10} style={{ color: '#000' }} />}
+                            {selected && <Check size={10} style={{ color: 'var(--bg-primary)' }} />}
                           </div>
                           <div style={{ flex: 1 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                               <strong style={{ fontSize: '0.85rem', color: selected ? 'var(--primary)' : 'var(--text-primary)' }}>{r.ticker}</strong>
                               <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{r.name}</span>
-                              <span style={{ marginLeft: 'auto', fontSize: '0.67rem', fontWeight: '700', color: 'var(--primary)', background: 'rgba(34,197,94,0.08)', padding: '0.1rem 0.35rem', borderRadius: '4px' }}>
+                              <span style={{ marginLeft: 'auto', fontSize: '0.67rem', fontWeight: '700', color: 'var(--primary)', background: 'rgba(56, 189, 248, 0.08)', padding: '0.1rem 0.35rem', borderRadius: '4px' }}>
                                 {r.suggestedWeight}%
                               </span>
                             </div>

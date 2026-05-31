@@ -19,7 +19,7 @@ function parseInlineFormatting(text: string): React.ReactNode[] {
   
   return matches.map((part, idx) => {
     if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={idx} style={{ color: '#ffffff', fontWeight: '800' }}>{part.slice(2, -2)}</strong>;
+      return <strong key={idx} style={{ color: 'var(--text-primary)', fontWeight: '800' }}>{part.slice(2, -2)}</strong>;
     }
     if (part.startsWith('`') && part.endsWith('`')) {
       return (
@@ -27,7 +27,7 @@ function parseInlineFormatting(text: string): React.ReactNode[] {
           background: 'rgba(0, 0, 0, 0.4)', 
           padding: '2px 6px', 
           borderRadius: '4px', 
-          color: '#4ade80', 
+          color: 'var(--primary)', 
           fontFamily: 'monospace',
           fontSize: '0.82rem',
           border: '1px solid rgba(255, 255, 255, 0.05)'

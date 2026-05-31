@@ -457,7 +457,7 @@ export default function App() {
                     gap: '0.4rem',
                     borderRadius: '8px',
                     border: isActive ? '1px solid var(--primary)' : '1px solid transparent',
-                    background: isActive ? 'rgba(34,197,94,0.08)' : 'transparent',
+                    background: isActive ? 'var(--primary-glow)' : 'transparent',
                     padding: '0.4rem 0.5rem',
                     cursor: 'pointer',
                     transition: 'all 0.18s ease',
@@ -576,7 +576,7 @@ export default function App() {
         <header className="top-header">
           <div>
             <h1 style={{ fontSize: '1.8rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              {activePortfolio?.isDemo && <span style={{ fontSize: '0.7em', padding: '0.2rem 0.5rem', background: 'rgba(220, 38, 38, 0.2)', color: '#fca5a5', borderRadius: '6px', border: '1px solid rgba(220, 38, 38, 0.4)' }}>DEMO</span>}
+              {activePortfolio?.isDemo && <span style={{ fontSize: '0.7em', padding: '0.2rem 0.5rem', background: 'var(--primary-glow)', color: 'var(--primary)', borderRadius: '6px', border: '1px solid var(--primary)' }}>DEMO</span>}
               {activePortfolio ? activePortfolio.name : 'Gestão de Portefólio de ETFs'}
             </h1>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>

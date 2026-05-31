@@ -55,7 +55,7 @@ export default function OptimizationTab({ etfs, portfolioName, portfolioBroker, 
         padding: '1.5rem'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ background: 'var(--secondary)', color: '#121214', padding: '0.5rem', borderRadius: '10px' }}>
+          <div style={{ background: 'var(--secondary)', color: 'var(--bg-primary)', padding: '0.5rem', borderRadius: '10px' }}>
             <Sparkles size={20} />
           </div>
           <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--text-primary)' }}>
@@ -85,7 +85,7 @@ export default function OptimizationTab({ etfs, portfolioName, portfolioBroker, 
           {/* Pilar 2 */}
           <div style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '50%', background: 'var(--secondary)', color: '#fff', fontSize: '0.75rem', fontWeight: '800' }}>2</span>
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '50%', background: 'var(--secondary)', color: 'var(--text-on-primary)', fontSize: '0.75rem', fontWeight: '800' }}>2</span>
               <strong style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>Simulação de Arrasto Fiscal (TER Drag)</strong>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.45', margin: 0 }}>

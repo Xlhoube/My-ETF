@@ -402,7 +402,7 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
       
       {/* Cabeçalho Interativo com Ícones */}
       <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-        <div style={{ background: 'var(--primary)', padding: '0.75rem', borderRadius: '12px', color: '#121214' }}>
+        <div style={{ background: 'var(--primary)', padding: '0.75rem', borderRadius: '12px', color: 'var(--bg-primary)' }}>
           <Compass size={28} />
         </div>
         <div>
@@ -442,7 +442,7 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
 
           {/* Consola de Logs com Efeito Laser */}
           {isScanning && (
-            <div style={{ background: '#050508', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1rem', fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--primary)', display: 'flex', flexDirection: 'column', gap: '0.4rem', position: 'relative' }}>
+            <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '1rem', fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--primary)', display: 'flex', flexDirection: 'column', gap: '0.4rem', position: 'relative' }}>
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '2px', background: 'var(--primary)', animation: 'scan-laser 2s linear infinite' }} />
               {scanLogs.map((log, idx) => (
                 <div key={idx} style={{ animation: 'fade-in 0.3s ease-out' }}>
@@ -502,8 +502,8 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
               {newsLoading && !news.length ? (
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem' }}>A carregar notícias em tempo real...</p>
               ) : news.map(n => {
-                const sentimentColor = n.sentiment === 'bullish' ? 'var(--primary)' : n.sentiment === 'bearish' ? 'var(--danger)' : 'var(--info)';
-                const sentimentBg = n.sentiment === 'bullish' ? 'rgba(34,197,94,0.1)' : n.sentiment === 'bearish' ? 'rgba(189,108,108,0.12)' : 'rgba(131,149,167,0.12)';
+                const sentimentColor = 'var(--primary)';
+                const sentimentBg = 'var(--primary-glow)';
                 return (
                   <div key={n.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', paddingBottom: '0.6rem', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
                     <div style={{ flex: 1 }}>
@@ -529,19 +529,19 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
           {/* Discussões de Investidores (Reddit/Bogleheads) */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <h4 style={{ fontSize: '1rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-              <MessageSquare size={16} style={{ color: '#f97316' }} /> Investor Conversations
+              <MessageSquare size={16} style={{ color: 'var(--primary)' }} /> Investor Conversations
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
               {posts.map(p => (
                 <div key={p.id} style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.02)', borderRadius: '8px', padding: '0.75rem', position: 'relative' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
                     <strong>{p.user}</strong>
-                    <span style={{ color: '#f97316', fontWeight: '600' }}>{p.community}</span>
+                    <span style={{ color: 'var(--primary)', fontWeight: '600' }}>{p.community}</span>
                   </div>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>{p.text}</p>
                   <div style={{ display: 'flex', gap: '0.15rem', marginTop: '0.4rem', justifyContent: 'flex-end' }}>
                     {Array.from({ length: 5 }).map((_, idx) => (
-                      <span key={idx} style={{ width: '8px', height: '8px', borderRadius: '50%', background: idx < p.hotness ? '#f97316' : 'rgba(255,255,255,0.1)' }} />
+                      <span key={idx} style={{ width: '8px', height: '8px', borderRadius: '50%', background: idx < p.hotness ? 'var(--primary)' : 'rgba(255,255,255,0.1)' }} />
                     ))}
                   </div>
                 </div>
