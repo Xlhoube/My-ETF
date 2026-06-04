@@ -195,12 +195,10 @@ export default function App() {
 
   // Eliminação da carteira ativa ou por ID
   const handleDeletePortfolio = (id: string) => {
-    if (portfolios.length <= 1) return;
-    // Opcionalmente confirmar de novo aqui se não for confirmado no modal, mas já tem confirm lá
     const updated = portfolios.filter(p => p.id !== id);
     setPortfolios(updated);
     if (activePortfolioId === id) {
-      setActivePortfolioId(updated[0].id);
+      setActivePortfolioId(updated.length > 0 ? updated[0].id : '');
     }
     savePortfolios(updated);
     if (editingPortfolio?.id === id) {
@@ -211,7 +209,7 @@ export default function App() {
 
   // Mantém para a sidebar (eliminar ativo)
   const handleDeleteActivePortfolio = () => {
-    if (portfolios.length <= 1) return;
+    if (!activePortfolio) return;
     if (window.confirm(`Tens a certeza absoluta que queres eliminar a carteira "${activePortfolio.name}" e todos os seus ativos?`)) {
       handleDeletePortfolio(activePortfolioId);
     }
@@ -681,12 +679,24 @@ export default function App() {
           isOpen={isPortfolioModalOpen}
           onClose={() => setIsPortfolioModalOpen(false)}
           onSave={handleSavePortfolio}
-          onDelete={portfolios.length > 1 ? handleDeletePortfolio : undefined}
+          onDelete={handleDeletePortfolio}
           existingPortfolio={editingPortfolio}
           userProfileBroker={userProfile?.broker}
           onImportFromPrint={(portfolioId) => {
             if (portfolioId) {
               setActivePortfolioId(portfolioId);
+            } else {
+              // O utilizador clicou em "Carregar Print" a partir da janela de "Nova Carteira"
+              const newPortfolio: Portfolio = {
+                id: `portfolio-${Math.random().toString(36).substring(2, 7)}`,
+                name: 'Carteira Importada',
+                broker: 'XTB',
+                etfs: []
+              };
+              const updated = [...portfolios, newPortfolio];
+              setPortfolios(updated);
+              setActivePortfolioId(newPortfolio.id);
+              savePortfolios(updated);
             }
             setIsPortfolioModalOpen(false);
             setIsXtbModalOpen(true);
