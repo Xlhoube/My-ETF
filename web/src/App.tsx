@@ -256,14 +256,27 @@ export default function App() {
     setIsPortfolioModalOpen(false);
   };
 
-  // Eliminação da carteira ativa
+  // Eliminação da carteira ativa ou por ID
+  const handleDeletePortfolio = (id: string) => {
+    if (portfolios.length <= 1) return;
+    // Opcionalmente confirmar de novo aqui se não for confirmado no modal, mas já tem confirm lá
+    const updated = portfolios.filter(p => p.id !== id);
+    setPortfolios(updated);
+    if (activePortfolioId === id) {
+      setActivePortfolioId(updated[0].id);
+    }
+    savePortfolios(updated);
+    if (editingPortfolio?.id === id) {
+      setIsPortfolioModalOpen(false);
+      setEditingPortfolio(null);
+    }
+  };
+
+  // Mantém para a sidebar (eliminar ativo)
   const handleDeleteActivePortfolio = () => {
     if (portfolios.length <= 1) return;
     if (window.confirm(`Tens a certeza absoluta que queres eliminar a carteira "${activePortfolio.name}" e todos os seus ativos?`)) {
-      const updated = portfolios.filter(p => p.id !== activePortfolioId);
-      setPortfolios(updated);
-      setActivePortfolioId(updated[0].id);
-      savePortfolios(updated);
+      handleDeletePortfolio(activePortfolioId);
     }
   };
 
@@ -710,13 +723,21 @@ export default function App() {
       />
 
       {/* Modal de Gestão de Carteiras */}
-      <PortfolioModal
-        isOpen={isPortfolioModalOpen}
-        onClose={() => setIsPortfolioModalOpen(false)}
-        onSave={handleSavePortfolio}
-        existingPortfolio={editingPortfolio}
-        userProfileBroker={userProfile?.broker}
-      />
+        <PortfolioModal
+          isOpen={isPortfolioModalOpen}
+          onClose={() => setIsPortfolioModalOpen(false)}
+          onSave={handleSavePortfolio}
+          onDelete={portfolios.length > 1 ? handleDeletePortfolio : undefined}
+          existingPortfolio={editingPortfolio}
+          userProfileBroker={userProfile?.broker}
+          onImportFromPrint={(portfolioId) => {
+            if (portfolioId) {
+              setActivePortfolioId(portfolioId);
+            }
+            setIsPortfolioModalOpen(false);
+            setIsXtbModalOpen(true);
+          }}
+        />
 
       {/* Botão Flutuante e Widget do Consultor de Elite */}
       <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1rem' }}>

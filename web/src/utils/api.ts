@@ -12,18 +12,35 @@ export async function fetchEtfPrice(ticker: string): Promise<number | null> {
       }
     }
 
-    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooTicker}?interval=1d&range=1d`;
-    // Utilizamos o AllOrigins como um CORS proxy público para contornar bloqueios do browser
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+    const cacheBuster = `&t=${Date.now()}`;
+    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooTicker}?interval=1d&range=1d${cacheBuster}`;
+    
+    // Array of proxies to try
+    const proxies = [
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+      `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
+    ];
 
-    const response = await fetch(proxyUrl);
-    if (!response.ok) return null;
+    let lastError = null;
 
-    const data = await response.json();
-    const result = data.chart?.result?.[0];
-    if (result && result.meta && result.meta.regularMarketPrice) {
-      return result.meta.regularMarketPrice;
+    for (const proxyUrl of proxies) {
+      try {
+        const response = await fetch(proxyUrl, { cache: 'no-store' });
+        if (!response.ok) continue;
+
+        const data = await response.json();
+        const result = data.chart?.result?.[0];
+        
+        if (result?.meta?.regularMarketPrice) {
+          return result.meta.regularMarketPrice;
+        }
+      } catch (err) {
+        lastError = err;
+        // Continue to the next proxy
+      }
     }
+
+    console.error(`Falha a obter cotação para ${ticker} após tentar proxies.`, lastError);
     return null;
   } catch (error) {
     console.error(`Erro ao obter cotação para ${ticker}:`, error);

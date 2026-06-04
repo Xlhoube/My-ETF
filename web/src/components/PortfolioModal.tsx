@@ -6,9 +6,10 @@ interface PortfolioModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (portfolio: Partial<Portfolio> & { starterEtfs?: ETF[] }) => void;
+  onDelete?: (id: string) => void;
   existingPortfolio: Portfolio | null;
   userProfileBroker?: string;
-  onImportFromPrint?: () => void;
+  onImportFromPrint?: (portfolioId?: string) => void;
 }
 
 type RiskProfile = 'conservador' | 'moderado' | 'agressivo';
@@ -206,7 +207,7 @@ function generateRecommendations(state: WizardState): Array<EtfTemplate & { sugg
 }
 
 
-export default function PortfolioModal({ isOpen, onClose, onSave, existingPortfolio, userProfileBroker, onImportFromPrint }: PortfolioModalProps) {
+export default function PortfolioModal({ isOpen, onClose, onSave, onDelete, existingPortfolio, userProfileBroker, onImportFromPrint }: PortfolioModalProps) {
   // Simple edit mode (no wizard) for existing portfolios
   const [name, setName] = useState('');
   const [broker, setBroker] = useState<string>('Outro');
@@ -273,9 +274,44 @@ export default function PortfolioModal({ isOpen, onClose, onSave, existingPortfo
                 <option value="Outro">Outro</option>
               </select>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
-              <button type="button" className="btn btn-secondary" onClick={onClose}>Cancelar</button>
-              <button type="submit" className="btn btn-primary"><Save size={16} /> Guardar Alterações</button>
+            <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                {onDelete && (
+                  <button 
+                    type="button" 
+                    className="btn" 
+                    style={{ background: 'var(--danger)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.85rem' }} 
+                    onClick={() => {
+                      if (window.confirm(`Tem a certeza que deseja eliminar a carteira "${existingPortfolio.name}"?`)) {
+                        onDelete(existingPortfolio.id);
+                      }
+                    }}
+                  >
+                    Eliminar Carteira
+                  </button>
+                )}
+                <div style={{ display: 'flex', gap: '0.75rem', marginLeft: 'auto' }}>
+                  <button type="button" className="btn btn-secondary" onClick={onClose}>Cancelar</button>
+                  <button type="submit" className="btn btn-primary"><Save size={16} /> Guardar Alterações</button>
+                </div>
+              </div>
+              
+              {onImportFromPrint && (
+                <div style={{ marginTop: '0.5rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.02)', border: '1px dashed var(--border-color)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '0.6rem', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Recarregar Carteira</span>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.85rem', padding: '0.55rem' }}
+                    onClick={() => onImportFromPrint(existingPortfolio.id)}
+                  >
+                    📷 Importar de Print Screen
+                  </button>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                    Atualiza ou adiciona ativos automaticamente lendo uma captura de ecrã da corretora.
+                  </span>
+                </div>
+              )}
             </div>
           </form>
         </div>
@@ -448,7 +484,7 @@ export default function PortfolioModal({ isOpen, onClose, onSave, existingPortfo
                     type="button"
                     className="btn btn-secondary"
                     style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.85rem', padding: '0.55rem' }}
-                    onClick={onImportFromPrint}
+                    onClick={() => onImportFromPrint()}
                   >
                     📷 Importar de Print Screen da Corretora
                   </button>
@@ -766,7 +802,7 @@ export default function PortfolioModal({ isOpen, onClose, onSave, existingPortfo
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={onImportFromPrint}
+                  onClick={() => onImportFromPrint()}
                   style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', borderColor: 'var(--primary)' }}
                   title="Importar a partir de um print screen da corretora"
                 >
