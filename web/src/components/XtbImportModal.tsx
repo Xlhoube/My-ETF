@@ -132,61 +132,83 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
       const lines = text.split('\n');
       const foundEtfs: any[] = [];
       
-      // Heurística básica: procurar por Tickers conhecidos (3 a 5 maiúsculas com/sem ponto) 
-      // seguido de números na mesma linha ou nas redondezas
-      // XTB format usually has Ticker, Full Name, then some numbers like Quantity, Open Price, Market Price, Profit
-      // Tesseract might merge them.
+      // Heurística Avançada para layout XTB:
+      // A XTB muitas vezes não mostra o Ticker de forma legível, mas mostra o Nome (ex: iShares Core S&P 500 UCITS)
+      // O valor de mercado costuma estar no fim dessa linha. A linha seguinte costuma ter o valor investido ou o lucro.
       
-      // Regex exige que comece por Letra e filtre lixo
-      const tickerRegex = /\b([A-Z][A-Z0-9]{2,5}(?:\.(?:DE|MI|AS|PA|UK|L))?)\b/g;
-      const numberRegex = /\b(\d{1,3}(?:[.,\s]\d{3})*[.,]\d{2})\b/g;
-      const stopWords = ['ACC', 'DIST', 'USD', 'EUR', 'GBP', 'ETF', 'THE', 'AND', 'INC', 'LTD', 'ECO', 'BUY', 'SELL', 'OPEN', 'CLOSE'];
+      const etfProviders = ['iShares', 'Vanguard', 'SPDR', 'Xtrackers', 'Amundi', 'Lyxor', 'Invesco', 'WisdomTree'];
+      const providerRegex = new RegExp(`(${etfProviders.join('|')})`, 'i');
       
-      lines.forEach(line => {
-        const tickers = [...line.matchAll(tickerRegex)]
-          .map(m => m[1])
-          .filter(t => !stopWords.includes(t) && !/^\d+$/.test(t));
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // Se a linha contiver o nome de um fornecedor de ETFs
+        if (providerRegex.test(line)) {
+          // Extrair o nome limpando caracteres estranhos no início (ex: "snares iShares" -> "iShares")
+          const match = line.match(new RegExp(`(${etfProviders.join('|')}.*)`, 'i'));
+          if (!match) continue;
           
-        if (tickers.length > 0) {
-          const numbers = [...line.matchAll(numberRegex)].map(m => {
-            // Convert something like "1.234,50" or "1 234.50" to float
-            const cleanNum = m[1].replace(/\s/g, '').replace(/,/g, '.');
-            // If it has multiple dots like "1.234.50", only the last one is the decimal
-            const parts = cleanNum.split('.');
-            if (parts.length > 2) {
-              const decimal = parts.pop();
-              return parseFloat(parts.join('') + '.' + decimal);
-            }
-            return parseFloat(cleanNum);
-          }).filter(n => !isNaN(n));
+          let name = match[1];
+          // O valor atual costuma ser o último número na linha do nome
+          const numbersOnNameLine = [...name.matchAll(/\b(\d{1,3}(?:[.,\s]\d{3})*[.,]\d{2})\b/g)].map(m => parseFloat(m[1].replace(/\s/g, '').replace(/,/g, '.')));
           
-          if (numbers.length >= 2) {
-            // Assume first significant number is invested, next is current value (or something similar)
-            // Just picking the two largest numbers or first two to mock the result properly
-            // Often: Quantity, Open Price, Market Price, Current Value, Profit
-            const currentVal = numbers[numbers.length - 1]; // Assume last is current value
-            const investedVal = numbers.length > 1 ? numbers[numbers.length - 2] : currentVal; // Assume second to last is invested
-            
-            const ticker = tickers[0];
-            
-            foundEtfs.push({
-              id: `xtb-${Math.random().toString(36).substring(2, 7)}`,
-              ticker: ticker.toUpperCase(),
-              name: `ETF Lido (${ticker})`, // Temporary name, user edits it
-              ter: 0.20,
-              domicile: 'IE',
-              distribution: 'Acc',
-              replication: 'Physical',
-              weight: 0,
-              amountInvested: investedVal,
-              currentValue: currentVal,
-              lastPrice: 0
-            });
-            
-            addLog(`✔️ Posição detetada: Ticker '${ticker}'. Investido/Valor lido: €${investedVal}`, 'success');
+          let currentVal = 0;
+          if (numbersOnNameLine.length > 0) {
+            currentVal = numbersOnNameLine[numbersOnNameLine.length - 1];
+            // Remove o número do nome
+            name = name.replace(numbersOnNameLine[numbersOnNameLine.length - 1].toString(), '').replace(/[^a-zA-Z0-9\s&]/g, '').trim();
           }
+
+          // Adivinhar Ticker a partir do Nome
+          let ticker = 'ETF';
+          const nameUpper = name.toUpperCase();
+          if (nameUpper.includes('S&P 500') || nameUpper.includes('S&P500')) ticker = 'SXR8.DE';
+          else if (nameUpper.includes('NASDAQ')) ticker = 'SXRV.DE';
+          else if (nameUpper.includes('ACWI')) ticker = 'SPYI.DE';
+          else if (nameUpper.includes('ALL-WORLD') || nameUpper.includes('VWCE')) ticker = 'VWCE.DE';
+          else if (nameUpper.includes('MSCI WORLD')) ticker = 'IWDA.AS';
+          
+          // Procurar o valor investido na próxima linha
+          let investedVal = currentVal;
+          if (i + 1 < lines.length) {
+            const nextLine = lines[i + 1];
+            // Na XTB a linha de baixo tem o Investido OU o Lucro (ex: +25.11)
+            // Vamos procurar o lucro:
+            const profitMatch = nextLine.match(/\+(\d{1,3}(?:[.,\s]\d{3})*[.,]\d{2})\s*\(/);
+            if (profitMatch && currentVal > 0) {
+               const profit = parseFloat(profitMatch[1].replace(/\s/g, '').replace(/,/g, '.'));
+               investedVal = currentVal - profit;
+            } else {
+               // Se não encontrar o lucro explícito, tenta o primeiro número que faz sentido como investido
+               const numbersOnNextLine = [...nextLine.matchAll(/\b(\d{1,3}(?:[.,\s]\d{3})*[.,]\d{2})\b/g)].map(m => parseFloat(m[1].replace(/\s/g, '').replace(/,/g, '.')));
+               if (numbersOnNextLine.length > 0) {
+                 // Assumimos que o investido é o primeiro número e é menor ou próximo do valor atual
+                 investedVal = numbersOnNextLine[0];
+               }
+            }
+          }
+          
+          // Arredondamentos
+          investedVal = Number(investedVal.toFixed(2));
+          currentVal = Number(currentVal.toFixed(2));
+          
+          foundEtfs.push({
+            id: `xtb-${Math.random().toString(36).substring(2, 7)}`,
+            ticker: ticker,
+            name: name,
+            ter: 0.20,
+            domicile: 'IE',
+            distribution: 'Acc',
+            replication: 'Physical',
+            weight: 0,
+            amountInvested: investedVal,
+            currentValue: currentVal,
+            lastPrice: 0
+          });
+          
+          addLog(`✔️ Ativo detetado: ${name}. Investido: €${investedVal} | Atual: €${currentVal}`, 'success');
         }
-      });
+      }
       
       if (foundEtfs.length === 0) {
         addLog("⚠️ Nenhum padrão reconhecido. A preencher com linha vazia para edição manual.", 'warning');
