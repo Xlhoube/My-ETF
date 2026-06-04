@@ -82,7 +82,15 @@ export default function EtfList({ etfs, onEdit, onDelete, onOpenAddModal, onOpen
                   <strong style={{ fontSize: '0.9rem' }}>{formatMoney(etf.amountInvested)}</strong>
                 </div>
                 <div>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>VALOR DE MERCADO</span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>
+                    VALOR MERCADO
+                    {etf.dailyChange !== undefined && (
+                      <span style={{ marginLeft: '0.4rem', fontSize: '0.7rem', color: etf.dailyChange >= 0 ? '#4ade80' : 'var(--danger)' }}>
+                        {etf.dailyChange >= 0 ? '▲ ' : '▼ '}
+                        {Math.abs(etf.dailyChange).toFixed(2)}%
+                      </span>
+                    )}
+                  </span>
                   <strong style={{ fontSize: '0.9rem', color: 'var(--primary)' }} className="glow-text-transition">
                     {formatMoney(etf.currentValue || etf.amountInvested)}
                   </strong>

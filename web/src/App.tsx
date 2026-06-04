@@ -346,19 +346,22 @@ export default function App() {
       
       let wasUpdated = false;
       const updatedEtfs = await Promise.all(p.etfs.map(async (etf) => {
-        const livePrice = await fetchEtfPrice(etf.ticker);
-        if (livePrice && livePrice > 0) {
+        const liveData = await fetchEtfPrice(etf.ticker);
+        if (liveData && liveData.price > 0) {
+          const livePrice = liveData.price;
           let updatedCurrentValue = etf.currentValue;
           if (etf.lastPrice && etf.lastPrice > 0) {
             const ratio = livePrice / etf.lastPrice;
             updatedCurrentValue = Number((etf.currentValue * ratio).toFixed(2));
           }
-          if (updatedCurrentValue !== etf.currentValue || livePrice !== etf.lastPrice) {
+          if (updatedCurrentValue !== etf.currentValue || livePrice !== etf.lastPrice || liveData.change !== etf.dailyChange) {
             wasUpdated = true;
             return { 
               ...etf, 
               currentValue: updatedCurrentValue, 
-              lastPrice: Number(livePrice.toFixed(2)) 
+              lastPrice: Number(livePrice.toFixed(2)),
+              dailyChange: liveData.change,
+              previousClose: liveData.previousClose
             };
           }
         }
@@ -700,10 +703,24 @@ export default function App() {
         isOpen={isXtbModalOpen}
         onClose={() => setIsXtbModalOpen(false)}
         onImport={(importedEtfs) => {
-          // Atualiza o portefólio ativo com os ETFs importados
+          // Atualiza o portefólio ativo mesclando com os ETFs importados
           const updated = portfolios.map(p => {
             if (p.id === activePortfolioId) {
-              return { ...p, etfs: importedEtfs };
+              const mergedEtfs = [...p.etfs];
+              importedEtfs.forEach(imported => {
+                const existingIndex = mergedEtfs.findIndex(e => e.ticker === imported.ticker);
+                if (existingIndex >= 0) {
+                  // Se o ETF já existe, assume-se que o print da corretora tem os dados mais atualizados
+                  mergedEtfs[existingIndex] = {
+                    ...mergedEtfs[existingIndex],
+                    ...imported,
+                    id: mergedEtfs[existingIndex].id // Mantém o ID original
+                  };
+                } else {
+                  mergedEtfs.push(imported);
+                }
+              });
+              return { ...p, etfs: mergedEtfs };
             }
             return p;
           });

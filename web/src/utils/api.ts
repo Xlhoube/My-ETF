@@ -1,4 +1,4 @@
-export async function fetchEtfPrice(ticker: string): Promise<number | null> {
+export async function fetchEtfPrice(ticker: string): Promise<{ price: number; change: number; previousClose: number } | null> {
   try {
     // Adicionar sufixo automaticamente para ETFs europeus se não tiver sufixo
     let yahooTicker = ticker.toUpperCase().trim();
@@ -31,8 +31,13 @@ export async function fetchEtfPrice(ticker: string): Promise<number | null> {
         const data = await response.json();
         const result = data.chart?.result?.[0];
         
-        if (result?.meta?.regularMarketPrice) {
-          return result.meta.regularMarketPrice;
+        if (result?.meta?.regularMarketPrice && result?.meta?.chartPreviousClose) {
+          const price = result.meta.regularMarketPrice;
+          const previousClose = result.meta.chartPreviousClose;
+          const change = ((price - previousClose) / previousClose) * 100;
+          return { price, change, previousClose };
+        } else if (result?.meta?.regularMarketPrice) {
+          return { price: result.meta.regularMarketPrice, change: 0, previousClose: result.meta.regularMarketPrice };
         }
       } catch (err) {
         lastError = err;
