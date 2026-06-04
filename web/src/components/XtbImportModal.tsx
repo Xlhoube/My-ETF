@@ -125,6 +125,10 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
       const text = result.data.text;
       addLog("✨ Extração de texto concluída com sucesso! A processar dados...", 'success');
       
+      console.log("----- INÍCIO DO TEXTO LIDO PELO TESSERACT -----");
+      console.log(text);
+      console.log("----- FIM DO TEXTO LIDO -----");
+      
       const lines = text.split('\n');
       const foundEtfs: any[] = [];
       
@@ -133,11 +137,16 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
       // XTB format usually has Ticker, Full Name, then some numbers like Quantity, Open Price, Market Price, Profit
       // Tesseract might merge them.
       
-      const tickerRegex = /\b([A-Z0-9]{3,5}(?:\.(?:DE|MI|AS|PA|UK|L))?)\b/g;
+      // Regex exige que comece por Letra e filtre lixo
+      const tickerRegex = /\b([A-Z][A-Z0-9]{2,5}(?:\.(?:DE|MI|AS|PA|UK|L))?)\b/g;
       const numberRegex = /\b(\d{1,3}(?:[.,\s]\d{3})*[.,]\d{2})\b/g;
+      const stopWords = ['ACC', 'DIST', 'USD', 'EUR', 'GBP', 'ETF', 'THE', 'AND', 'INC', 'LTD', 'ECO', 'BUY', 'SELL', 'OPEN', 'CLOSE'];
       
       lines.forEach(line => {
-        const tickers = [...line.matchAll(tickerRegex)].map(m => m[1]);
+        const tickers = [...line.matchAll(tickerRegex)]
+          .map(m => m[1])
+          .filter(t => !stopWords.includes(t) && !/^\d+$/.test(t));
+          
         if (tickers.length > 0) {
           const numbers = [...line.matchAll(numberRegex)].map(m => {
             // Convert something like "1.234,50" or "1 234.50" to float

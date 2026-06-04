@@ -114,34 +114,10 @@ export default function App() {
             const cost = typeof e.amountInvested === 'number' && !isNaN(e.amountInvested) ? e.amountInvested : 0;
             let current = typeof e.currentValue === 'number' && !isNaN(e.currentValue) && e.currentValue > 0 ? e.currentValue : cost;
 
-            // Se o utilizador tem os valores antigos desatualizados da simulação inicial, atualiza-os automaticamente!
-            if (e.ticker === 'SXR8' && e.amountInvested === 127.79) {
-              if (current !== 152.44 || e.lastPrice !== 698.90) {
-                current = 152.44;
-                e.lastPrice = 698.90;
-                needsSaveBack = true;
-              }
-            } else if (e.ticker === 'SPYI' && e.amountInvested === 125.78) {
-              if (current !== 151.70 || e.lastPrice !== 11.25) {
-                current = 151.70;
-                e.lastPrice = 11.25;
-                needsSaveBack = true;
-              }
-            } else if (e.ticker === 'SXRV' && e.amountInvested === 262.82) {
-              if (current !== 328.22 || e.lastPrice !== 1492.00) {
-                current = 328.22;
-                e.lastPrice = 1492.00;
-                needsSaveBack = true;
-              }
-            }
-
-            // Deteção inteligente de valores colapsados para o piso de 10€ do bug anterior
+            // Deteção básica para evitar crash caso venha NaN de estado corrupto
             if (cost > 30 && current < cost * 0.4) {
               needsSaveBack = true;
-              if (e.ticker === 'SXR8') { current = 152.44; e.lastPrice = 698.90; }
-              else if (e.ticker === 'SPYI') { current = 151.70; e.lastPrice = 11.25; }
-              else if (e.ticker === 'SXRV') { current = 328.22; e.lastPrice = 1492.00; }
-              else current = cost * 1.12; // fallback de +12% de lucro médio estimado
+              current = cost; // fallback para evitar que o utilizador perca o valor investido da UI
             }
             
             return {
@@ -160,52 +136,13 @@ export default function App() {
           savePortfolios(sanitized);
         }
       } else {
-        // Inicializa unicamente com a carteira XTB Principal (Real)
+        // Inicializa unicamente com uma carteira limpa e real
         const initialPortfolios: Portfolio[] = [
           {
-            id: 'portfolio-xtb',
-            name: 'XTB Principal (Real)',
-            etfs: [
-              {
-                id: 'xtb-sxr8',
-                ticker: 'SXR8',
-                name: 'iShares Core S&P 500 UCITS ETF (Acc)',
-                ter: 0.07,
-                domicile: 'IE',
-                distribution: 'Acc',
-                replication: 'Physical',
-                weight: 25,
-                amountInvested: 127.79,
-                currentValue: 152.44,
-                lastPrice: 698.90
-              },
-              {
-                id: 'xtb-spyi',
-                ticker: 'SPYI',
-                name: 'SPDR MSCI ACWI IMI UCITS ETF (Acc)',
-                ter: 0.17,
-                domicile: 'IE',
-                distribution: 'Acc',
-                replication: 'Physical',
-                weight: 25,
-                amountInvested: 125.78,
-                currentValue: 151.70,
-                lastPrice: 11.25
-              },
-              {
-                id: 'xtb-sxrv',
-                ticker: 'SXRV',
-                name: 'iShares NASDAQ 100 UCITS ETF (Acc)',
-                ter: 0.33,
-                domicile: 'IE',
-                distribution: 'Acc',
-                replication: 'Physical',
-                weight: 50,
-                amountInvested: 262.82,
-                currentValue: 328.22,
-                lastPrice: 1492.00
-              }
-            ]
+            id: 'portfolio-principal',
+            name: 'A Minha Carteira',
+            broker: 'Outro' as any,
+            etfs: []
           }
         ];
         setPortfolios(initialPortfolios);
