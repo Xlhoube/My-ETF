@@ -19,6 +19,7 @@ export default function EtfModal({ isOpen, onClose, onSave, editingEtf }: EtfMod
   const [replication, setReplication] = useState<RepType>('Physical');
   const [weight, setWeight] = useState(0);
   const [amountInvested, setAmountInvested] = useState(0);
+  const [currentValue, setCurrentValue] = useState<number | ''>('');
 
   // Efeito para carregar os dados do ETF quando em modo de edição.
   useEffect(() => {
@@ -31,6 +32,7 @@ export default function EtfModal({ isOpen, onClose, onSave, editingEtf }: EtfMod
       setReplication(editingEtf.replication);
       setWeight(editingEtf.weight);
       setAmountInvested(editingEtf.amountInvested);
+      setCurrentValue(editingEtf.currentValue);
     } else {
       setTicker('');
       setName('');
@@ -40,6 +42,7 @@ export default function EtfModal({ isOpen, onClose, onSave, editingEtf }: EtfMod
       setReplication('Physical');
       setWeight(0);
       setAmountInvested(0);
+      setCurrentValue('');
     }
   }, [editingEtf, isOpen]);
 
@@ -137,7 +140,8 @@ export default function EtfModal({ isOpen, onClose, onSave, editingEtf }: EtfMod
         replication,
         weight: Number(weight),
         amountInvested: Number(amountInvested),
-        currentValue: editingEtf ? editingEtf.currentValue : Number(amountInvested),
+        currentValue: currentValue === '' ? amountInvested : Number(currentValue),
+        lastPrice: editingEtf?.lastPrice
       });
       onClose();
     } catch (err) {
@@ -254,6 +258,24 @@ export default function EtfModal({ isOpen, onClose, onSave, editingEtf }: EtfMod
                   onChange={e => setAmountInvested(Number(e.target.value))}
                 />
               </div>
+              <div className="form-group">
+                <label htmlFor="currentValue">Valor de Mercado Atual (€)</label>
+                <input
+                  id="currentValue"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="Ex: 5500"
+                  value={currentValue}
+                  onChange={e => setCurrentValue(e.target.value === '' ? '' : Number(e.target.value))}
+                />
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.2rem', display: 'block' }}>
+                  Deixe vazio para espelhar o investimento. Será atualizado automaticamente pelas cotações reais.
+                </span>
+              </div>
+            </div>
+
+            <div className="form-row">
               <div className="form-group">
                 <label htmlFor="weight">Peso Alvo / Atual (%)</label>
                 <input
