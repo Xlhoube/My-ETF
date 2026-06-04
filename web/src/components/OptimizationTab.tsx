@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ETF } from '../types';
 import { calculateRebalancing, simulatePortfolioDrag, getActiveBroker } from '../utils/advisorEngine';
-import { Scale, TrendingDown, Sparkles, AlertCircle, Info } from 'lucide-react';
+import { Scale, TrendingDown, AlertCircle, Info } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface OptimizationTabProps {
@@ -56,7 +56,7 @@ export default function OptimizationTab({ etfs, portfolioName, portfolioBroker, 
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ background: 'var(--secondary)', color: 'var(--bg-primary)', padding: '0.5rem', borderRadius: '10px' }}>
-            <Sparkles size={20} />
+            <Scale size={20} />
           </div>
           <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--text-primary)' }}>
             Para que serve o Separador "Otimização Avançada"?
@@ -89,7 +89,7 @@ export default function OptimizationTab({ etfs, portfolioName, portfolioBroker, 
               <strong style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>Simulação de Arrasto Fiscal (TER Drag)</strong>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.45', margin: 0 }}>
-              Permite-te simular e ver em termos absolutos o impacto financeiro (arrasto ou <em>drag</em>) das pequenas ineficiências do teu portefólio atual comparado com um portefólio de elite totalmente otimizado. 
+              Permite-te simular e ver em termos absolutos o impacto financeiro (arrasto ou <em>drag</em>) das pequenas ineficiências do teu portefólio atual comparado com um portefólio totalmente otimizado. 
               <br /><br />
               Vê em tempo real, no gráfico de progressão e nos valores finais a 10, 20 ou 30 anos, <strong>quanto capital estás a desperdiçar silenciosamente</strong> em taxas de gestão (TER) exageradas, dividend leakage (fuga fiscal no Luxemburgo) ou impostos de distribuição.
             </p>
@@ -252,7 +252,7 @@ export default function OptimizationTab({ etfs, portfolioName, portfolioBroker, 
 
         {/* Controlos e Inputs ao Estilo do Investment Calculator */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', background: 'hsla(230, 20%, 5%, 0.3)', padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-          <div className="form-group" style={{ margin: 0 }}>
+          <div className="form-group" style={{ margin: 0, display: 'flex', flexDirection: 'column' }}>
             <label htmlFor="expected-return-slider">Retorno Anual Bruto Esperado: <strong style={{ color: 'var(--primary)' }}>{expectedReturn}%</strong></label>
             <input
               id="expected-return-slider"
@@ -264,8 +264,13 @@ export default function OptimizationTab({ etfs, portfolioName, portfolioBroker, 
               onChange={e => setExpectedReturn(Number(e.target.value))}
               style={{ accentColor: 'var(--primary)', marginTop: '0.5rem' }}
             />
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: '1.3', margin: '0.5rem 0 0 0' }}>
+              <strong>O que é:</strong> A taxa de valorização média anualizada estimada para os teus ativos (antes de custos, impostos e inflação).<br />
+              <strong>O que faz:</strong> Serve de base para calcular os juros compostos e ilustra como custos adicionais (como o TER) corroem a rentabilidade.<br />
+              <strong>Como obter esta taxa:</strong> Podes consultar as fichas informativas (Factsheets ou documentos KID/KIID) dos teus ETFs para ver o seu histórico de rentabilidade, ou basear-te em médias históricas de longo prazo de índices acionistas de referência (por exemplo, o S&P 500 ronda os ~9-10% e o MSCI World ~7-8% anualizados históricos a longo prazo).
+            </p>
           </div>
-          <div className="form-group" style={{ margin: 0 }}>
+          <div className="form-group" style={{ margin: 0, display: 'flex', flexDirection: 'column' }}>
             <label htmlFor="projection-years-slider">Horizonte Temporal: <strong style={{ color: 'var(--secondary)' }}>{years} anos</strong></label>
             <input
               id="projection-years-slider"
@@ -277,8 +282,12 @@ export default function OptimizationTab({ etfs, portfolioName, portfolioBroker, 
               onChange={e => setYears(Number(e.target.value))}
               style={{ accentColor: 'var(--secondary)', marginTop: '0.5rem' }}
             />
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: '1.3', margin: '0.5rem 0 0 0' }}>
+              <strong>O que é:</strong> O período total de tempo (em anos) durante o qual planeias manter os teus investimentos sem efetuar resgates.<br />
+              <strong>O que faz:</strong> Define a extensão temporal da projeção. Prazos mais longos realçam a diferença exponencial criada pela eficiência de custos.
+            </p>
           </div>
-          <div className="form-group" style={{ margin: 0 }}>
+          <div className="form-group" style={{ margin: 0, display: 'flex', flexDirection: 'column' }}>
             <label htmlFor="monthly-savings-slider">Reforço Mensal Recorrente: <strong style={{ color: 'var(--primary)' }}>{formatMoney(monthlySavings)}/mês</strong></label>
             <input
               id="monthly-savings-slider"
@@ -290,6 +299,10 @@ export default function OptimizationTab({ etfs, portfolioName, portfolioBroker, 
               onChange={e => setMonthlySavings(Number(e.target.value))}
               style={{ accentColor: 'var(--primary)', marginTop: '0.5rem' }}
             />
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: '1.3', margin: '0.5rem 0 0 0' }}>
+              <strong>O que é:</strong> O montante fixo que planeias investir e subscrever em novos ETFs todos os meses.<br />
+              <strong>O que faz:</strong> Simula o aporte contínuo de novo capital, projetando o crescimento acumulado de cada contribuição regular mensal.
+            </p>
           </div>
         </div>
 
@@ -324,9 +337,9 @@ export default function OptimizationTab({ etfs, portfolioName, portfolioBroker, 
               </div>
             </div>
 
-            {/* Portefólio de Elite Otimizado */}
+            {/* Portefólio Otimizado */}
             <div style={{ background: 'var(--primary-glow)', border: '1px solid rgba(126, 161, 138, 0.25)', borderRadius: '16px', padding: '1.25rem' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Portefólio de Elite Otimizado</span>
+              <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Portefólio Otimizado</span>
               <div style={{ fontSize: '1.8rem', fontWeight: '800', margin: '0.5rem 0', color: 'var(--primary)' }}>
                 {formatMoney(finalYear.optimizedValue)}
               </div>
@@ -361,7 +374,7 @@ export default function OptimizationTab({ etfs, portfolioName, portfolioBroker, 
                 Este é o dinheiro real que **estás a entregar de bandeja às gestoras de fundos e ao IRS** ao longo de {years} anos devido a pequenas ineficiências estruturais.
               </p>
               <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.25rem', alignItems: 'center', color: 'var(--secondary)', fontSize: '0.75rem', fontWeight: '700' }}>
-                <Sparkles size={12} /> Engenharia Fiscal de Elite evita isto!
+                Engenharia Fiscal Avançada evita isto!
               </div>
             </div>
 
@@ -397,7 +410,7 @@ export default function OptimizationTab({ etfs, portfolioName, portfolioBroker, 
                     contentStyle={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)', borderRadius: '12px', color: 'var(--text-primary)' }}
                   />
                   <Legend verticalAlign="top" height={36} wrapperStyle={{ color: 'var(--text-secondary)' }}/>
-                  <Area type="monotone" dataKey="optimizedValue" name="Portefólio de Elite (Otimizado)" stroke="#38bdf8" fillOpacity={1} fill="url(#colorOpt)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="optimizedValue" name="Portefólio Otimizado" stroke="#38bdf8" fillOpacity={1} fill="url(#colorOpt)" strokeWidth={2} />
                   <Area type="monotone" dataKey="currentValue" name="O teu Portefólio (Atual)" stroke="#2563eb" fillOpacity={1} fill="url(#colorCurr)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { ETF, PortfolioAlert } from '../types';
-import { PiggyBank, Percent, Coins, ShieldAlert, AlertTriangle, CheckCircle, Info, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { PiggyBank, Percent, Coins, ShieldAlert, AlertTriangle, CheckCircle, Info, ChevronDown, ChevronUp, Wallet } from 'lucide-react';
 import { getActiveBroker } from '../utils/advisorEngine';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 
 interface DashboardProps {
   etfs: ETF[];
@@ -12,14 +11,17 @@ interface DashboardProps {
   portfolioName?: string;
   portfolioBroker?: string;
   userProfileBroker?: string;
+  cashBalance?: number;
 }
 
 // Componente principal do Dashboard que calcula estatísticas gerais e mostra alertas fiscais/financeiros.
-export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfolioName, portfolioBroker, userProfileBroker }: DashboardProps) {
+export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfolioName, portfolioBroker, userProfileBroker, cashBalance }: DashboardProps) {
   const [expandedAlertId, setExpandedAlertId] = useState<string | null>(null);
 
+  const cash = cashBalance || 0;
   const totalInvested = etfs.reduce((acc, curr) => acc + curr.amountInvested, 0);
   const totalCurrent = etfs.reduce((acc, curr) => acc + (curr.currentValue || curr.amountInvested), 0);
+  const totalPortfolioValue = totalCurrent + cash;
   const profitEuro = totalCurrent - totalInvested;
   const profitPct = totalInvested > 0 ? (profitEuro / totalInvested) * 100 : 0;
 
@@ -43,11 +45,33 @@ export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfoli
   };
 
 
-  const chartData = etfs.map(e => ({
-    name: e.ticker,
-    value: e.currentValue || e.amountInvested
-  }));
-  const CHART_COLORS = ['#0284c7', '#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd', '#e0f2fe'];
+  const totalVal = totalPortfolioValue || 1;
+  const chartData = [
+    ...etfs.map(e => {
+      const val = e.currentValue || e.amountInvested;
+      const pct = (val / totalVal) * 100;
+      return {
+        name: e.ticker,
+        fullName: e.name,
+        value: val,
+        percentage: Number(pct.toFixed(2)),
+        ter: e.ter,
+        domicile: e.domicile,
+        distribution: e.distribution
+      };
+    }),
+    ...(cash > 0 ? [{
+      name: 'Reservas',
+      fullName: 'Reservas de Dinheiro',
+      value: cash,
+      percentage: Number(((cash / totalVal) * 100).toFixed(2)),
+      ter: 0,
+      domicile: 'N/A',
+      distribution: 'N/A'
+    }] : [])
+  ].sort((a, b) => b.value - a.value);
+
+  const CHART_COLORS = ['#38bdf8', '#0ea5e9', '#0284c7', '#0369a1', '#075985', '#0c4a6e'];
 
   const getAssociatedEtf = (alertId: string) => {
     // Procura por um ETF cujo id faça parte do alertId
@@ -135,7 +159,7 @@ export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfoli
         onClick={(e) => e.stopPropagation()} // Impede que feche o alert ao clicar dentro do guia
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: '800', letterSpacing: '0.05em' }}>
-          <Sparkles size={16} /> GUIA DE RESOLUÇÃO INSIDER
+          GUIA DE RESOLUÇÃO E RECOMENDAÇÕES
         </div>
         
         <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.4', margin: 0 }}>
@@ -155,7 +179,7 @@ export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfoli
             "Para uma representação correta da carteira e um rebalanceamento eficaz, deves normalizar os pesos dos teus ETFs de forma a totalizarem exatamente 100%."
           )}
           {alert.id.startsWith('high-ter-') && (
-            "Recomendamos estudar a troca desta posição por um ETF alternativo de menor TER (ex: Vanguard ou iShares) no separador de 'Oportunidades de Elite' para maximizar o retorno futuro."
+            "Recomendamos estudar a troca desta posição por um ETF alternativo de menor TER (ex: Vanguard ou iShares) no separador de 'Oportunidades de Investimento' para maximizar o retorno futuro."
           )}
           {alert.id === 'high-ter-avg' && (
             "Para baixar o teu custo médio ponderado, deves focar o teu capital em ETFs mais eficientes na Irlanda e que tenham taxas de gestão baixas (abaixo de 0.20%)."
@@ -313,7 +337,7 @@ export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfoli
 
         {alert.details && (
           <div className="alert-details" style={{ margin: 0, padding: '0.75rem', background: 'rgba(255, 255, 255, 0.01)', borderLeft: '3px solid var(--primary)' }}>
-            <strong>Análise "Insider":</strong> {alert.details}
+            <strong>Nota de Auditoria:</strong> {alert.details}
           </div>
         )}
 
@@ -350,31 +374,56 @@ export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfoli
       <div className="dashboard-grid">
         {/* Painel Principal de Gráficos (Orion UI Style) */}
         <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
-          <h3 className="card-title" style={{ margin: 0 }}>Alocação do Portefólio</h3>
-          <div className="chart-container" style={{ flex: 1, minHeight: '300px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={85}
-                  outerRadius={110}
-                  paddingAngle={5}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {chartData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                  ))}
-                </Pie>
-                <RechartsTooltip 
-                  formatter={(value: any) => formatMoney(Number(value))}
-                  contentStyle={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)', borderRadius: '12px', color: 'var(--text-primary)' }}
-                />
-                <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: 'var(--text-secondary)' }}/>
-              </PieChart>
-            </ResponsiveContainer>
+          <h3 className="card-title" style={{ margin: 0, marginBottom: '1.25rem' }}>Alocação do Portefólio</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {chartData.map((data, index) => {
+              const color = CHART_COLORS[index % CHART_COLORS.length];
+              return (
+                <div key={data.name} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  {/* Ticker, Name and Percentage */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                      <span style={{ fontWeight: '800', background: 'rgba(255,255,255,0.06)', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem', color: 'var(--text-primary)' }}>
+                        {data.name}
+                      </span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '200px' }} title={data.fullName}>
+                        {data.fullName}
+                      </span>
+                    </div>
+                    <span style={{ fontWeight: '700', fontSize: '0.85rem', color: 'var(--primary)' }}>
+                      {data.percentage}%
+                    </span>
+                  </div>
+
+                  {/* Horizontal Progress Bar */}
+                  <div style={{ width: '100%', height: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '99px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                    <div 
+                      style={{ 
+                        width: `${data.percentage}%`, 
+                        height: '100%', 
+                        background: color, 
+                        borderRadius: '99px',
+                        transition: 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1)' 
+                      }} 
+                    />
+                  </div>
+
+                  {/* Details directly underneath each bar */}
+                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.75rem', color: 'var(--text-muted)', paddingLeft: '0.15rem' }}>
+                    <span>Valor: <strong style={{ color: 'var(--text-primary)' }}>{formatMoney(data.value)}</strong></span>
+                    {data.name !== 'Reservas' ? (
+                      <>
+                        <span>TER: <strong style={{ color: data.ter > 0.2 ? 'var(--danger)' : 'var(--text-primary)' }}>{data.ter}%</strong></span>
+                        <span>Dom: <strong style={{ color: data.domicile !== 'IE' ? 'var(--warning)' : 'var(--text-primary)' }}>{data.domicile}</strong></span>
+                        <span>Dist: <strong style={{ color: data.distribution === 'Dist' ? 'var(--warning)' : 'var(--text-primary)' }}>{data.distribution === 'Acc' ? 'Acumulação' : 'Distribuição'}</strong></span>
+                      </>
+                    ) : (
+                      <span style={{ fontStyle: 'italic' }}>Liquidez disponível</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -384,10 +433,10 @@ export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfoli
           <div className="card">
             <div className="stat-card">
               <span className="stat-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                Valor da carteira <span className="spin-animation" style={{ width: '6px', height: '6px', background: 'var(--primary)', borderRadius: '50%', display: 'inline-block' }} />
+                Património Total <span className="spin-animation" style={{ width: '6px', height: '6px', background: 'var(--primary)', borderRadius: '50%', display: 'inline-block' }} />
               </span>
               <span className="stat-value primary">
-                {formatMoney(totalCurrent)}
+                {formatMoney(totalPortfolioValue)}
               </span>
               <div className="stat-icon" style={{ color: 'var(--primary)' }}>
                 <Coins size={24} />
@@ -397,7 +446,7 @@ export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfoli
 
           <div className="card">
             <div className="stat-card">
-              <span className="stat-label">Total investido</span>
+              <span className="stat-label">Investido em ETFs</span>
               <span className="stat-value" style={{ color: 'var(--text-primary)' }}>{formatMoney(totalInvested)}</span>
               <div className="stat-icon">
                 <PiggyBank size={24} />
@@ -407,7 +456,17 @@ export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfoli
 
           <div className="card">
             <div className="stat-card">
-              <span className="stat-label">Lucro</span>
+              <span className="stat-label">Reservas de Dinheiro</span>
+              <span className="stat-value" style={{ color: 'var(--text-primary)' }}>{formatMoney(cash)}</span>
+              <div className="stat-icon">
+                <Wallet size={24} />
+              </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="stat-card">
+              <span className="stat-label">Rendimento de ETFs</span>
               <span className={`stat-value`} style={{ color: profitEuro >= 0 ? 'var(--primary)' : 'var(--danger)' }}>
                 {profitEuro >= 0 ? '+' : ''}{formatMoney(profitEuro)} ({profitEuro >= 0 ? '+' : ''}{profitPct.toFixed(2)}%)
               </span>
@@ -420,10 +479,10 @@ export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfoli
         </div>
       </div>
 
-      {/* Secção de Alertas Gerados pelo Motor Cético */}
+      {/* Secção de Alertas Gerados pelo Motor de Auditoria */}
       <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: '700' }}>Relatório do Consultor Cético</h3>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: '700' }}>Relatório de Auditoria e Riscos</h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
             Análise em tempo real de vulnerabilidades fiscais, de custódia e redundância. Clica num alerta para ver o guia de resolução passo-a-passo.
           </p>
@@ -459,7 +518,7 @@ export default function Dashboard({ etfs, alerts, onEdit, onUpdateEtfs, portfoli
                     
                     {alert.details && !isExpanded && (
                       <div className="alert-details" style={{ marginTop: '0.50rem', fontSize: '0.85rem' }}>
-                        <strong>Análise "Insider":</strong> {alert.details}
+                        <strong>Nota de Auditoria:</strong> {alert.details}
                       </div>
                     )}
                   </div>

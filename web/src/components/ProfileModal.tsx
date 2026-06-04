@@ -40,7 +40,7 @@ export default function ProfileModal({ isOpen, onClose, onSave, existingProfile 
         </div>
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-            Este perfil não requer palavra-passe. Serve apenas para partilhares informações básicas para que o Consultor de Elite possa afinar as análises fiscais e custos da tua corretora.
+            Este perfil não requer palavra-passe. Serve apenas para partilhares informações básicas para que o Consultor Financeiro possa afinar as análises fiscais e custos da tua corretora.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>

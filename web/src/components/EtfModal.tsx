@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ETF, DomicileType, DistType, RepType } from '../types';
-import { X, Sparkles, ArrowRight } from 'lucide-react';
+import { X, ArrowRight } from 'lucide-react';
 
 interface EtfModalProps {
   isOpen: boolean;
@@ -43,8 +43,8 @@ export default function EtfModal({ isOpen, onClose, onSave, editingEtf }: EtfMod
     }
   }, [editingEtf, isOpen]);
 
-  // Heurística de sugestão de ativo idêntico mas de elite (melhorado fiscalmente e em termos de custos)
-  const getEliteAlternative = () => {
+  // Heurística de sugestão de ativo idêntico mas otimizado (melhorado fiscalmente e em termos de custos)
+  const getOptimizedAlternative = () => {
     const isSP500 = ticker.toUpperCase().includes('500') || name.toLowerCase().includes('500') || name.toLowerCase().includes('s&p');
     const isTechOrNasdaq = ticker.toUpperCase().includes('NDX') || ticker.toUpperCase().includes('QQQ') || name.toLowerCase().includes('nasdaq') || name.toLowerCase().includes('tech') || name.toLowerCase().includes('tecnologia');
     const isWorldOrGlobal = name.toLowerCase().includes('world') || name.toLowerCase().includes('all-world') || name.toLowerCase().includes('acwi') || ticker.toUpperCase().includes('IWDA') || ticker.toUpperCase().includes('VWCE') || ticker.toUpperCase().includes('SPYI');
@@ -60,7 +60,7 @@ export default function EtfModal({ isOpen, onClose, onSave, editingEtf }: EtfMod
 
     if (isSP500) {
       if (ticker.toUpperCase() === 'SXR8' && distribution === 'Acc' && domicile === 'IE' && replication === 'Physical' && ter <= 0.07) {
-        return null; // Já está no de elite perfeito!
+        return null; // Já está otimizado!
       }
       return {
         ticker: 'SXR8',
@@ -151,7 +151,7 @@ export default function EtfModal({ isOpen, onClose, onSave, editingEtf }: EtfMod
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '650px', width: '100%' }}>
         <div className="modal-header">
-          <h3>{editingEtf ? 'Editar ETF de Elite' : 'Registar Novo ETF'}</h3>
+          <h3>{editingEtf ? 'Editar Registo de ETF' : 'Registar Novo ETF'}</h3>
           <button className="btn btn-secondary" style={{ padding: '0.4rem', borderRadius: '50%' }} onClick={onClose}>
             <X size={18} />
           </button>
@@ -164,11 +164,14 @@ export default function EtfModal({ isOpen, onClose, onSave, editingEtf }: EtfMod
                 <input
                   id="ticker"
                   type="text"
-                  placeholder="Ex: VWCE"
+                  placeholder="Ex: VWCE ou VWCE.MI"
                   value={ticker}
                   onChange={e => setTicker(e.target.value)}
                   required
                 />
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.2rem', display: 'block' }}>
+                  Por defeito usa bolsa Xetra (.DE). Pode forçar outra adicionando o sufixo (ex: .MI, .PA, .AS).
+                </span>
               </div>
               <div className="form-group">
                 <label htmlFor="name">Nome do ETF *</label>
@@ -266,9 +269,9 @@ export default function EtfModal({ isOpen, onClose, onSave, editingEtf }: EtfMod
               </div>
             </div>
 
-            {/* Secção de Recomendação Dinâmica de Elite */}
-            {getEliteAlternative() && (() => {
-              const alt = getEliteAlternative();
+            {/* Secção de Recomendação Dinâmica Otimizada */}
+            {getOptimizedAlternative() && (() => {
+              const alt = getOptimizedAlternative();
               if (!alt) return null;
               return (
                 <div style={{
@@ -283,7 +286,7 @@ export default function EtfModal({ isOpen, onClose, onSave, editingEtf }: EtfMod
                   animation: 'fadeIn 0.3s ease-out'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: '800' }}>
-                    <Sparkles size={16} /> CONSELHO DE SUBSTITUIÇÃO DE ELITE
+                    RECOMENDAÇÃO DE SUBSTITUIÇÃO OTIMIZADA
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
                     <div>
@@ -314,7 +317,7 @@ export default function EtfModal({ isOpen, onClose, onSave, editingEtf }: EtfMod
                         setReplication(alt.replication);
                       }}
                     >
-                      Aplicar Substituto de Elite <ArrowRight size={12} />
+                      Aplicar Alternativa Otimizada <ArrowRight size={12} />
                     </button>
                   </div>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>

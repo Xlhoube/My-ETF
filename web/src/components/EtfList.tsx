@@ -40,11 +40,21 @@ export default function EtfList({ etfs, onEdit, onDelete, onOpenAddModal, onOpen
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
         <h3 style={{ fontSize: '1.25rem' }}>Os Teus Ativos Registados ({etfs.length})</h3>
-        <button className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }} onClick={onOpenAddModal}>
-          <Plus size={16} /> Adicionar Ativo
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button 
+            className="btn btn-secondary" 
+            style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderColor: 'var(--primary)' }} 
+            onClick={onOpenXtbModal}
+            title="Voltar a carregar o print screen da corretora para atualizar posições"
+          >
+            📷 Recarregar via Print
+          </button>
+          <button className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }} onClick={onOpenAddModal}>
+            <Plus size={16} /> Adicionar Ativo
+          </button>
+        </div>
       </div>
 
       <div className="etf-grid-list">

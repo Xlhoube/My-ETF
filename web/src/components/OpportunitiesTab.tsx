@@ -298,14 +298,14 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
             // Lógica inteligente de respostas personalizadas
             if (queryUpper.includes('QDVE')) {
               setScannedResult(`
-### 🤖 Relatório de Elite — iShares S&P 500 Info Tech (QDVE)
+### Relatório de Auditoria — iShares S&P 500 Info Tech (QDVE)
 * **Avaliação do Consultor:** **EXCELENTE (9.4/10)**
 * **Veredicto:** Altamente eficiente para investidores portugueses. Sendo de **Acumulação** e domiciliado na **Irlanda**, evita totalmente a dor de cabeça fiscal de declarar dividendos em Portugal.
 * **Oportunidade Oculta:** O seu TER de **0.15%** é extraordinariamente barato. É mais eficiente que o Nasdaq 100 (TER 0.33%) e oferece uma concentração limpa em gigantes tecnológicas com retenção preferencial nos EUA (15%).
               `);
             } else if (queryUpper.includes('VWCE')) {
               setScannedResult(`
-### 🤖 Relatório de Elite — Vanguard FTSE All-World (VWCE)
+### Relatório de Auditoria — Vanguard FTSE All-World (VWCE)
 * **Avaliação do Consultor:** **EXCELENTE (9.6/10)**
 * **Veredicto:** A âncora perfeita para o teu portefólio. Ideal para o método "buy and hold" e esquecer o mercado.
 * **Foco Fiscal:** Sediado na Irlanda (IE), com replicação física. Perfeito para o IRS português.
@@ -320,7 +320,7 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
               `);
             } else {
               setScannedResult(`
-### 🤖 Relatório de Elite — Auditoria Geral para '${queryUpper}'
+### Relatório de Auditoria — Auditoria Geral para '${queryUpper}'
 * **Avaliação do Consultor:** **NEUTRO / ANÁLISE SISTÉMICA (7.5/10)**
 * **Verificação Concluída:** Ativo mapeado em bolsas europeias.
 * **Recomendações do Consultor:**
@@ -406,7 +406,7 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
           <Compass size={28} />
         </div>
         <div>
-          <h3 style={{ fontSize: '1.3rem', fontWeight: '800' }}>Oportunidades de Elite & Investigação de Mercado</h3>
+          <h3 style={{ fontSize: '1.3rem', fontWeight: '800' }}>Oportunidades de Investimento & Investigação de Mercado</h3>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
             Vastidão de fontes, discussões de fóruns, notícias financeiras mundiais e auditoria fiscal em tempo real.
           </p>
@@ -558,7 +558,7 @@ export default function OpportunitiesTab({ etfs, onAddEtf }: OpportunitiesTabPro
         <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
           <div>
             <h4 style={{ fontSize: '1.1rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <TrendingUp size={18} className="text-primary" /> Curadoria do Consultor: ETFs de Elite Recomendados
+              <TrendingUp size={18} className="text-primary" /> Curadoria do Consultor: ETFs Recomendados
             </h4>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
               Altera, adiciona ou remove recomendações fiscais diretamente. Todas as mudanças persistem no teu browser.

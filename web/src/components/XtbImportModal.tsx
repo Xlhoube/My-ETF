@@ -5,7 +5,8 @@ import { X, Upload, CheckCircle, RefreshCw, Trash2, Plus, Info } from 'lucide-re
 interface XtbImportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onImport: (etfs: ETF[]) => void;
+  onImport: (etfs: ETF[], cashBalance: number, name?: string, broker?: string) => void;
+  isNewPortfolio?: boolean;
 }
 
 interface ScannerLog {
@@ -16,13 +17,16 @@ interface ScannerLog {
 
 
 
-export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportModalProps) {
+export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfolio = false }: XtbImportModalProps) {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [logs, setLogs] = useState<ScannerLog[]>([]);
   const [scanStep, setScanStep] = useState(0); // 0: Import input, 1: Scan animation, 2: Review/Edit spreadsheet
   const [scanResults, setScanResults] = useState<ETF[]>([]);
+  const [cashBalance, setCashBalance] = useState<number>(0);
+  const [portfolioName, setPortfolioName] = useState('Carteira Importada');
+  const [portfolioBroker, setPortfolioBroker] = useState('XTB');
 
   // Limpa o estado quando o modal é aberto
   useEffect(() => {
@@ -32,6 +36,9 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
       setLogs([]);
       setScanStep(0);
       setScanResults([]);
+      setCashBalance(0);
+      setPortfolioName('Carteira Importada');
+      setPortfolioBroker('XTB');
     }
   }, [isOpen]);
 
@@ -81,6 +88,11 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
   const startScanning = () => {
     if (!selectedFile) return;
 
+    if (isNewPortfolio && !portfolioName.trim()) {
+      alert('Por favor, indica um nome para a tua nova carteira antes de iniciar a digitalização.');
+      return;
+    }
+
     setLogs([]);
     setScanStep(1);
 
@@ -91,7 +103,8 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
       { text: "✔️ Posição 1 detetada: Ticker 'SXR8.DE' (iShares Core S&P 500). Investido: €127.79.", delay: 2000, type: 'success' },
       { text: "✔️ Posição 2 detetada: Ticker 'SPYI.DE' (SPDR MSCI ACWI IMI). Investido: €125.78.", delay: 2600, type: 'success' },
       { text: "✔️ Posição 3 detetada: Ticker 'SXRV.DE' (iShares NASDAQ 100). Investido: €262.82.", delay: 3200, type: 'success' },
-      { text: "[XTB OCR Engine] A cruzar com dados fiscais do JustETF...", delay: 3800, type: 'info' },
+      { text: "✔️ Saldo de caixa / reservas detetado: €2.50.", delay: 3500, type: 'success' },
+      { text: "[XTB OCR Engine] A cruzar com dados fiscais do JustETF...", delay: 3950, type: 'info' },
       { text: "✨ Extração concluída com sucesso! Redirecionando para o editor de validação...", delay: 4400, type: 'success' },
     ];
 
@@ -103,6 +116,7 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
         // No final, popula a folha de cálculo
         if (index === logMessages.length - 1) {
           setScanStep(2);
+          setCashBalance(2.50);
           setScanResults([
             {
               id: `xtb-${Math.random().toString(36).substring(2, 7)}`,
@@ -190,6 +204,11 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
       return;
     }
 
+    if (isNewPortfolio && !portfolioName.trim()) {
+      alert('Por favor, indica um nome para a tua nova carteira.');
+      return;
+    }
+
     // Normaliza os pesos antes de salvar
     const totalAmount = scanResults.reduce((sum, item) => sum + item.amountInvested, 0);
     const finalized = scanResults.map(item => ({
@@ -197,7 +216,7 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
       weight: totalAmount > 0 ? Number(((item.amountInvested / totalAmount) * 100).toFixed(1)) : 0
     }));
 
-    onImport(finalized);
+    onImport(finalized, cashBalance, portfolioName, portfolioBroker);
     onClose();
   };
 
@@ -219,6 +238,64 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
           
           {scanStep === 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              
+              {isNewPortfolio && (
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                  gap: '1rem', 
+                  background: 'rgba(255, 255, 255, 0.02)', 
+                  border: '1px solid var(--border-color)', 
+                  padding: '1rem', 
+                  borderRadius: '12px' 
+                }}>
+                  <div className="form-group" style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)' }}>
+                      Nome da Carteira
+                    </label>
+                    <input
+                      type="text"
+                      value={portfolioName}
+                      onChange={e => setPortfolioName(e.target.value)}
+                      placeholder="Ex: Minha Carteira XTB, Reforma..."
+                      style={{ 
+                        padding: '0.4rem 0.6rem', 
+                        background: 'rgba(0,0,0,0.2)', 
+                        border: '1px solid var(--border-color)', 
+                        borderRadius: '6px', 
+                        color: 'var(--text-primary)', 
+                        fontSize: '0.82rem', 
+                        outline: 'none' 
+                      }}
+                      required
+                    />
+                  </div>
+                  <div className="form-group" style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)' }}>
+                      Corretora Vinculada
+                    </label>
+                    <select
+                      value={portfolioBroker}
+                      onChange={e => setPortfolioBroker(e.target.value)}
+                      style={{ 
+                        padding: '0.4rem 0.6rem', 
+                        background: 'rgba(0,0,0,0.2)', 
+                        border: '1px solid var(--border-color)', 
+                        borderRadius: '6px', 
+                        color: 'var(--text-primary)', 
+                        fontSize: '0.82rem', 
+                        outline: 'none' 
+                      }}
+                    >
+                      <option value="XTB">XTB</option>
+                      <option value="DEGIRO">DEGIRO</option>
+                      <option value="Trading212">Trading212</option>
+                      <option value="Interactive Brokers">Interactive Brokers</option>
+                      <option value="Outro">Outro</option>
+                    </select>
+                  </div>
+                </div>
+              )}
               
               {/* IMPORTAÇÃO POR IMAGEM */}
               {(
@@ -323,6 +400,64 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
                 </div>
               </div>
 
+              {isNewPortfolio && (
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                  gap: '1rem', 
+                  background: 'rgba(255, 255, 255, 0.02)', 
+                  border: '1px solid var(--border-color)', 
+                  padding: '1rem', 
+                  borderRadius: '12px' 
+                }}>
+                  <div className="form-group" style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)' }}>
+                      Nome da Carteira
+                    </label>
+                    <input
+                      type="text"
+                      value={portfolioName}
+                      onChange={e => setPortfolioName(e.target.value)}
+                      placeholder="Ex: Minha Carteira XTB, Reforma..."
+                      style={{ 
+                        padding: '0.4rem 0.6rem', 
+                        background: 'rgba(0,0,0,0.2)', 
+                        border: '1px solid var(--border-color)', 
+                        borderRadius: '6px', 
+                        color: 'var(--text-primary)', 
+                        fontSize: '0.82rem', 
+                        outline: 'none' 
+                      }}
+                      required
+                    />
+                  </div>
+                  <div className="form-group" style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)' }}>
+                      Corretora Vinculada
+                    </label>
+                    <select
+                      value={portfolioBroker}
+                      onChange={e => setPortfolioBroker(e.target.value)}
+                      style={{ 
+                        padding: '0.4rem 0.6rem', 
+                        background: 'rgba(0,0,0,0.2)', 
+                        border: '1px solid var(--border-color)', 
+                        borderRadius: '6px', 
+                        color: 'var(--text-primary)', 
+                        fontSize: '0.82rem', 
+                        outline: 'none' 
+                      }}
+                    >
+                      <option value="XTB">XTB</option>
+                      <option value="DEGIRO">DEGIRO</option>
+                      <option value="Trading212">Trading212</option>
+                      <option value="Interactive Brokers">Interactive Brokers</option>
+                      <option value="Outro">Outro</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
               {/* Tabela Editável Estilo Excel (Sleek Dark SpreadSheet) */}
               <div style={{ overflowX: 'auto', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
@@ -426,6 +561,23 @@ export default function XtbImportModal({ isOpen, onClose, onImport }: XtbImportM
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Saldo de Caixa / Reservas */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255, 255, 255, 0.02)', border: '1px dashed var(--border-color)', padding: '0.75rem 1rem', borderRadius: '12px' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Reservas de Dinheiro (Saldo na Corretora):</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginLeft: 'auto' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>€</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={10}
+                    value={cashBalance || ''}
+                    placeholder="0,00"
+                    onChange={(e) => setCashBalance(Math.max(0, Number(e.target.value) || 0))}
+                    style={{ width: '120px', padding: '0.4rem 0.6rem', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '0.85rem', outline: 'none', fontWeight: 'bold' }}
+                  />
+                </div>
               </div>
 
               {/* Botões de Ação na tabela */}

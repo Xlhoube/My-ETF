@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Portfolio, ETF } from '../types';
-import { X, Save, FolderKanban, ChevronRight, ChevronLeft, Shield, TrendingUp, BarChart2, Zap, Clock, Wallet, Globe, Cpu, Building2, Leaf, Check, Sparkles } from 'lucide-react';
+import { X, Save, FolderKanban, ChevronRight, ChevronLeft, Shield, TrendingUp, BarChart2, Zap, Clock, Wallet, Globe, Cpu, Building2, Leaf, Check } from 'lucide-react';
 
 interface PortfolioModalProps {
   isOpen: boolean;
@@ -8,6 +8,7 @@ interface PortfolioModalProps {
   onSave: (portfolio: Partial<Portfolio> & { starterEtfs?: ETF[] }) => void;
   existingPortfolio: Portfolio | null;
   userProfileBroker?: string;
+  onImportFromPrint?: () => void;
 }
 
 type RiskProfile = 'conservador' | 'moderado' | 'agressivo';
@@ -23,6 +24,7 @@ interface WizardState {
   initialAmount: number;   // capital inicial
   etfCount: number;        // 1–8
   theme: Theme;
+  cashBalance?: number;
 }
 
 interface EtfTemplate {
@@ -204,7 +206,7 @@ function generateRecommendations(state: WizardState): Array<EtfTemplate & { sugg
 }
 
 
-export default function PortfolioModal({ isOpen, onClose, onSave, existingPortfolio, userProfileBroker }: PortfolioModalProps) {
+export default function PortfolioModal({ isOpen, onClose, onSave, existingPortfolio, userProfileBroker, onImportFromPrint }: PortfolioModalProps) {
   // Simple edit mode (no wizard) for existing portfolios
   const [name, setName] = useState('');
   const [broker, setBroker] = useState<string>('Outro');
@@ -379,7 +381,7 @@ export default function PortfolioModal({ isOpen, onClose, onSave, existingPortfo
         {/* Header */}
         <div className="modal-header">
           <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Sparkles size={20} style={{ color: 'var(--primary)' }} />
+            <FolderKanban size={20} style={{ color: 'var(--primary)' }} />
             Nova Carteira
           </h3>
           <button className="btn btn-secondary" style={{ padding: '0.4rem', borderRadius: '50%' }} onClick={onClose}><X size={18} /></button>
@@ -438,6 +440,23 @@ export default function PortfolioModal({ isOpen, onClose, onSave, existingPortfo
                   A consultoria fiscal será ajustada à corretora selecionada.
                 </p>
               </div>
+
+              {onImportFromPrint && (
+                <div style={{ marginTop: '1.25rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.02)', border: '1px dashed var(--border-color)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '0.6rem', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Importar ETFs por imagem</span>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.85rem', padding: '0.55rem' }}
+                    onClick={onImportFromPrint}
+                  >
+                    📷 Importar de Print Screen da Corretora
+                  </button>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                    Podes carregar uma captura de ecrã da tua lista de posições para extrair os ETFs automaticamente.
+                  </span>
+                </div>
+              )}
             </>
           )}
 
@@ -613,7 +632,7 @@ export default function PortfolioModal({ isOpen, onClose, onSave, existingPortfo
           {step === 4 && (
             <>
               <div style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '10px', padding: '0.75rem 1rem', fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-                🤖 Com base no teu perfil <strong style={{ color: 'var(--primary)' }}>{wizard.riskProfile}</strong>, horizonte de <strong style={{ color: 'var(--primary)' }}>{wizard.horizon} anos</strong> e temática <strong style={{ color: 'var(--primary)' }}>{THEME_OPTIONS.find(t => t.id === wizard.theme)?.label}</strong>, o consultor identificou as melhores opções. Seleciona os que queres adicionar.
+                Com base no teu perfil <strong style={{ color: 'var(--primary)' }}>{wizard.riskProfile}</strong>, horizonte de <strong style={{ color: 'var(--primary)' }}>{wizard.horizon} anos</strong> e temática <strong style={{ color: 'var(--primary)' }}>{THEME_OPTIONS.find(t => t.id === wizard.theme)?.label}</strong>, o consultor identificou as melhores opções. Seleciona os que queres adicionar.
               </div>
 
               {/* Top Picks — destaque especial */}
@@ -733,14 +752,28 @@ export default function PortfolioModal({ isOpen, onClose, onSave, existingPortfo
           )}
 
           {/* Navigation buttons */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', gap: '0.75rem' }}>
-            {step > 1 ? (
-              <button type="button" className="btn btn-secondary" onClick={goBack} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <ChevronLeft size={16} /> Anterior
-              </button>
-            ) : (
-              <button type="button" className="btn btn-secondary" onClick={onClose}>Cancelar</button>
-            )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              {step > 1 ? (
+                <button type="button" className="btn btn-secondary" onClick={goBack} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <ChevronLeft size={16} /> Anterior
+                </button>
+              ) : (
+                <button type="button" className="btn btn-secondary" onClick={onClose}>Cancelar</button>
+              )}
+
+              {!existingPortfolio && onImportFromPrint && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={onImportFromPrint}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', borderColor: 'var(--primary)' }}
+                  title="Importar a partir de um print screen da corretora"
+                >
+                  📷 Carregar Print
+                </button>
+              )}
+            </div>
 
             {step < totalSteps ? (
               <button

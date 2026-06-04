@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ETF, ChatMessage } from '../types';
 import { generateAdvisorReply } from '../utils/advisorEngine';
-import { Send, Sparkles, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Send, AlertTriangle, ShieldCheck, Briefcase } from 'lucide-react';
 
 interface AdvisorChatProps {
   etfs: ETF[];
@@ -114,11 +114,11 @@ export default function AdvisorChat({ etfs, triggeredQuery, onClearTrigger, port
   const [inputValue, setInputValue] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // Efeito para carregar a mensagem de introdução ácida do consultor de elite.
+  // Efeito para carregar a mensagem de introdução profissional do consultor financeiro.
   useEffect(() => {
     const welcomeText = etfs.length === 0
-      ? "Olá. Sou o teu Consultor de Elite. Estou aqui para garantir que o teu capital não é comido vivo por gestoras gananciosas ou pelo leão do IRS. Para começar a auditar a sério, regista pelo menos um ETF na tua carteira. No entanto, se quiseres falar de conceitos fiscais gerais ou de erros normais, força!"
-      : "Portefólio registado. Estou pronto para responder a qualquer dúvida que tenhas sobre eficiência de custos, impostos (IRS) ou otimizações de ETFs. Pergunta-me o que quiseres, ou clica nos atalhos rápidos abaixo.";
+      ? "Olá. Sou o teu Consultor Financeiro. Estou disponível para auditar a tua carteira de ETFs, analisando vulnerabilidades de custos, comissões de gestão e ineficiências fiscais que possam prejudicar a tua rentabilidade. Para começar a auditar, regista pelo menos um ETF na tua carteira. No entanto, podes colocar questões de cariz geral de imediato."
+      : "Portefólio registado. Estou disponível para analisar qualquer questão sobre eficiência de custos, impostos (IRS) ou otimizações de ETFs na tua carteira. Pergunta-me o que desejares ou utiliza os atalhos rápidos abaixo.";
 
     setMessages([
       {
@@ -185,13 +185,15 @@ export default function AdvisorChat({ etfs, triggeredQuery, onClearTrigger, port
   return (
     <div className="card advisor-glow advisor-panel">
       <div className="chat-header">
-        <div className="avatar">🕶️</div>
+        <div className="avatar" style={{ background: 'var(--primary-glow)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', width: '36px', height: '36px' }}>
+          <Briefcase size={18} />
+        </div>
         <div>
           <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-primary)' }}>
-            Consultor de Elite Insider
+            Consultor Financeiro
           </h3>
-          <span style={{ fontSize: '0.75rem', color: 'var(--secondary)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <Sparkles size={12} /> Cético, Ácido e Fiscalmente Obsessivo
+          <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <ShieldCheck size={12} style={{ color: 'var(--primary)' }} /> Auditoria e Otimização Fiscal
           </span>
         </div>
       </div>
@@ -200,8 +202,8 @@ export default function AdvisorChat({ etfs, triggeredQuery, onClearTrigger, port
         {messages.map(msg => (
           <div key={msg.id} className={`msg-bubble ${msg.sender}`}>
             {msg.sender === 'advisor' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.35rem', fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--secondary)' }}>
-                <span>INSIDER ADVISOR</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.35rem', fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                <span>CONSULTOR FINANCEIRO</span>
               </div>
             )}
             <div style={{ wordBreak: 'break-word' }}>

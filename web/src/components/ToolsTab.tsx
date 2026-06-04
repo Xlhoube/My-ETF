@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ETF } from '../types';
-import { Flame, ShieldCheck, FileText, Sparkles } from 'lucide-react';
+import { Flame, ShieldCheck, FileText } from 'lucide-react';
 
 interface ToolsTabProps {
   etfs: ETF[];
@@ -71,14 +71,14 @@ export default function ToolsTab({ etfs }: ToolsTabProps) {
       };
     } else if (pct < 90) {
       return {
-        title: "🔥 Fase 4: Quase Fora da Matrix",
+        title: "🔥 Fase 4: Quase na Independência Financeira",
         desc: "Fase de escape iminente. A velocidade dos juros compostos nesta fase é superior aos teus reforços ativos. O teu portefólio move-se sozinho!",
         color: 'var(--primary)'
       };
     } else {
       return {
         title: "👑 Fase 5: Independência Financeira Absoluta (FIRE)",
-        desc: "REFORMADO E LIVRE! O teu portefólio de ETFs de elite sustenta o teu estilo de vida para sempre. Parabéns investidor, escapaste à Matrix de IRS e trabalho obrigatório!",
+        desc: "REFORMADO E LIVRE! O teu portefólio de ETFs de alta eficiência sustenta o teu estilo de vida para sempre. Parabéns investidor, atingiste a independência face ao mercado de trabalho obrigatório e IRS!",
         color: 'var(--primary)'
       };
     }
@@ -100,17 +100,17 @@ export default function ToolsTab({ etfs }: ToolsTabProps) {
               <Flame className="text-primary" size={24} style={{ color: 'var(--primary)' }} /> Calculadora de Liberdade & Independência (FIRE)
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-              Descobre quando podes mandar o teu chefe passear e viver exclusivamente dos juros compostos acumulados nos teus ETFs de elite.
+              Descobre quando podes atingir a reforma antecipada e viver exclusivamente dos juros compostos acumulados nos teus ETFs de alta eficiência.
             </p>
           </div>
           <div style={{ display: 'flex', gap: '0.4rem', background: 'var(--primary-glow)', border: '1px solid rgba(126, 161, 138, 0.2)', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '700', color: 'var(--primary)', alignItems: 'center' }}>
-            <Sparkles size={14} /> Regra dos 4% Ativa
+            <ShieldCheck size={14} /> Regra dos 4% Ativa
           </div>
         </div>
 
         {/* Controlos FIRE */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', background: 'hsla(230, 20%, 5%, 0.3)', padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-          <div className="form-group" style={{ margin: 0 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem', background: 'hsla(230, 20%, 5%, 0.3)', padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+          <div className="form-group" style={{ margin: 0, display: 'flex', flexDirection: 'column' }}>
             <label htmlFor="monthly-expenses-slider">Custo de Vida Mensal Desejado: <strong style={{ color: 'var(--primary)' }}>{formatMoney(monthlyExpenses)}/mês</strong></label>
             <input
               id="monthly-expenses-slider"
@@ -122,9 +122,13 @@ export default function ToolsTab({ etfs }: ToolsTabProps) {
               onChange={e => setMonthlyExpenses(Number(e.target.value))}
               style={{ accentColor: 'var(--primary)', marginTop: '0.5rem' }}
             />
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: '1.3', margin: '0.5rem 0 0 0' }}>
+              <strong>O que é:</strong> O orçamento mensal estimado para sustentar o teu estilo de vida na reforma antecipada.<br />
+              <strong>O que faz:</strong> Serve de base para calcular a tua despesa anual necessária. Quanto maior for o custo, maior terá de ser o teu património alvo.
+            </p>
           </div>
           
-          <div className="form-group" style={{ margin: 0 }}>
+          <div className="form-group" style={{ margin: 0, display: 'flex', flexDirection: 'column' }}>
             <label htmlFor="withdrawal-rate-slider">Taxa de Levantamento Segura (SWR): <strong style={{ color: 'var(--secondary)' }}>{withdrawalRate}% /ano</strong></label>
             <input
               id="withdrawal-rate-slider"
@@ -136,9 +140,13 @@ export default function ToolsTab({ etfs }: ToolsTabProps) {
               onChange={e => setWithdrawalRate(Number(e.target.value))}
               style={{ accentColor: 'var(--secondary)', marginTop: '0.5rem' }}
             />
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: '1.3', margin: '0.5rem 0 0 0' }}>
+              <strong>O que é:</strong> A percentagem anual que podes retirar do teu património no 1º ano de reforma (e ajustado à inflação nos seguintes).<br />
+              <strong>Como funciona:</strong> Baseia-se no histórico (Regra dos 4%). Se a subires (ex: 4.3%), precisas de acumular menos capital, mas o risco aumenta ligeiramente.
+            </p>
           </div>
 
-          <div className="form-group" style={{ margin: 0 }}>
+          <div className="form-group" style={{ margin: 0, display: 'flex', flexDirection: 'column' }}>
             <label htmlFor="custom-savings-slider">Teu Reforço Mensal Recorrente: <strong style={{ color: 'var(--primary)' }}>{formatMoney(customMonthlySavings)}/mês</strong></label>
             <input
               id="custom-savings-slider"
@@ -150,6 +158,10 @@ export default function ToolsTab({ etfs }: ToolsTabProps) {
               onChange={e => setCustomMonthlySavings(Number(e.target.value))}
               style={{ accentColor: 'var(--primary)', marginTop: '0.5rem' }}
             />
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.5rem', lineHeight: '1.3', margin: '0.5rem 0 0 0' }}>
+              <strong>O que é:</strong> O montante que poupas e investes na tua carteira de ETFs todos os meses a partir dos teus rendimentos de trabalho.<br />
+              <strong>O que faz:</strong> Funciona como o combustível para acelerar a acumulação de património. Reduz drasticamente o tempo necessário para alcançar o FIRE.
+            </p>
           </div>
         </div>
 
@@ -298,9 +310,9 @@ export default function ToolsTab({ etfs }: ToolsTabProps) {
 
                 {!hasDistEtfs ? (
                   <div style={{ padding: '1rem', background: 'var(--primary-glow)', border: '1px solid rgba(126, 161, 138, 0.2)', borderRadius: '12px', textAlign: 'center', fontSize: '0.75rem', color: 'var(--primary)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <strong>✨ Zero Obrigações de Declaração de Dividendos!</strong>
+                    <strong>Zero Obrigações de Declaração de Dividendos!</strong>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-                      Como toda a tua carteira atual é composta por fundos acumuladores (Acc), tens **Isenção Total no IRS Anual** sobre dividendos. Apenas pagarás IRS (28%) no momento em que decidires vender os ativos com mais-valias!
+                       Como toda a tua carteira atual é composta por fundos acumuladores (Acc), tens **Isenção Total no IRS Anual** sobre dividendos. Apenas pagarás IRS (28%) no momento em que decidires vender os ativos com mais-valias!
                     </p>
                   </div>
                 ) : (
@@ -355,7 +367,7 @@ export default function ToolsTab({ etfs }: ToolsTabProps) {
                 </div>
               </div>
 
-              {/* CONSELHO DO CONSULTOR EM DESTAQUE */}
+              {/* RECOMENDAÇÃO EM DESTAQUE */}
               <div style={{ 
                 background: incomeTier === 'under_21k' ? 'var(--secondary-glow)' : 'var(--primary-glow)',
                 border: incomeTier === 'under_21k' ? '1px solid var(--secondary)' : '1px solid var(--primary)',
@@ -366,7 +378,7 @@ export default function ToolsTab({ etfs }: ToolsTabProps) {
                 alignItems: 'flex-start',
                 animation: 'fadeIn 0.25s ease-out'
               }}>
-                <Sparkles size={20} style={{ color: incomeTier === 'under_21k' ? 'var(--secondary)' : 'var(--primary)', flexShrink: 0, marginTop: '0.1rem' }} />
+                <ShieldCheck size={20} style={{ color: incomeTier === 'under_21k' ? 'var(--secondary)' : 'var(--primary)', flexShrink: 0, marginTop: '0.1rem' }} />
                 <div>
                   <strong style={{ fontSize: '0.85rem', color: 'var(--text-primary)', display: 'block' }}>
                     Recomendação Simples: {incomeTier === 'under_21k' ? 'Juntar tudo no IRS (Opção de Englobamento)' : 'Pagar a Taxa Fixa de 28% (Opção Padrão)'}
