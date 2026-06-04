@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Tesseract from 'tesseract.js';
 import { ETF } from '../types';
 import { X, Upload, CheckCircle, RefreshCw, Trash2, Plus, Info } from 'lucide-react';
 
@@ -84,9 +85,9 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
     }
   };
 
-  // Executa a simulação de scanning OCR por imagem
-  const startScanning = () => {
-    if (!selectedFile) return;
+  // Executa a leitura OCR real por imagem
+  const startScanning = async () => {
+    if (!selectedFile || !imagePreview) return;
 
     if (isNewPortfolio && !portfolioName.trim()) {
       alert('Por favor, indica um nome para a tua nova carteira antes de iniciar a digitalização.');
@@ -96,71 +97,112 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
     setLogs([]);
     setScanStep(1);
 
-    const logMessages: { text: string; delay: number; type: 'info' | 'success' | 'warning' }[] = [
-      { text: `[XTB OCR Engine] Ficheiro inicializado: ${selectedFile.name}`, delay: 300, type: 'info' },
-      { text: "[XTB OCR Engine] A detetar tabela de posições abertas na xStation...", delay: 800, type: 'info' },
-      { text: "[XTB OCR Engine] Filtro de contraste aplicado. Grelha de colunas identificada.", delay: 1400, type: 'info' },
-      { text: "✔️ Posição 1 detetada: Ticker 'SXR8.DE' (iShares Core S&P 500). Investido: €127.79.", delay: 2000, type: 'success' },
-      { text: "✔️ Posição 2 detetada: Ticker 'SPYI.DE' (SPDR MSCI ACWI IMI). Investido: €125.78.", delay: 2600, type: 'success' },
-      { text: "✔️ Posição 3 detetada: Ticker 'SXRV.DE' (iShares NASDAQ 100). Investido: €262.82.", delay: 3200, type: 'success' },
-      { text: "✔️ Saldo de caixa / reservas detetado: €2.50.", delay: 3500, type: 'success' },
-      { text: "[XTB OCR Engine] A cruzar com dados fiscais do JustETF...", delay: 3950, type: 'info' },
-      { text: "✨ Extração concluída com sucesso! Redirecionando para o editor de validação...", delay: 4400, type: 'success' },
-    ];
+    const timeStr = () => new Date().toLocaleTimeString('pt-PT', { hour12: false });
+    
+    const addLog = (text: string, type: 'info' | 'success' | 'warning' = 'info') => {
+      setLogs(prev => [...prev, { time: timeStr(), text, type }]);
+    };
 
-    logMessages.forEach((log, index) => {
-      setTimeout(() => {
-        const timeStr = new Date().toLocaleTimeString('pt-PT', { hour12: false });
-        setLogs(prev => [...prev, { time: timeStr, text: log.text, type: log.type }]);
-        
-        // No final, popula a folha de cálculo
-        if (index === logMessages.length - 1) {
-          setScanStep(2);
-          setCashBalance(2.50);
-          setScanResults([
-            {
-              id: `xtb-${Math.random().toString(36).substring(2, 7)}`,
-              ticker: 'SXR8',
-              name: 'iShares Core S&P 500 UCITS ETF (Acc)',
-              ter: 0.07,
-              domicile: 'IE',
-              distribution: 'Acc',
-              replication: 'Physical',
-              weight: 25,
-              amountInvested: 127.79,
-              currentValue: 152.44,
-              lastPrice: 698.90
-            },
-            {
-              id: `xtb-${Math.random().toString(36).substring(2, 7)}`,
-              ticker: 'SPYI',
-              name: 'SPDR MSCI ACWI IMI UCITS ETF (Acc)',
-              ter: 0.17,
-              domicile: 'IE',
-              distribution: 'Acc',
-              replication: 'Physical',
-              weight: 25,
-              amountInvested: 125.78,
-              currentValue: 151.70,
-              lastPrice: 11.25
-            },
-            {
-              id: `xtb-${Math.random().toString(36).substring(2, 7)}`,
-              ticker: 'SXRV',
-              name: 'iShares NASDAQ 100 UCITS ETF (Acc)',
-              ter: 0.33,
-              domicile: 'IE',
-              distribution: 'Acc',
-              replication: 'Physical',
-              weight: 50,
-              amountInvested: 262.82,
-              currentValue: 328.22,
-              lastPrice: 1492.00
+    addLog(`[XTB OCR Engine] Ficheiro inicializado: ${selectedFile.name}`);
+    addLog("[XTB OCR Engine] A iniciar Tesseract Worker para processamento neural...");
+
+    try {
+      const result = await Tesseract.recognize(
+        imagePreview,
+        'eng+por',
+        { 
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              // Update occasionally to not flood logs
+              if (Math.random() < 0.05) {
+                addLog(`[OCR Progress] Reconhecimento em curso: ${(m.progress * 100).toFixed(0)}%`);
+              }
             }
-          ]);
+          }
         }
-      }, log.delay);
-    });
+      );
+
+      const text = result.data.text;
+      addLog("✨ Extração de texto concluída com sucesso! A processar dados...", 'success');
+      
+      const lines = text.split('\n');
+      const foundEtfs: any[] = [];
+      
+      // Heurística básica: procurar por Tickers conhecidos (3 a 5 maiúsculas com/sem ponto) 
+      // seguido de números na mesma linha ou nas redondezas
+      // XTB format usually has Ticker, Full Name, then some numbers like Quantity, Open Price, Market Price, Profit
+      // Tesseract might merge them.
+      
+      const tickerRegex = /\b([A-Z0-9]{3,5}(?:\.(?:DE|MI|AS|PA|UK|L))?)\b/g;
+      const numberRegex = /\b(\d{1,3}(?:[.,\s]\d{3})*[.,]\d{2})\b/g;
+      
+      lines.forEach(line => {
+        const tickers = [...line.matchAll(tickerRegex)].map(m => m[1]);
+        if (tickers.length > 0) {
+          const numbers = [...line.matchAll(numberRegex)].map(m => {
+            // Convert something like "1.234,50" or "1 234.50" to float
+            const cleanNum = m[1].replace(/\s/g, '').replace(/,/g, '.');
+            // If it has multiple dots like "1.234.50", only the last one is the decimal
+            const parts = cleanNum.split('.');
+            if (parts.length > 2) {
+              const decimal = parts.pop();
+              return parseFloat(parts.join('') + '.' + decimal);
+            }
+            return parseFloat(cleanNum);
+          }).filter(n => !isNaN(n));
+          
+          if (numbers.length >= 2) {
+            // Assume first significant number is invested, next is current value (or something similar)
+            // Just picking the two largest numbers or first two to mock the result properly
+            // Often: Quantity, Open Price, Market Price, Current Value, Profit
+            const currentVal = numbers[numbers.length - 1]; // Assume last is current value
+            const investedVal = numbers.length > 1 ? numbers[numbers.length - 2] : currentVal; // Assume second to last is invested
+            
+            const ticker = tickers[0];
+            
+            foundEtfs.push({
+              id: `xtb-${Math.random().toString(36).substring(2, 7)}`,
+              ticker: ticker.toUpperCase(),
+              name: `ETF Lido (${ticker})`, // Temporary name, user edits it
+              ter: 0.20,
+              domicile: 'IE',
+              distribution: 'Acc',
+              replication: 'Physical',
+              weight: 0,
+              amountInvested: investedVal,
+              currentValue: currentVal,
+              lastPrice: 0
+            });
+            
+            addLog(`✔️ Posição detetada: Ticker '${ticker}'. Investido/Valor lido: €${investedVal}`, 'success');
+          }
+        }
+      });
+      
+      if (foundEtfs.length === 0) {
+        addLog("⚠️ Nenhum padrão reconhecido. A preencher com linha vazia para edição manual.", 'warning');
+        foundEtfs.push({
+          id: `xtb-${Math.random().toString(36).substring(2, 7)}`,
+          ticker: 'ETF',
+          name: 'Ativo Não Reconhecido',
+          ter: 0.20,
+          domicile: 'IE',
+          distribution: 'Acc',
+          replication: 'Physical',
+          weight: 0,
+          amountInvested: 1000,
+          currentValue: 1000,
+          lastPrice: 0
+        });
+      }
+      
+      setScanStep(2);
+      setCashBalance(0);
+      setScanResults(foundEtfs);
+
+    } catch (err) {
+      addLog(`❌ Erro crítico no OCR: ${err}`, 'warning');
+    }
   };
 
 
