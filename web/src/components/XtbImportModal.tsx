@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import Tesseract from 'tesseract.js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ETF } from '../types';
-import { X, Upload, CheckCircle, RefreshCw, Trash2, Plus, Info } from 'lucide-react';
+import { X, Upload, CheckCircle, RefreshCw, Trash2, Plus, Info, Sparkles } from 'lucide-react';
 
 interface XtbImportModalProps {
   isOpen: boolean;
@@ -28,8 +28,9 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
   const [cashBalance, setCashBalance] = useState<number>(0);
   const [portfolioName, setPortfolioName] = useState('Carteira Importada');
   const [portfolioBroker, setPortfolioBroker] = useState('XTB');
+  const [geminiApiKey, setGeminiApiKey] = useState(localStorage.getItem('gemini_api_key') || '');
 
-  // Limpa o estado quando o modal é aberto
+  // Limpa o estado quando o modal Ã© aberto
   useEffect(() => {
     if (isOpen) {
       setSelectedFile(null);
@@ -45,7 +46,7 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
 
   if (!isOpen) return null;
 
-  // Lida com o arrastar do ficheiro sobre a área
+  // Lida com o arrastar do ficheiro sobre a Ã¡rea
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -66,7 +67,7 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
       };
       reader.readAsDataURL(file);
     } else {
-      alert('Por favor, carrega um ficheiro de imagem válido (PNG, JPG, WEBP).');
+      alert('Por favor, carrega um ficheiro de imagem vÃ¡lido (PNG, JPG, WEBP).');
     }
   };
 
@@ -85,12 +86,17 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
     }
   };
 
-  // Executa a leitura OCR real por imagem
+  // Executa a leitura Vision AI
   const startScanning = async () => {
     if (!selectedFile || !imagePreview) return;
 
     if (isNewPortfolio && !portfolioName.trim()) {
       alert('Por favor, indica um nome para a tua nova carteira antes de iniciar a digitalização.');
+      return;
+    }
+
+    if (!geminiApiKey.trim()) {
+      alert('Por favor, introduza a chave da API do Gemini para prosseguir com a Visão Artificial.');
       return;
     }
 
@@ -103,141 +109,84 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
       setLogs(prev => [...prev, { time: timeStr(), text, type }]);
     };
 
-    addLog(`[XTB OCR Engine] Ficheiro inicializado: ${selectedFile.name}`);
-    addLog("[XTB OCR Engine] A iniciar Tesseract Worker para processamento neural...");
+    addLog(`[Vision AI Engine] Ficheiro inicializado: ${selectedFile.name}`);
+    addLog("[Vision AI Engine] A contactar o modelo Google Gemini 1.5 Flash...");
 
     try {
-      const result = await Tesseract.recognize(
-        imagePreview,
-        'eng+por',
-        { 
-          logger: m => {
-            if (m.status === 'recognizing text') {
-              // Update occasionally to not flood logs
-              if (Math.random() < 0.05) {
-                addLog(`[OCR Progress] Reconhecimento em curso: ${(m.progress * 100).toFixed(0)}%`);
-              }
-            }
+      const base64Data = imagePreview.split(',')[1];
+      const mimeType = imagePreview.split(';')[0].split(':')[1];
+
+      const genAI = new GoogleGenerativeAI(geminiApiKey);
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+      const prompt = `Analisa este print screen de uma corretora financeira (como a XTB, Degiro, etc.). Extrai todos os ETFs detetados.
+Devolve EXCLUSIVAMENTE um objeto JSON válido com a seguinte estrutura:
+{
+  "etfs": [
+    {
+      "name": "Nome do ETF (ex: iShares Core S&P 500)",
+      "ticker": "Código em Bolsa (ex: SXR8.DE, VWCE.DE). Se não souberes, deduz a partir do nome ou usa 'ETF'.",
+      "amountInvested": 1234.56,
+      "currentValue": 1500.20
+    }
+  ],
+  "cashBalance": 0
+}
+ATENÇÃO: Extrai apenas números nas propriedades de valor, sem símbolos de moeda. A resposta deve ser APENAS o JSON puro, sem blocos de markdown.`;
+
+      addLog(`[Vision AI Progress] Imagem enviada. A interpretar estrutura visual do portefólio...`);
+
+      const result = await model.generateContent([
+        prompt,
+        {
+          inlineData: {
+            data: base64Data,
+            mimeType: mimeType
           }
         }
-      );
+      ]);
 
-      const text = result.data.text;
-      addLog("✨ Extração de texto concluída com sucesso! A processar dados...", 'success');
+      const responseText = result.response.text();
+      let cleanText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
       
-      console.log("----- INÍCIO DO TEXTO LIDO PELO TESSERACT -----");
-      console.log(text);
-      console.log("----- FIM DO TEXTO LIDO -----");
+      addLog("✨ Leitura concluída! A processar dados devolvidos...", 'success');
       
-      const lines = text.split('\n');
-      const foundEtfs: any[] = [];
-      
-      // Heurística Avançada para layout XTB:
-      // A XTB muitas vezes não mostra o Ticker de forma legível, mas mostra o Nome (ex: iShares Core S&P 500 UCITS)
-      // O valor de mercado costuma estar no fim dessa linha. A linha seguinte costuma ter o valor investido ou o lucro.
-      
-      const etfProviders = ['iShares', 'Vanguard', 'SPDR', 'Xtrackers', 'Amundi', 'Lyxor', 'Invesco', 'WisdomTree'];
-      const providerRegex = new RegExp(`(${etfProviders.join('|')})`, 'i');
-      
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        
-        // Se a linha contiver o nome de um fornecedor de ETFs
-        if (providerRegex.test(line)) {
-          // Extrair o nome limpando caracteres estranhos no início (ex: "snares iShares" -> "iShares")
-          const match = line.match(new RegExp(`(${etfProviders.join('|')}.*)`, 'i'));
-          if (!match) continue;
-          
-          let name = match[1];
-          // O valor atual costuma ser o último número na linha do nome
-          const numbersOnNameLine = [...name.matchAll(/\b(\d{1,3}(?:[.,\s]\d{3})*[.,]\d{2})\b/g)].map(m => parseFloat(m[1].replace(/\s/g, '').replace(/,/g, '.')));
-          
-          let currentVal = 0;
-          if (numbersOnNameLine.length > 0) {
-            currentVal = numbersOnNameLine[numbersOnNameLine.length - 1];
-            // Remove o número do nome
-            name = name.replace(numbersOnNameLine[numbersOnNameLine.length - 1].toString(), '').replace(/[^a-zA-Z0-9\s&]/g, '').trim();
-          }
+      const parsed = JSON.parse(cleanText);
+      const foundEtfs = (parsed.etfs || []).map((etf: any) => ({
+        id: `ai-${Math.random().toString(36).substring(2, 7)}`,
+        ticker: etf.ticker || 'ETF',
+        name: etf.name || 'Ativo Lido por IA',
+        ter: 0.20,
+        domicile: 'IE',
+        distribution: 'Acc',
+        replication: 'Physical',
+        weight: 0,
+        amountInvested: Number(etf.amountInvested || 0),
+        currentValue: Number(etf.currentValue || 0),
+        lastPrice: 0
+      }));
 
-          // Adivinhar Ticker a partir do Nome
-          let ticker = 'ETF';
-          const nameUpper = name.toUpperCase();
-          if (nameUpper.includes('S&P 500') || nameUpper.includes('S&P500')) ticker = 'SXR8.DE';
-          else if (nameUpper.includes('NASDAQ')) ticker = 'SXRV.DE';
-          else if (nameUpper.includes('ACWI')) ticker = 'SPYI.DE';
-          else if (nameUpper.includes('ALL-WORLD') || nameUpper.includes('VWCE')) ticker = 'VWCE.DE';
-          else if (nameUpper.includes('MSCI WORLD')) ticker = 'IWDA.AS';
-          
-          // Procurar o valor investido na próxima linha
-          let investedVal = currentVal;
-          if (i + 1 < lines.length) {
-            const nextLine = lines[i + 1];
-            // Na XTB a linha de baixo tem o Investido OU o Lucro (ex: +25.11)
-            // Vamos procurar o lucro:
-            const profitMatch = nextLine.match(/\+(\d{1,3}(?:[.,\s]\d{3})*[.,]\d{2})\s*\(/);
-            if (profitMatch && currentVal > 0) {
-               const profit = parseFloat(profitMatch[1].replace(/\s/g, '').replace(/,/g, '.'));
-               investedVal = currentVal - profit;
-            } else {
-               // Se não encontrar o lucro explícito, tenta o primeiro número que faz sentido como investido
-               const numbersOnNextLine = [...nextLine.matchAll(/\b(\d{1,3}(?:[.,\s]\d{3})*[.,]\d{2})\b/g)].map(m => parseFloat(m[1].replace(/\s/g, '').replace(/,/g, '.')));
-               if (numbersOnNextLine.length > 0) {
-                 // Assumimos que o investido é o primeiro número e é menor ou próximo do valor atual
-                 investedVal = numbersOnNextLine[0];
-               }
-            }
-          }
-          
-          // Arredondamentos
-          investedVal = Number(investedVal.toFixed(2));
-          currentVal = Number(currentVal.toFixed(2));
-          
-          foundEtfs.push({
-            id: `xtb-${Math.random().toString(36).substring(2, 7)}`,
-            ticker: ticker,
-            name: name,
-            ter: 0.20,
-            domicile: 'IE',
-            distribution: 'Acc',
-            replication: 'Physical',
-            weight: 0,
-            amountInvested: investedVal,
-            currentValue: currentVal,
-            lastPrice: 0
-          });
-          
-          addLog(`✔️ Ativo detetado: ${name}. Investido: €${investedVal} | Atual: €${currentVal}`, 'success');
-        }
-      }
-      
+      foundEtfs.forEach((e: any) => {
+        addLog(`✔️ Ativo detetado: ${e.name} (${e.ticker}). Investido: €${e.amountInvested} | Atual: €${e.currentValue}`, 'success');
+      });
+
       if (foundEtfs.length === 0) {
-        addLog("⚠️ Nenhum padrão reconhecido. A preencher com linha vazia para edição manual.", 'warning');
-        foundEtfs.push({
-          id: `xtb-${Math.random().toString(36).substring(2, 7)}`,
-          ticker: 'ETF',
-          name: 'Ativo Não Reconhecido',
-          ter: 0.20,
-          domicile: 'IE',
-          distribution: 'Acc',
-          replication: 'Physical',
-          weight: 0,
-          amountInvested: 1000,
-          currentValue: 1000,
-          lastPrice: 0
-        });
+        addLog("⚠️ A IA não encontrou nenhum ETF na imagem. A preencher com linha vazia.", 'warning');
       }
-      
+
       setScanStep(2);
-      setCashBalance(0);
+      setCashBalance(Number(parsed.cashBalance || 0));
       setScanResults(foundEtfs);
 
     } catch (err) {
-      addLog(`❌ Erro crítico no OCR: ${err}`, 'warning');
+      console.error(err);
+      addLog(`❌ Erro crítico na IA: verifique a sua chave de API ou se a imagem é válida.`, 'warning');
+      setScanStep(2);
     }
   };
 
 
-  // Funções de manipulação da folha de cálculo interativa do Step 2
+  // FunÃ§Ãµes de manipulaÃ§Ã£o da folha de cÃ¡lculo interativa do Step 2
   const handleUpdateResult = (id: string, field: keyof ETF, value: any) => {
     setScanResults(prev => prev.map(item => {
       if (item.id === id) {
@@ -273,7 +222,7 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
 
   const handleConfirmImport = () => {
     if (scanResults.length === 0) {
-      alert('A tua lista de importação está vazia. Adiciona pelo menos uma linha.');
+      alert('A tua lista de importaÃ§Ã£o estÃ¡ vazia. Adiciona pelo menos uma linha.');
       return;
     }
 
@@ -297,10 +246,10 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" style={{ maxWidth: '750px', width: '95%' }} onClick={e => e.stopPropagation()}>
         
-        {/* Cabeçalho do Modal */}
+        {/* CabeÃ§alho do Modal */}
         <div className="modal-header">
           <h3>
-            📷 Importar Portefólio da Corretora (XTB / xStation)
+            ðŸ“· Importar PortefÃ³lio da Corretora (XTB / xStation)
           </h3>
           <button className="btn btn-secondary" style={{ padding: '0.4rem', borderRadius: '50%' }} onClick={onClose}>
             <X size={18} />
@@ -370,9 +319,35 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
                 </div>
               )}
               
-              {/* IMPORTAÇÃO POR IMAGEM */}
+              {/* IMPORTAÇÃO POR IMAGEM E CHAVE API */}
               {(
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', padding: '1rem', borderRadius: '12px' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <Sparkles size={14} style={{ color: 'var(--primary)' }} /> Chave API do Google Gemini (Opcional se já estiver guardada)
+                    </label>
+                    <input
+                      type="password"
+                      value={geminiApiKey}
+                      onChange={e => {
+                        setGeminiApiKey(e.target.value);
+                        localStorage.setItem('gemini_api_key', e.target.value);
+                      }}
+                      placeholder="Introduza a sua API Key (começa por AIza...)"
+                      style={{ 
+                        padding: '0.4rem 0.6rem', 
+                        background: 'rgba(0,0,0,0.2)', 
+                        border: '1px solid var(--border-color)', 
+                        borderRadius: '6px', 
+                        color: 'var(--text-primary)', 
+                        fontSize: '0.82rem', 
+                        outline: 'none' 
+                      }}
+                    />
+                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Esta funcionalidade de ponta requer o uso de Visão Artificial. A chave fica guardada no seu browser e nunca é partilhada.</p>
+                  </div>
+
                   <div 
                     className={`drag-area ${dragActive ? 'active' : ''}`}
                     onDragEnter={handleDrag}
@@ -391,7 +366,7 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
                     onClick={() => document.getElementById('file-upload-input')?.click()}
                   >
                     <Upload size={44} style={{ color: dragActive ? 'var(--primary)' : 'var(--text-muted)', marginBottom: '0.75rem', transition: 'var(--transition-smooth)' }} />
-                    <h4 style={{ fontSize: '1rem', marginBottom: '0.35rem' }}>Arraste o print screen das suas posições</h4>
+                    <h4 style={{ fontSize: '1rem', marginBottom: '0.35rem' }}>Arraste o print screen das suas posiÃ§Ãµes</h4>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                       Suporta ficheiros de imagem PNG, JPG ou WEBP da xStation.
                     </p>
@@ -408,14 +383,14 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'var(--bg-glass)', border: '1px solid var(--border-color)', padding: '1rem', borderRadius: '12px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>Ficheiro carregado:</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '700' }}>Pronto para Digitalização</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '700' }}>Pronto para DigitalizaÃ§Ã£o</span>
                       </div>
                       <div style={{ height: '90px', borderRadius: '8px', overflow: 'hidden', position: 'relative', border: '1px solid var(--border-color)' }}>
                         <img src={imagePreview} alt="Screenshot da XTB" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }} />
                         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }} />
                       </div>
                       <button className="btn btn-primary" style={{ width: '100%' }} onClick={startScanning}>
-                        🚀 Começar Digitalização OCR Inteligente
+                        ðŸš€ ComeÃ§ar DigitalizaÃ§Ã£o OCR Inteligente
                       </button>
                     </div>
                   )}
@@ -427,7 +402,7 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
             </div>
           )}
 
-          {/* STEP 1: ANIMAÇÃO DE SCANNER OCR */}
+          {/* STEP 1: ANIMAÃ‡ÃƒO DE SCANNER OCR */}
           {scanStep === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1rem 0' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
@@ -435,16 +410,16 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
                   <div style={{ position: 'absolute', inset: 0, border: '3px solid var(--border-color)', borderRadius: '50%' }} />
                   <div style={{ position: 'absolute', inset: 0, border: '3px solid var(--primary)', borderRadius: '50%', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }} />
                   <div style={{ position: 'absolute', inset: '8px', background: 'var(--bg-surface)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
-                    📷
+                    ðŸ“·
                   </div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <h4 style={{ fontSize: '1rem', fontWeight: '700' }}>A Correr Heurísticas OCR...</h4>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Extraindo pixels e cruzando dados de emissores...</p>
+                  <h4 style={{ fontSize: '1rem', fontWeight: '700' }}>A Correr HeurÃ­sticas OCR...</h4>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>O modelo de IA está a 'olhar' e a decifrar a estrutura financeira...</p>
                 </div>
               </div>
 
-              {/* Terminal de Logs OCR */}
+              {/* Terminal de Rede Neural */}
               <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1rem', fontFamily: 'monospace', fontSize: '0.75rem', height: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 {logs.map((log, idx) => (
                   <div key={idx} style={{ 
@@ -459,16 +434,16 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
             </div>
           )}
 
-          {/* STEP 2: FOLHA DE CÁLCULO INTERATIVA (EDITÁVEL) - SOLUÇÃO PERFEITA PARA O UTILIZADOR */}
+          {/* STEP 2: FOLHA DE CÃLCULO INTERATIVA (EDITÃVEL) - SOLUÃ‡ÃƒO PERFEITA PARA O UTILIZADOR */}
           {scanStep === 2 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'hsla(142, 76%, 42%, 0.08)', border: '1px solid hsla(142, 76%, 42%, 0.25)', padding: '0.75rem 1rem', borderRadius: '12px' }}>
                 <CheckCircle size={20} style={{ color: 'var(--primary)', flexShrink: 0 }} />
                 <div>
-                  <h4 style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-primary)' }}>Posições Extraídas Prontas para Validação</h4>
+                  <h4 style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-primary)' }}>PosiÃ§Ãµes ExtraÃ­das Prontas para ValidaÃ§Ã£o</h4>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                    Fizemos uma leitura automática, mas para garantir 100% de rigor, pode <strong>ajustar, adicionar ou remover</strong> dados na tabela abaixo antes de guardar.
+                    Fizemos uma leitura automÃ¡tica, mas para garantir 100% de rigor, pode <strong>ajustar, adicionar ou remover</strong> dados na tabela abaixo antes de guardar.
                   </p>
                 </div>
               </div>
@@ -531,18 +506,18 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
                 </div>
               )}
 
-              {/* Tabela Editável Estilo Excel (Sleek Dark SpreadSheet) */}
+              {/* Tabela EditÃ¡vel Estilo Excel (Sleek Dark SpreadSheet) */}
               <div style={{ overflowX: 'auto', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
                   <thead>
                     <tr style={{ background: 'hsla(230, 20%, 5%, 0.5)', borderBottom: '1px solid var(--border-color)' }}>
                       <th style={{ padding: '0.75rem', width: '110px' }}>Ticker</th>
                       <th style={{ padding: '0.75rem' }}>Nome do ETF</th>
-                      <th style={{ padding: '0.75rem', width: '95px' }}>Investido (€)</th>
-                      <th style={{ padding: '0.75rem', width: '95px' }}>Valor Atual (€)</th>
+                      <th style={{ padding: '0.75rem', width: '95px' }}>Investido (â‚¬)</th>
+                      <th style={{ padding: '0.75rem', width: '95px' }}>Valor Atual (â‚¬)</th>
                       <th style={{ padding: '0.75rem', width: '80px' }}>TER (%)</th>
-                      <th style={{ padding: '0.75rem', width: '100px' }}>Domicílio</th>
-                      <th style={{ padding: '0.75rem', width: '100px' }}>Distribuição</th>
+                      <th style={{ padding: '0.75rem', width: '100px' }}>DomicÃ­lio</th>
+                      <th style={{ padding: '0.75rem', width: '100px' }}>DistribuiÃ§Ã£o</th>
                       <th style={{ padding: '0.75rem', width: '50px', textAlign: 'center' }}></th>
                     </tr>
                   </thead>
@@ -615,8 +590,8 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
                             onChange={(e) => handleUpdateResult(etf.id, 'distribution', e.target.value)}
                             style={{ width: '100%', padding: '0.4rem', border: '1px solid var(--border-color)', borderRadius: '6px', background: 'rgba(0,0,0,0.2)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}
                           >
-                            <option value="Acc">Acumulação</option>
-                            <option value="Dist">Distribuição</option>
+                            <option value="Acc">AcumulaÃ§Ã£o</option>
+                            <option value="Dist">DistribuiÃ§Ã£o</option>
                           </select>
                         </td>
                         {/* Trash Action */}
@@ -640,7 +615,7 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255, 255, 255, 0.02)', border: '1px dashed var(--border-color)', padding: '0.75rem 1rem', borderRadius: '12px' }}>
                 <span style={{ fontSize: '0.82rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Reservas de Dinheiro (Saldo na Corretora):</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginLeft: 'auto' }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>€</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>â‚¬</span>
                   <input
                     type="number"
                     min={0}
@@ -653,7 +628,7 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
                 </div>
               </div>
 
-              {/* Botões de Ação na tabela */}
+              {/* BotÃµes de AÃ§Ã£o na tabela */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <button 
                   className="btn btn-secondary" 
@@ -664,14 +639,14 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
                 </button>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                   <Info size={14} style={{ color: 'var(--primary)' }} />
-                  <span>Total de Ativos: <strong>{scanResults.length}</strong> | Total Extraído: <strong>{scanResults.reduce((s, i) => s + i.amountInvested, 0).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</strong></span>
+                  <span>Total de Ativos: <strong>{scanResults.length}</strong> | Total ExtraÃ­do: <strong>{scanResults.reduce((s, i) => s + i.amountInvested, 0).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</strong></span>
                 </div>
               </div>
 
-              {/* Confirmar Importação definitiva */}
+              {/* Confirmar ImportaÃ§Ã£o definitiva */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem', marginTop: '0.5rem' }}>
                 <button className="btn btn-secondary" onClick={() => setScanStep(0)}>
-                  <RefreshCw size={14} /> Começar de Novo
+                  <RefreshCw size={14} /> ComeÃ§ar de Novo
                 </button>
                 <button className="btn btn-primary" onClick={handleConfirmImport}>
                   Confirmar e Importar para a Carteira
@@ -687,3 +662,5 @@ export default function XtbImportModal({ isOpen, onClose, onImport, isNewPortfol
     </div>
   );
 }
+
+
