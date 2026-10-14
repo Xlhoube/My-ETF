@@ -4,19 +4,19 @@ Este ficheiro regista o estado atual do projeto, regras, decisões de arquitetur
 
 ## 🚀 Estado Atual
 * **Fase:** 🏁 DOCUMENTER / CONCLUÍDO
-* **Versão:** 0.7.0 (Continuous Market Scanner & Opportunity Hunter)
-* **Objetivo:** Reinício e pivot da aplicação: de avaliador de carteira pessoal para um **Radar Contínuo de Mercados de ETFs UCITS Europeus**, procurando continuamente oportunidades de compra (sobrevenda/desconto) e venda/realização de mais-valias (sobrecompra/risco) através de uma metodologia híbrida (técnica, quantitativa, fundamental e fiscal).
+* **Versão:** 0.7.1 (Bússola do Principiante & Semáforo de Timing)
+* **Objetivo:** Adição de módulo didático integral para utilizadores com zero experiência em mercados: Semáforo de Timing ("Devo Comprar Hoje?"), Guia dos 4 Passos (Corretoras em Portugal, ETF Faz-Tudo, Ordem Limitada e DCA), Simulador Visual de Juros Compostos e Assistente de Decisão Rápida para o primeiro aporte.
 
 ---
 
 ## 🎯 Definição do Projeto
 
 ### 1. Missão
-Criar um radar contínuo de mercados de ETFs de elite focado em avaliar continuamente mercados europeus e globais, filtrar ruído e alertar o investidor em direto sobre desequilíbrios estatísticos assimétricos favoráveis para compras (Buy the Dip, sobrevendidos) e momentos prudentes de saída ou realização de lucros (Take Profit, sobreaquecidos).
+Criar um radar contínuo de mercados de ETFs de elite e mentor financeiro que atue simultaneamente como scanner quantitativo para investidores experientes e como bússola pedagógica segura para quem está a começar do zero, indicando o que comprar, onde comprar, como colocar a ordem e exatamente quando o deve fazer.
 
 ### 2. Stack Técnica
 * **Web:** React 18, Vite, TypeScript, Vanilla CSS (Design Premium Orion UI, Dark-First, Glassmorphic).
-* **Singlefile Bundle:** Empacotamento otimizado com `vite-plugin-singlefile` (243 kB total, carregamento instantâneo).
+* **Singlefile Bundle:** Empacotamento otimizado com `vite-plugin-singlefile` (268 kB total, carregamento instantâneo).
 * **Hospedagem:** Hostinger ou Vercel (distribuição estática de ficheiros ultra-leves).
 
 ### 3. Idioma e Localização
@@ -28,18 +28,13 @@ Criar um radar contínuo de mercados de ETFs de elite focado em avaliar continua
 ## 🏗️ Estrutura do Projeto (Web)
 
 A aplicação Web é estruturada em:
-* `/web/package.json` — Gestão de dependências (React, Vite, TS, Lucide React).
-* `/web/index.html` — Ponto de entrada HTML.
-* `/web/src/main.tsx` — Ponto de entrada React.
-* `/web/src/App.tsx` — Hub central do scanner com navegação lateral, barómetro Fear & Greed, ticker de alertas e polling contínuo.
-* `/web/src/index.css` — Sistema de design premium (tokens de cores de trading: verde esmeralda para compra, vermelho para venda, âmbar para neutro e ciano para informação).
-* `/web/src/types.ts` — Definições de tipos (`MarketEtf`, `TechnicalIndicators`, `FundamentalMetrics`, `MarketSummary`, `MarketAlert`).
-* `/web/src/utils/marketEngine.ts` — Universo curado de ETFs UCITS e motor de avaliação híbrida (RSI, SMA200, drawdown 52w, P/E, TER, domicílio).
-* `/web/src/utils/marketAdvisorEngine.ts` — Motor de consultoria macro em linguagem natural (PT-PT).
-* `/web/src/components/MarketRadar.tsx` — Scanner principal com barómetro de sentimento, filtros por setor/sinal, visualização em cartões/tabela e modal Raio-X Técnico.
+* `/web/src/components/BeginnerCompass.tsx` — Bússola do Principiante com Semáforo de Timing, Guia dos 4 Passos, Simulador de Juros Compostos, Assistente de Ação Imediata e FAQ didática.
+* `/web/src/components/MarketRadar.tsx` — Scanner principal com barómetro Fear & Greed, filtros rápidos, visualização em cartões/tabela com tooltips didáticos e modal Raio-X Técnico.
 * `/web/src/components/ActionableSignals.tsx` — Ecrã de execução com zonas de entrada recomendadas, metas de lucro (+12%) e stops de invalidação.
 * `/web/src/components/SectorRotationTab.tsx` — Termómetro de rotação de setores e ciclos macroeconómicos.
 * `/web/src/components/MarketChat.tsx` — Chat interativo de auditoria de mercado com o Consultor de Elite.
+* `/web/src/utils/marketEngine.ts` — Universo curado de ETFs UCITS e motor de avaliação híbrida.
+* `/web/src/utils/marketAdvisorEngine.ts` — Motor de consultoria macro e didático em estrito PT-PT.
 
 ---
 
@@ -48,35 +43,26 @@ A aplicação Web é estruturada em:
 2. **Comentários:** Funções com comentários explicativos em PT-PT.
 3. **Sem Duplicação (DRY):** Extração de lógica reutilizável para utilitários independentes.
 4. **Clean Code & Performance:** Ficheiro único otimizado, sem dependências externas pesadas ou render blocks.
-5. **Zero Alucinação de Mercados:** Sinais fundamentados em indicadores técnicos reconhecidos (RSI, SMA200, Máximos/Mínimos 52 semanas) e métricas oficiais de KID/UCITS (TER, domicílio, P/E médio).
+5. **Zero Alucinação de Mercados:** Sinais fundamentados em indicadores técnicos reconhecidos e regras fiscais portuguesas.
 
 ---
 
 ## 📝 Histórico de Versões
 
-### Versão 0.7.0 (Continuous Market Scanner & Opportunity Hunter)
-* **Pivot Completo do Core de Negócio:**
-  - Transição de gestor de carteira pessoal para **Radar Contínuo de Mercados e Caçador de Oportunidades**.
-  - Novo motor `marketEngine.ts` com universo curado de 15+ dos principais ETFs negociados em bolsas europeias (VWCE, SXR8, SXRV, QDVE, IWDA, SPYI, MEUD, EIMI, FUSD, DFND, SGLD, XDWH, XFFE, CBU0, INRG).
-  - Algoritmo de Pontuação Híbrida (0 a 100): Pondera indicadores quantitativos (RSI, distâncias à média de 200 dias, desvios de 52 semanas) com critérios fundamentais (múltiplos P/E, custos TER e eficiência fiscal irlandesa).
-* **Barómetro Macro Fear & Greed:**
-  - Medidor dinâmico do sentimento de mercado de 0 a 100 (*Extremo Medo* a *Extrema Ganância*) baseado no RSI médio e amplitude percentual de ETFs acima da SMA 200.
-* **Separador de Sinais Acionáveis de Compra & Venda:**
-  - Separação imediata de oportunidades de alta convicção com zonas de preço recomendadas de entrada, metas de realização (+12%) e níveis de invalidação/stop loss.
-* **Termómetro de Rotação Setorial:**
-  - Mapa de força relativa de setores e fluxos institucionais (Inflow / Outflow) e contextualização com a fase do ciclo macroeconómico.
-* **Modal de Raio-X Técnico e Fundamental:**
-  - Inspeção detalhada de cada ETF com suporte, resistência, intervalo de 52 semanas, enquadramento fiscal e auditoria instantânea com o consultor.
-* **Redução de Peso do Bundle:**
-  - Otimização do tamanho de compilação de 764 kB para 243 kB (HTML singlefile auto-suficiente).
+### Versão 0.7.1 (Bússola do Principiante & Semáforo de Timing)
+* **Bússola do Principiante (`BeginnerCompass.tsx`):**
+  - **Semáforo de Mercado ("Devo Investir Hoje?"):** Classificação visual dinâmica (🟢 Excelente Compra / 🟡 Momento Normal de Rotina / 🔴 Mercado Esticado, Fracionar Aporte) alimentada pelo índice de sentimento e momentum.
+  - **O Guia dos 4 Passos:** Explicação didática de como escolher corretoras seguras sem taxas de custódia em Portugal (XTB, Trading212, DEGIRO), comprar o ETF global de fundação (`SPYI` ou `VWCE` com cotações em direto), emitir ordens limitadas entre as 14:30 e as 16:30, e manter consistência com DCA.
+  - **Simulador Interativo de Juros Compostos:** Controlo de aporte mensal e prazo para projetar património a 8% histórico médio.
+  - **Assistente de Decisão Rápida:** Diagnóstico imediato para 3 perfis ("Primeira vez a investir", "Recebi o salário", "Poupança parada no banco").
+  - **Desmistificação de Jargão Técnico:** Tooltips com explicações em português simples nos cartões de cotação do Radar.
 
-### Versão 0.6.0
-* Motor de Orientação Personalizado por Corretora (XTB, DEGIRO, Trading212, Interactive Brokers).
-* Parser de Markdown e legibilidade superior no chat do consultor.
+### Versão 0.7.0 (Continuous Market Scanner & Opportunity Hunter)
+* Pivot Completo de carteira pessoal para Radar Contínuo de Mercados e Caçador de Oportunidades.
 
 ---
 
 ## 🔧 Roadmap & Dívida Técnica Futura
-- [ ] Integração opcional de chamadas diretas a APIs externas de cotações EOD/tempo real adicionais (ex: Alpha Vantage, EODHD ou Yahoo Finance proxy).
+- [ ] Integração opcional de chamadas diretas a APIs externas de cotações adicionais.
 - [ ] Alargamento da base de ETFs monitorizados de 15 para 50+ títulos UCITS.
-- [ ] Versão mobile em React Native (Expo) baseada no novo scanner de mercado.
+- [ ] Versão mobile em React Native (Expo) baseada no novo scanner e bússola.

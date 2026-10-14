@@ -9,6 +9,7 @@ import MarketRadar from './components/MarketRadar';
 import ActionableSignals from './components/ActionableSignals';
 import SectorRotationTab from './components/SectorRotationTab';
 import MarketChat from './components/MarketChat';
+import BeginnerCompass from './components/BeginnerCompass';
 import { 
   Radar, 
   Target, 
@@ -18,7 +19,8 @@ import {
   Bell, 
   RefreshCw, 
   Sun, 
-  Moon
+  Moon,
+  Compass
 } from 'lucide-react';
 
 export default function App() {
@@ -35,7 +37,7 @@ export default function App() {
     return INITIAL_MARKET_ETFS;
   });
 
-  const [activeTab, setActiveTab] = useState<'radar' | 'signals' | 'rotation' | 'watchlist' | 'chat'>('radar');
+  const [activeTab, setActiveTab] = useState<'radar' | 'signals' | 'rotation' | 'watchlist' | 'chat' | 'guide'>('radar');
   const [isScanning, setIsScanning] = useState<boolean>(true);
   const [alerts, setAlerts] = useState<MarketAlert[]>([]);
   const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);
@@ -173,6 +175,27 @@ export default function App() {
         {/* LINKS DE NAVEGAÇÃO */}
         <nav style={{ flex: 1 }}>
           <button 
+            onClick={() => setActiveTab('guide')}
+            className={`btn ${activeTab === 'guide' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ 
+              gap: '0.65rem', 
+              border: activeTab === 'guide' ? '1px solid #10b981' : '1px solid rgba(16, 185, 129, 0.3)',
+              background: activeTab === 'guide' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.05)'
+            }}
+          >
+            <Compass size={18} style={{ color: '#10b981' }} />
+            <span style={{ fontWeight: 700, color: activeTab === 'guide' ? 'var(--text-primary)' : '#10b981' }}>
+              Bússola do Principiante
+            </span>
+            <span style={{ 
+              marginLeft: 'auto', background: '#10b981', color: '#000', 
+              fontSize: '0.6rem', fontWeight: 800, padding: '0.1rem 0.4rem', borderRadius: '6px' 
+            }}>
+              COMEÇA AQUI
+            </span>
+          </button>
+
+          <button 
             onClick={() => setActiveTab('radar')}
             className={`btn ${activeTab === 'radar' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ gap: '0.65rem' }}
@@ -264,6 +287,7 @@ export default function App() {
           
           <div>
             <h1 style={{ fontSize: '1.45rem', fontWeight: 800 }}>
+              {activeTab === 'guide' && '🧭 Bússola do Principiante: Os Teus Passos Seguros'}
               {activeTab === 'radar' && '📡 Radar Contínuo de Mercados de ETFs'}
               {activeTab === 'signals' && '🎯 Oportunidades Acionáveis de Compra & Venda'}
               {activeTab === 'rotation' && '🔄 Termómetro de Rotação Setorial e Ciclos'}
@@ -271,13 +295,30 @@ export default function App() {
               {activeTab === 'chat' && '🤖 Consultor de Mercados & Auditoria'}
             </h1>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-              Avaliação quantitativa e fundamental de ETFs UCITS europeus sem ruído.
+              {activeTab === 'guide' 
+                ? 'Guia didático sem jargão financeiro: quando comprar, onde comprar e como fazer crescer o teu dinheiro.' 
+                : 'Avaliação quantitativa e fundamental de ETFs UCITS europeus sem ruído.'}
             </p>
           </div>
 
           {/* AÇÕES DE TOPO */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             
+            {/* ATALHO PARA PRINCIPIANTES */}
+            <button 
+              onClick={() => setActiveTab('guide')}
+              className="btn btn-secondary"
+              style={{ 
+                fontSize: '0.78rem', padding: '0.45rem 0.85rem', gap: '0.4rem', 
+                borderColor: activeTab === 'guide' ? '#10b981' : 'rgba(16, 185, 129, 0.4)', 
+                color: activeTab === 'guide' ? '#10b981' : 'var(--text-primary)'
+              }}
+              title="Guia didático para quem está a começar do zero"
+            >
+              <Compass size={14} style={{ color: '#10b981' }} />
+              <span>Bússola Iniciante</span>
+            </button>
+
             {/* BOTÃO ATUALIZAR */}
             <button 
               onClick={handleManualScan}
@@ -361,6 +402,15 @@ export default function App() {
         </div>
 
         {/* CONTEÚDO DO SEPARADOR ATIVO */}
+        {activeTab === 'guide' && (
+          <BeginnerCompass 
+            etfs={marketEtfs}
+            summary={summary}
+            onAskAdvisor={handleAskAdvisor}
+            onNavigateToTab={(tab) => setActiveTab(tab)}
+          />
+        )}
+
         {activeTab === 'radar' && (
           <MarketRadar 
             etfs={marketEtfs}

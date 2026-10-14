@@ -521,22 +521,31 @@ export default function MarketRadar({
 
                   {/* QUADRO DE INDICADORES RÁPIDOS */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '1.25rem', fontSize: '0.75rem' }}>
-                    <div style={{ background: 'var(--bg-glass)', padding: '0.4rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
-                      <div style={{ color: 'var(--text-muted)' }}>RSI (14)</div>
+                    <div 
+                      style={{ background: 'var(--bg-glass)', padding: '0.4rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', cursor: 'help' }}
+                      title="RSI (Força Relativa): Menor que 35 = Preço em saldos/desconto; Maior que 68 = Mercado esticado/cautela."
+                    >
+                      <div style={{ color: 'var(--text-muted)' }}>RSI (Preço)</div>
                       <div style={{ fontWeight: 700, color: etf.technical.rsi < 35 ? '#10b981' : etf.technical.rsi > 68 ? '#ef4444' : 'var(--text-primary)' }}>
-                        {etf.technical.rsi.toFixed(1)}
+                        {etf.technical.rsi.toFixed(1)} {etf.technical.rsi < 35 ? '🟢' : etf.technical.rsi > 68 ? '🔴' : ''}
                       </div>
                     </div>
 
-                    <div style={{ background: 'var(--bg-glass)', padding: '0.4rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
-                      <div style={{ color: 'var(--text-muted)' }}>vs SMA 200</div>
+                    <div 
+                      style={{ background: 'var(--bg-glass)', padding: '0.4rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', cursor: 'help' }}
+                      title="vs SMA 200: Mostra a distância em relação à média dos últimos 200 dias de cotação."
+                    >
+                      <div style={{ color: 'var(--text-muted)' }}>vs Média 200d</div>
                       <div style={{ fontWeight: 700, color: etf.technical.priceToSma200 >= 0 ? '#10b981' : '#ef4444' }}>
                         {etf.technical.priceToSma200 >= 0 ? `+${etf.technical.priceToSma200.toFixed(1)}%` : `${etf.technical.priceToSma200.toFixed(1)}%`}
                       </div>
                     </div>
 
-                    <div style={{ background: 'var(--bg-glass)', padding: '0.4rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
-                      <div style={{ color: 'var(--text-muted)' }}>Custo TER</div>
+                    <div 
+                      style={{ background: 'var(--bg-glass)', padding: '0.4rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', cursor: 'help' }}
+                      title="Custo Anual (TER): Taxa anual deduzida. Valores abaixo de 0.20% são excelentes!"
+                    >
+                      <div style={{ color: 'var(--text-muted)' }}>Custo Anual</div>
                       <div style={{ fontWeight: 700, color: etf.fundamental.ter <= 0.15 ? '#10b981' : 'var(--text-primary)' }}>
                         {etf.fundamental.ter.toFixed(2)}%
                       </div>
