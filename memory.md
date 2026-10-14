@@ -4,8 +4,8 @@ Este ficheiro regista o estado atual do projeto, regras, decisões de arquitetur
 
 ## 🚀 Estado Atual
 * **Fase:** 🏁 DOCUMENTER / CONCLUÍDO
-* **Versão:** 0.7.5 (Custom Brand Identity & Vector Logo System)
-* **Objetivo:** Criação da identidade visual e logótipo oficial do projeto My ETF: síntese visual do Escudo de Proteção Patrimonial (Longo Prazo), Ondas de Radar (Scanner Contínuo) e Seta Dinâmica de Crescimento Financeiro (Juros Compostos e Sinais). Implementação em componente SVG vetorial ultra-nítido (`AppLogo.tsx`), asset de alta resolução (`public/logo.jpg`), favicon vetorial (`public/favicon.svg`) e integração no cabeçalho e ecrã inicial.
+* **Versão:** 0.7.6 (Live European Exchange Data Integration — XETRA & Euronext)
+* **Objetivo:** Transição completa da plataforma de dados simulados/demo para cotações e barras históricas 100% REAIS das principais bolsas de valores europeias (Deutsche Börse XETRA, Euronext Amesterdão e Euronext Paris). Cálculo matemático em tempo real de RSI (14 períodos), SMA 200, SMA 50, Máximos/Mínimos de 52 semanas e Drawdowns reais. Indicador visual dinâmico no cabeçalho com carimbo temporal ao segundo e sincronização automática contínua.
 
 ---
 
@@ -53,6 +53,14 @@ A aplicação Web é estruturada em:
 ---
 
 ## 📝 Histórico de Versões
+
+### Versão 0.7.6 (Live European Exchange Data Integration — XETRA & Euronext)
+* **Mudança Integral para Dados de Mercado 100% Reais:**
+  - Mapeamento e ligação em direto aos tickers oficiais das bolsas europeias: `VWCE.DE`, `SPYI.DE`, `SXR8.DE`, `IWDA.AS`, `SXRV.DE`, `QDVE.DE`, `MEUD.PA`, `IS3N.DE`, `FUSD.DE`, `DFEN.DE`, `4GLD.DE`, `XDWH.DE`, `XFFE.DE`, `CBU0.DE`, `IQQH.DE`.
+  - Configuração de proxy de desenvolvimento `/api/finance` no Vite para contornar restrições de CORS do browser sem expor chaves ou dependências pesadas.
+  - Cálculo matemático de RSI 14 e SMA 200 a partir das séries diárias de fecho reais.
+  - Indicador de estado em direto no cabeçalho: `🟢 Bolsas Reais (XETRA / Euronext)` com carimbo temporal ao segundo e botão de sincronização manual.
+  - Eliminação da rotina de ticks sintéticos a favor de sincronização periódica a cada 45 segundos.
 
 ### Versão 0.7.5 (Custom Brand Identity & Vector Logo System)
 * **Desenvolvimento da Identidade Visual Oficial My ETF:**

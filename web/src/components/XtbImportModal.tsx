@@ -231,7 +231,7 @@ ATENÇÃO: Extrai apenas números nas propriedades de valor, sem símbolos de mo
       return;
     }
 
-    // Normaliza os pesos antes de salvar
+    // Normaliza as ponderações antes de guardar
     const totalAmount = scanResults.reduce((sum, item) => sum + item.amountInvested, 0);
     const finalized = scanResults.map(item => ({
       ...item,

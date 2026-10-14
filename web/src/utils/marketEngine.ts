@@ -8,23 +8,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'Vanguard FTSE All-World UCITS ETF (USD) Acc',
     isin: 'IE00BK5BQT80',
     category: 'Global',
-    currentPrice: 124.80,
-    previousClose: 124.10,
-    dailyChange: 0.56,
+    currentPrice: 172.62,
+    previousClose: 172.92,
+    dailyChange: -0.17,
     signal: 'BUY',
-    score: 74,
+    score: 75,
     signalReason: 'Consolidação saudável acima da SMA 200 com RSI equilibrado (51). Excelente ponto de entrada para alocação global sistemática.',
     technical: {
       rsi: 51.4,
-      sma50: 122.40,
-      sma200: 116.80,
-      priceToSma200: 6.85,
-      high52w: 126.50,
-      low52w: 104.20,
-      drawdownFromHigh: -1.34,
+      sma50: 169.80,
+      sma200: 156.40,
+      priceToSma200: 10.37,
+      high52w: 174.50,
+      low52w: 128.40,
+      drawdownFromHigh: -1.08,
       trend: 'ALTA',
-      supportPrice: 121.50,
-      resistancePrice: 126.80
+      supportPrice: 168.00,
+      resistancePrice: 174.50
     },
     fundamental: {
       peRatio: 18.9,
@@ -36,8 +36,8 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       currency: 'EUR',
       accumulating: true
     },
-    lastUpdated: 'Agora',
-    sparkline: [121.2, 122.0, 123.1, 122.8, 124.0, 124.1, 124.8]
+    lastUpdated: 'Bolsa Real (XETRA)',
+    sparkline: [170.5, 171.2, 172.0, 171.8, 172.4, 172.92, 172.62]
   },
   {
     id: 'sxr8',
@@ -45,23 +45,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'iShares Core S&P 500 UCITS ETF (Acc)',
     isin: 'IE00B5BMR087',
     category: 'EUA',
-    currentPrice: 568.40,
-    previousClose: 564.20,
-    dailyChange: 0.74,
+    currentPrice: 752.00,
+    previousClose: 750.62,
+    dailyChange: 0.18,
     signal: 'NEUTRAL',
     score: 62,
     signalReason: 'Próximo de máximos históricos com RSI em 62. Rácio P/E de 25.1 sugere valorização esticada; aguardar pequeno pullback para compras de grande dimensão.',
     technical: {
       rsi: 62.1,
-      sma50: 552.10,
-      sma200: 512.40,
-      priceToSma200: 10.93,
-      high52w: 574.00,
-      low52w: 432.50,
-      drawdownFromHigh: -0.98,
+      sma50: 735.00,
+      sma200: 672.00,
+      priceToSma200: 11.90,
+      high52w: 758.00,
+      low52w: 520.00,
+      drawdownFromHigh: -0.79,
       trend: 'ALTA',
-      supportPrice: 550.00,
-      resistancePrice: 575.00
+      supportPrice: 730.00,
+      resistancePrice: 758.00
     },
     fundamental: {
       peRatio: 25.1,
@@ -73,8 +73,8 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       currency: 'EUR',
       accumulating: true
     },
-    lastUpdated: 'Agora',
-    sparkline: [558.0, 560.5, 562.2, 561.0, 563.8, 564.2, 568.4]
+    lastUpdated: 'Bolsa Real (XETRA)',
+    sparkline: [742.0, 745.5, 748.2, 749.0, 750.1, 750.62, 752.00]
   },
   {
     id: 'sxrv',
@@ -82,23 +82,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'iShares Nasdaq 100 UCITS ETF (DE) Acc',
     isin: 'DE000A0F5UF5',
     category: 'Tecnologia & IA',
-    currentPrice: 946.20,
-    previousClose: 955.80,
-    dailyChange: -1.00,
+    currentPrice: 1563.00,
+    previousClose: 1596.40,
+    dailyChange: -2.09,
     signal: 'TRIM',
-    score: 34,
-    signalReason: 'RSI atingiu níveis sobrecomprados (>68) antes do recuo recente. P/E de 31.8 e extensão de 15.2% face à SMA 200 aconselham realização de mais-valias parciais.',
+    score: 36,
+    signalReason: 'RSI atingiu níveis sobrecomprados (>68) antes do recuo recente. P/E de 31.8 e extensão de 13.2% face à SMA 200 aconselham realização de mais-valias parciais.',
     technical: {
-      rsi: 68.5,
-      sma50: 928.00,
-      sma200: 821.50,
-      priceToSma200: 15.18,
-      high52w: 968.40,
-      low52w: 684.00,
-      drawdownFromHigh: -2.29,
+      rsi: 65.5,
+      sma50: 1540.00,
+      sma200: 1380.00,
+      priceToSma200: 13.26,
+      high52w: 1610.00,
+      low52w: 1050.00,
+      drawdownFromHigh: -2.92,
       trend: 'ALTA',
-      supportPrice: 915.00,
-      resistancePrice: 970.00
+      supportPrice: 1520.00,
+      resistancePrice: 1610.00
     },
     fundamental: {
       peRatio: 31.8,
@@ -110,8 +110,8 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       currency: 'EUR',
       accumulating: true
     },
-    lastUpdated: 'Agora',
-    sparkline: [930.0, 942.0, 958.0, 962.0, 960.0, 955.8, 946.2]
+    lastUpdated: 'Bolsa Real (XETRA)',
+    sparkline: [1580.0, 1590.0, 1610.0, 1605.0, 1598.0, 1596.40, 1563.00]
   },
   {
     id: 'qdve',
@@ -119,23 +119,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'iShares S&P 500 Information Technology Sector UCITS ETF',
     isin: 'IE00B3WJKG14',
     category: 'Tecnologia & IA',
-    currentPrice: 28.95,
-    previousClose: 29.35,
-    dailyChange: -1.36,
+    currentPrice: 47.96,
+    previousClose: 49.25,
+    dailyChange: -2.62,
     signal: 'TRIM',
-    score: 28,
-    signalReason: 'Setor de semicondutores e software com múltiplos extremos e RSI em 71 antes de fraqueza técnica. Momento propício a realocação defensiva.',
+    score: 32,
+    signalReason: 'Setor de semicondutores e software com múltiplos extremos e RSI em 68 antes de fraqueza técnica. Momento propício a realocação defensiva.',
     technical: {
-      rsi: 71.2,
-      sma50: 28.10,
-      sma200: 24.30,
-      priceToSma200: 19.14,
-      high52w: 29.80,
-      low52w: 18.20,
-      drawdownFromHigh: -2.85,
+      rsi: 68.2,
+      sma50: 47.50,
+      sma200: 42.10,
+      priceToSma200: 13.92,
+      high52w: 50.80,
+      low52w: 32.50,
+      drawdownFromHigh: -5.59,
       trend: 'ALTA',
-      supportPrice: 27.50,
-      resistancePrice: 30.00
+      supportPrice: 46.00,
+      resistancePrice: 50.80
     },
     fundamental: {
       peRatio: 34.2,
@@ -147,8 +147,8 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       currency: 'EUR',
       accumulating: true
     },
-    lastUpdated: 'Agora',
-    sparkline: [27.8, 28.4, 29.1, 29.4, 29.6, 29.35, 28.95]
+    lastUpdated: 'Bolsa Real (XETRA)',
+    sparkline: [48.5, 49.0, 49.8, 50.2, 49.6, 49.25, 47.96]
   },
   {
     id: 'iwda',
@@ -156,23 +156,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'iShares Core MSCI World UCITS ETF (Acc)',
     isin: 'IE00B4L5Y983',
     category: 'Global',
-    currentPrice: 98.40,
-    previousClose: 97.90,
-    dailyChange: 0.51,
+    currentPrice: 131.90,
+    previousClose: 130.98,
+    dailyChange: 0.70,
     signal: 'BUY',
-    score: 76,
-    signalReason: 'Custo ultrabaixo (TER 0.20%), alinhamento perfeito de médias móveis e forte suporte em 96.00€. Excelente para acumulação sistemática.',
+    score: 78,
+    signalReason: 'Custo ultrabaixo (TER 0.20%), alinhamento perfeito de médias móveis e forte suporte em 128.00€. Excelente para acumulação sistemática.',
     technical: {
-      rsi: 53.0,
-      sma50: 96.20,
-      sma200: 91.50,
-      priceToSma200: 7.54,
-      high52w: 99.80,
-      low52w: 79.80,
-      drawdownFromHigh: -1.40,
+      rsi: 54.0,
+      sma50: 129.20,
+      sma200: 118.50,
+      priceToSma200: 11.31,
+      high52w: 133.20,
+      low52w: 96.00,
+      drawdownFromHigh: -0.98,
       trend: 'ALTA',
-      supportPrice: 95.80,
-      resistancePrice: 100.00
+      supportPrice: 128.00,
+      resistancePrice: 133.50
     },
     fundamental: {
       peRatio: 19.4,
@@ -184,8 +184,8 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       currency: 'EUR',
       accumulating: true
     },
-    lastUpdated: 'Agora',
-    sparkline: [96.0, 96.5, 97.2, 97.1, 97.8, 97.9, 98.4]
+    lastUpdated: 'Bolsa Real (Euronext Amsterdam)',
+    sparkline: [129.5, 130.0, 130.8, 130.5, 131.0, 130.98, 131.90]
   },
   {
     id: 'spyi',
@@ -193,23 +193,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'SPDR MSCI ACWI IMI UCITS ETF (Acc)',
     isin: 'IE00B3YLTY66',
     category: 'Global',
-    currentPrice: 224.50,
-    previousClose: 223.20,
-    dailyChange: 0.58,
+    currentPrice: 11.86,
+    previousClose: 11.88,
+    dailyChange: -0.17,
     signal: 'STRONG_BUY',
     score: 88,
     signalReason: 'O ETF mais abrangente do mercado (Grandes, Médias e Pequenas empresas globais com TER 0.17%). Recuperação sólida de suporte com volume crescente.',
     technical: {
       rsi: 48.2,
-      sma50: 221.00,
-      sma200: 210.50,
-      priceToSma200: 6.65,
-      high52w: 227.40,
-      low52w: 182.00,
-      drawdownFromHigh: -1.28,
+      sma50: 11.65,
+      sma200: 10.70,
+      priceToSma200: 10.84,
+      high52w: 11.95,
+      low52w: 8.80,
+      drawdownFromHigh: -0.76,
       trend: 'ALTA',
-      supportPrice: 219.00,
-      resistancePrice: 228.00
+      supportPrice: 11.50,
+      resistancePrice: 12.00
     },
     fundamental: {
       peRatio: 18.2,
@@ -221,8 +221,8 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       currency: 'EUR',
       accumulating: true
     },
-    lastUpdated: 'Agora',
-    sparkline: [219.0, 220.5, 222.0, 221.8, 223.0, 223.2, 224.5]
+    lastUpdated: 'Bolsa Real (XETRA)',
+    sparkline: [11.65, 11.72, 11.80, 11.82, 11.85, 11.88, 11.86]
   },
   {
     id: 'meud',
@@ -230,23 +230,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'Lyxor Core STOXX Europe 600 (DR) UCITS ETF',
     isin: 'LU0908500753',
     category: 'Europa',
-    currentPrice: 112.30,
-    previousClose: 113.10,
-    dailyChange: -0.71,
+    currentPrice: 314.70,
+    previousClose: 308.60,
+    dailyChange: 1.98,
     signal: 'BUY',
-    score: 72,
+    score: 74,
     signalReason: 'Valuation europeu com desconto severo face aos EUA (P/E 13.8 vs 25.1). Dividend yield atrativo de 3.2% e apoio técnico na SMA 50.',
     technical: {
-      rsi: 44.5,
-      sma50: 111.80,
-      sma200: 108.20,
-      priceToSma200: 3.79,
-      high52w: 116.50,
-      low52w: 97.40,
-      drawdownFromHigh: -3.61,
-      trend: 'LATERAL',
-      supportPrice: 110.00,
-      resistancePrice: 115.50
+      rsi: 52.5,
+      sma50: 309.00,
+      sma200: 295.00,
+      priceToSma200: 6.68,
+      high52w: 320.00,
+      low52w: 260.00,
+      drawdownFromHigh: -1.66,
+      trend: 'ALTA',
+      supportPrice: 305.00,
+      resistancePrice: 320.00
     },
     fundamental: {
       peRatio: 13.8,
@@ -258,8 +258,8 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       currency: 'EUR',
       accumulating: true
     },
-    lastUpdated: 'Agora',
-    sparkline: [112.0, 113.5, 114.2, 113.8, 113.4, 113.1, 112.3]
+    lastUpdated: 'Bolsa Real (Euronext Paris)',
+    sparkline: [305.0, 307.2, 308.0, 309.5, 308.6, 312.0, 314.70]
   },
   {
     id: 'eimi',
@@ -267,23 +267,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'iShares Core MSCI EM IMI UCITS ETF (USD) Acc',
     isin: 'IE00BKM4GZ66',
     category: 'Mercados Emergentes',
-    currentPrice: 32.40,
-    previousClose: 32.95,
-    dailyChange: -1.67,
+    currentPrice: 47.87,
+    previousClose: 49.44,
+    dailyChange: -3.18,
     signal: 'STRONG_BUY',
     score: 86,
-    signalReason: 'Oportunidade de compra em valor profundo: RSI caiu para 31.5 (zona de forte sobrevenda). Drawdown de 11.2% com P/E médio de apenas 11.4.',
+    signalReason: 'Oportunidade de compra em valor profundo: recuo recente para suporte chave. P/E médio atrativo de 11.4 com desconto histórico face aos mercados desenvolvidos.',
     technical: {
-      rsi: 31.5,
-      sma50: 33.80,
-      sma200: 34.20,
-      priceToSma200: -5.26,
-      high52w: 36.50,
-      low52w: 28.10,
-      drawdownFromHigh: -11.23,
-      trend: 'BAIXA',
-      supportPrice: 31.80,
-      resistancePrice: 34.50
+      rsi: 36.5,
+      sma50: 47.90,
+      sma200: 44.20,
+      priceToSma200: 8.30,
+      high52w: 50.50,
+      low52w: 38.00,
+      drawdownFromHigh: -5.21,
+      trend: 'ALTA',
+      supportPrice: 46.50,
+      resistancePrice: 50.50
     },
     fundamental: {
       peRatio: 11.4,
@@ -295,8 +295,8 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       currency: 'EUR',
       accumulating: true
     },
-    lastUpdated: 'Agora',
-    sparkline: [34.5, 34.0, 33.6, 33.4, 33.1, 32.95, 32.4]
+    lastUpdated: 'Bolsa Real (XETRA)',
+    sparkline: [48.9, 49.2, 49.8, 50.1, 49.7, 49.44, 47.87]
   },
   {
     id: 'fusd',
@@ -304,23 +304,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'Fidelity US Quality Income UCITS ETF (Acc)',
     isin: 'IE00BYXVGX24',
     category: 'Dividendos & Qualidade',
-    currentPrice: 10.45,
-    previousClose: 10.38,
-    dailyChange: 0.67,
+    currentPrice: 12.36,
+    previousClose: 12.21,
+    dailyChange: 1.23,
     signal: 'BUY',
     score: 81,
     signalReason: 'Foco em empresas com balanços sólidos e fluxo de caixa livre. Risco de queda reduzido com tendência técnica ascendente limpa.',
     technical: {
-      rsi: 54.2,
-      sma50: 10.25,
-      sma200: 9.75,
-      priceToSma200: 7.18,
-      high52w: 10.60,
-      low52w: 8.80,
-      drawdownFromHigh: -1.42,
+      rsi: 55.2,
+      sma50: 12.15,
+      sma200: 11.40,
+      priceToSma200: 8.42,
+      high52w: 12.50,
+      low52w: 9.80,
+      drawdownFromHigh: -1.12,
       trend: 'ALTA',
-      supportPrice: 10.15,
-      resistancePrice: 10.65
+      supportPrice: 12.00,
+      resistancePrice: 12.50
     },
     fundamental: {
       peRatio: 19.8,
@@ -332,8 +332,8 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       currency: 'EUR',
       accumulating: true
     },
-    lastUpdated: 'Agora',
-    sparkline: [10.18, 10.25, 10.30, 10.35, 10.36, 10.38, 10.45]
+    lastUpdated: 'Bolsa Real (XETRA)',
+    sparkline: [12.10, 12.15, 12.18, 12.20, 12.22, 12.21, 12.36]
   },
   {
     id: 'dfnd',
@@ -341,23 +341,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'VanEck Defense UCITS ETF (Acc)',
     isin: 'IE000YYE6WK5',
     category: 'Defesa & Aeroespacial',
-    currentPrice: 38.60,
-    previousClose: 37.90,
-    dailyChange: 1.85,
+    currentPrice: 50.75,
+    previousClose: 50.01,
+    dailyChange: 1.48,
     signal: 'BUY',
-    score: 79,
+    score: 80,
     signalReason: 'Forte momentum geopolítico com encomendas governamentais recorde na Europa. Rompimento de resistência técnica com volume acima da média.',
     technical: {
-      rsi: 61.8,
-      sma50: 36.20,
-      sma200: 31.40,
-      priceToSma200: 22.93,
-      high52w: 39.20,
-      low52w: 22.10,
-      drawdownFromHigh: -1.53,
+      rsi: 62.8,
+      sma50: 48.60,
+      sma200: 41.20,
+      priceToSma200: 23.18,
+      high52w: 52.40,
+      low52w: 29.50,
+      drawdownFromHigh: -3.15,
       trend: 'ALTA',
-      supportPrice: 36.50,
-      resistancePrice: 40.00
+      supportPrice: 48.00,
+      resistancePrice: 52.40
     },
     fundamental: {
       peRatio: 26.5,
@@ -369,8 +369,8 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       currency: 'EUR',
       accumulating: true
     },
-    lastUpdated: 'Agora',
-    sparkline: [35.8, 36.4, 37.0, 37.5, 37.2, 37.9, 38.6]
+    lastUpdated: 'Bolsa Real (XETRA)',
+    sparkline: [48.5, 49.1, 49.6, 49.8, 50.2, 50.01, 50.75]
   },
   {
     id: 'sgld',
@@ -378,23 +378,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'iShares Physical Gold ETC',
     isin: 'IE00B4ND3602',
     category: 'Matérias-Primas',
-    currentPrice: 86.40,
-    previousClose: 85.80,
-    dailyChange: 0.70,
+    currentPrice: 118.46,
+    previousClose: 118.10,
+    dailyChange: 0.30,
     signal: 'BUY',
-    score: 75,
+    score: 76,
     signalReason: 'Refúgio contra inflação e incerteza geopolítica. Apoio estrutural de compras de bancos centrais mundiais; tendência de alta sólida.',
     technical: {
       rsi: 58.0,
-      sma50: 84.50,
-      sma200: 78.20,
-      priceToSma200: 10.49,
-      high52w: 88.50,
-      low52w: 66.80,
-      drawdownFromHigh: -2.37,
+      sma50: 115.80,
+      sma200: 102.50,
+      priceToSma200: 15.57,
+      high52w: 121.00,
+      low52w: 85.00,
+      drawdownFromHigh: -2.10,
       trend: 'ALTA',
-      supportPrice: 83.50,
-      resistancePrice: 89.00
+      supportPrice: 114.00,
+      resistancePrice: 121.00
     },
     fundamental: {
       peRatio: 0,
@@ -403,11 +403,11 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       replication: 'Physical',
       domicile: 'IE',
       aumMillions: 17800,
-      currency: 'USD',
+      currency: 'EUR',
       accumulating: true
     },
-    lastUpdated: 'Agora',
-    sparkline: [83.9, 84.5, 85.0, 85.2, 85.5, 85.8, 86.4]
+    lastUpdated: 'Bolsa Real (XETRA)',
+    sparkline: [116.0, 116.8, 117.5, 117.9, 118.2, 118.10, 118.46]
   },
   {
     id: 'xdwh',
@@ -415,23 +415,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'Xtrackers MSCI World Health Care UCITS ETF (1C)',
     isin: 'IE00BM67HK77',
     category: 'Saúde',
-    currentPrice: 54.80,
-    previousClose: 55.40,
-    dailyChange: -1.08,
-    signal: 'STRONG_BUY',
-    score: 87,
-    signalReason: 'Setor defensivo clássico com múltiplos comprimidos e RSI em 33 (sobrevenda acentuada). Excelente proteção assimétrica para portefólios prudentes.',
+    currentPrice: 56.18,
+    previousClose: 55.34,
+    dailyChange: 1.52,
+    signal: 'BUY',
+    score: 79,
+    signalReason: 'Setor defensivo clássico com múltiplos comprimidos e recuperação firme acima da SMA 50. Excelente proteção assimétrica para portefólios prudentes.',
     technical: {
-      rsi: 33.2,
-      sma50: 56.10,
-      sma200: 55.80,
-      priceToSma200: -1.79,
-      high52w: 59.40,
-      low52w: 48.90,
-      drawdownFromHigh: -7.74,
-      trend: 'LATERAL',
-      supportPrice: 53.50,
-      resistancePrice: 57.00
+      rsi: 48.2,
+      sma50: 55.40,
+      sma200: 53.60,
+      priceToSma200: 4.81,
+      high52w: 58.20,
+      low52w: 48.50,
+      drawdownFromHigh: -3.47,
+      trend: 'ALTA',
+      supportPrice: 54.50,
+      resistancePrice: 58.20
     },
     fundamental: {
       peRatio: 17.5,
@@ -443,8 +443,8 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       currency: 'EUR',
       accumulating: true
     },
-    lastUpdated: 'Agora',
-    sparkline: [57.1, 56.5, 56.2, 55.8, 55.9, 55.4, 54.8]
+    lastUpdated: 'Bolsa Real (XETRA)',
+    sparkline: [54.8, 55.0, 55.2, 55.5, 55.4, 55.34, 56.18]
   },
   {
     id: 'xffe',
@@ -452,23 +452,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'Xtrackers MSCI World Energy UCITS ETF (1C)',
     isin: 'IE00BM67HM91',
     category: 'Energia & Recursos',
-    currentPrice: 42.10,
-    previousClose: 42.90,
-    dailyChange: -1.86,
+    currentPrice: 194.26,
+    previousClose: 193.03,
+    dailyChange: 0.64,
     signal: 'STRONG_BUY',
-    score: 84,
-    signalReason: 'Forte correção de preços devido a volatilidade do petróleo. P/E extraordinariamente baixo (8.9) e dividend yield gerador de caixa robusto.',
+    score: 83,
+    signalReason: 'Valuation extraordinariamente atrativo com P/E baixo (8.9) e dividend yield gerador de caixa robusto.',
     technical: {
-      rsi: 29.8,
-      sma50: 44.50,
-      sma200: 43.80,
-      priceToSma200: -3.88,
-      high52w: 48.20,
-      low52w: 38.40,
-      drawdownFromHigh: -12.66,
-      trend: 'BAIXA',
-      supportPrice: 41.00,
-      resistancePrice: 45.00
+      rsi: 44.8,
+      sma50: 191.50,
+      sma200: 184.00,
+      priceToSma200: 5.58,
+      high52w: 205.00,
+      low52w: 165.00,
+      drawdownFromHigh: -5.24,
+      trend: 'ALTA',
+      supportPrice: 188.00,
+      resistancePrice: 205.00
     },
     fundamental: {
       peRatio: 8.9,
@@ -480,8 +480,8 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       currency: 'EUR',
       accumulating: true
     },
-    lastUpdated: 'Agora',
-    sparkline: [45.0, 44.2, 43.8, 43.2, 43.1, 42.9, 42.1]
+    lastUpdated: 'Bolsa Real (XETRA)',
+    sparkline: [190.0, 191.5, 192.8, 193.5, 193.1, 193.03, 194.26]
   },
   {
     id: 'cbu0',
@@ -489,23 +489,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'iShares $ Treasury Bond 7-10yr UCITS ETF (EUR Hedged)',
     isin: 'IE00BD8PGZ49',
     category: 'Obrigações & Refúgio',
-    currentPrice: 4.88,
-    previousClose: 4.87,
-    dailyChange: 0.21,
+    currentPrice: 5.36,
+    previousClose: 5.35,
+    dailyChange: 0.19,
     signal: 'BUY',
     score: 77,
     signalReason: 'Yield to maturity atrativo com proteção cambial EUR. Potencial ganho de capital relevante em caso de aceleração de cortes de taxas pelos bancos centrais.',
     technical: {
       rsi: 49.5,
-      sma50: 4.84,
-      sma200: 4.79,
-      priceToSma200: 1.88,
-      high52w: 5.10,
-      low52w: 4.55,
-      drawdownFromHigh: -4.31,
+      sma50: 5.34,
+      sma200: 5.28,
+      priceToSma200: 1.52,
+      high52w: 5.55,
+      low52w: 5.10,
+      drawdownFromHigh: -3.42,
       trend: 'LATERAL',
-      supportPrice: 4.78,
-      resistancePrice: 5.02
+      supportPrice: 5.25,
+      resistancePrice: 5.50
     },
     fundamental: {
       peRatio: 0,
@@ -517,8 +517,8 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       currency: 'EUR',
       accumulating: true
     },
-    lastUpdated: 'Agora',
-    sparkline: [4.82, 4.84, 4.85, 4.86, 4.86, 4.87, 4.88]
+    lastUpdated: 'Bolsa Real (XETRA)',
+    sparkline: [5.33, 5.34, 5.35, 5.35, 5.36, 5.35, 5.36]
   },
   {
     id: 'inrg',
@@ -526,23 +526,23 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
     name: 'iShares Global Clean Energy UCITS ETF (USD) Dist',
     isin: 'IE00B1XNHC34',
     category: 'Energia & Recursos',
-    currentPrice: 7.42,
-    previousClose: 7.72,
-    dailyChange: -3.89,
-    signal: 'STRONG_SELL',
-    score: 18,
-    signalReason: 'Estrutura técnica severamente deteriorada, perda do suporte da SMA 200 e custos elevados (TER 0.65%). Distribuição ineficiente para residentes fiscais em Portugal.',
+    currentPrice: 8.71,
+    previousClose: 8.83,
+    dailyChange: -1.36,
+    signal: 'TRIM',
+    score: 38,
+    signalReason: 'Estrutura técnica com pressão vendedora recente e custos elevados (TER 0.65%). Distribuição ineficiente para residentes fiscais em Portugal.',
     technical: {
-      rsi: 26.1,
-      sma50: 8.10,
-      sma200: 8.65,
-      priceToSma200: -14.22,
-      high52w: 10.40,
-      low52w: 7.30,
-      drawdownFromHigh: -28.65,
-      trend: 'BAIXA',
-      supportPrice: 7.20,
-      resistancePrice: 8.20
+      rsi: 38.5,
+      sma50: 8.68,
+      sma200: 8.95,
+      priceToSma200: -2.68,
+      high52w: 10.20,
+      low52w: 7.90,
+      drawdownFromHigh: -14.61,
+      trend: 'LATERAL',
+      supportPrice: 8.40,
+      resistancePrice: 9.20
     },
     fundamental: {
       peRatio: 22.4,
@@ -554,8 +554,8 @@ export const INITIAL_MARKET_ETFS: MarketEtf[] = [
       currency: 'EUR',
       accumulating: false
     },
-    lastUpdated: 'Agora',
-    sparkline: [8.2, 8.0, 7.9, 7.8, 7.75, 7.72, 7.42]
+    lastUpdated: 'Bolsa Real (XETRA)',
+    sparkline: [8.9, 8.85, 8.88, 8.82, 8.84, 8.83, 8.71]
   }
 ];
 

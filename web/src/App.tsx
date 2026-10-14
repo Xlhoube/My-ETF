@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { MarketEtf, MarketAlert } from './types';
 import { 
   INITIAL_MARKET_ETFS, 
-  generateMarketSummary, 
-  tickMarketPrices 
+  generateMarketSummary 
 } from './utils/marketEngine';
 import CleanHomeHub from './components/CleanHomeHub';
 import LongTermTab from './components/LongTermTab';
@@ -13,6 +12,7 @@ import ActionableSignals from './components/ActionableSignals';
 import SectorRotationTab from './components/SectorRotationTab';
 import MarketChat from './components/MarketChat';
 import BeginnerCompass from './components/BeginnerCompass';
+import { syncRealMarketData } from './utils/realMarketService';
 import { 
   Home,
   ShieldCheck,
@@ -32,7 +32,7 @@ import {
 export default function App() {
   const [marketEtfs, setMarketEtfs] = useState<MarketEtf[]>(() => {
     try {
-      const saved = localStorage.getItem('my_etf_market_data');
+      const saved = localStorage.getItem('my_etf_market_data_v2');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -57,13 +57,15 @@ export default function App() {
     try {
       localStorage.setItem('my_etf_experience_mode', experienceMode);
     } catch (e) {
-      console.error('Erro ao salvar experienceMode:', e);
+      console.error('Erro ao guardar experienceMode:', e);
     }
   }, [experienceMode]);
 
   // Tab ativa: inicia sempre em 'home' para uma receção acolhedora e sem sobrecarga
   const [activeTab, setActiveTab] = useState<'home' | 'longterm' | 'guide' | 'signals' | 'radar' | 'rotation' | 'watchlist' | 'chat'>('home');
   const [isScanning, setIsScanning] = useState<boolean>(true);
+  const [isSyncingReal, setIsSyncingReal] = useState<boolean>(false);
+  const [lastSyncTime, setLastSyncTime] = useState<string>('');
   const [alerts, setAlerts] = useState<MarketAlert[]>([]);
   const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);
   const [triggeredChatQuery, setTriggeredChatQuery] = useState<{ text: string; timestamp: number } | null>(null);
@@ -90,41 +92,53 @@ export default function App() {
   // Grava dados de mercado no localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('my_etf_market_data', JSON.stringify(marketEtfs));
+      localStorage.setItem('my_etf_market_data_v2', JSON.stringify(marketEtfs));
     } catch (e) {
-      console.error('Erro ao salvar dados de mercado:', e);
+      console.error('Erro ao guardar dados de mercado:', e);
     }
   }, [marketEtfs]);
 
   // Calcula o sumário macro do mercado
   const summary = generateMarketSummary(marketEtfs);
 
-  // Ciclo de monitorização contínua de mercado (Scanning a cada 25 segundos se ativado)
+  // Sincronização direta com cotações reais das bolsas europeias (XETRA, Euronext)
+  const handleRealSync = async () => {
+    setIsSyncingReal(true);
+    try {
+      const { updatedEtfs, newAlerts, isRealTime } = await syncRealMarketData(marketEtfs);
+      if (isRealTime) {
+        setMarketEtfs(updatedEtfs);
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        setLastSyncTime(time);
+        if (newAlerts.length > 0) {
+          setAlerts(curr => [...newAlerts, ...curr].slice(0, 20));
+        }
+      }
+    } catch (err) {
+      console.warn('Erro ao obter dados reais de mercado:', err);
+    } finally {
+      setIsSyncingReal(false);
+    }
+  };
+
+  // Ciclo de monitorização contínua com cotações reais da bolsa
   useEffect(() => {
+    // Sincronização inicial automática imediata ao abrir a aplicação
+    handleRealSync();
+
     if (!isScanning) return;
 
+    // Atualização a cada 45 segundos para apanhar novas cotações
     const interval = setInterval(() => {
-      setMarketEtfs(prev => {
-        const { updatedEtfs, newAlerts } = tickMarketPrices(prev);
-        if (newAlerts.length > 0) {
-          setAlerts(currAlerts => [...newAlerts, ...currAlerts].slice(0, 20));
-        }
-        return updatedEtfs;
-      });
-    }, 25000);
+      handleRealSync();
+    }, 45000);
 
     return () => clearInterval(interval);
   }, [isScanning]);
 
-  // Força atualização manual imediata
+  // Força atualização manual imediata das bolsas
   const handleManualScan = () => {
-    setMarketEtfs(prev => {
-      const { updatedEtfs, newAlerts } = tickMarketPrices(prev);
-      if (newAlerts.length > 0) {
-        setAlerts(currAlerts => [...newAlerts, ...currAlerts].slice(0, 20));
-      }
-      return updatedEtfs;
-    });
+    handleRealSync();
   };
 
   // Alterna o estado da Watchlist
@@ -411,15 +425,42 @@ export default function App() {
               <span>{experienceMode === 'simple' ? 'Mudar p/ Modo Avançado' : 'Mudar p/ Modo Simples'}</span>
             </button>
 
+            {/* BADGE DE COTAÇÕES REAIS EM DIRETO */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              background: 'rgba(16, 185, 129, 0.12)',
+              border: '1px solid rgba(16, 185, 129, 0.35)',
+              padding: '0.35rem 0.75rem',
+              borderRadius: '20px',
+              fontSize: '0.74rem',
+              color: '#10b981',
+              fontWeight: 700
+            }}>
+              <span style={{ 
+                width: '7px', height: '7px', borderRadius: '50%', background: '#10b981',
+                boxShadow: '0 0 8px #10b981',
+                display: 'inline-block'
+              }} />
+              <span>Bolsas Reais (XETRA / Euronext)</span>
+              {lastSyncTime && (
+                <span style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.7rem' }}>
+                  • {lastSyncTime}
+                </span>
+              )}
+            </div>
+
             {/* BOTÃO ATUALIZAR */}
             <button 
               onClick={handleManualScan}
+              disabled={isSyncingReal}
               className="btn btn-secondary"
               style={{ fontSize: '0.78rem', padding: '0.45rem 0.85rem', gap: '0.4rem' }}
-              title="Recalcular métricas e cotações"
+              title="Recalcular métricas e atualizar cotações reais das bolsas"
             >
-              <RefreshCw size={14} />
-              <span>Atualizar</span>
+              <RefreshCw size={14} className={isSyncingReal ? 'spin-animation' : undefined} />
+              <span>{isSyncingReal ? 'A sincronizar...' : 'Atualizar Bolsas'}</span>
             </button>
 
             {/* SINO DE NOTIFICAÇÕES */}
