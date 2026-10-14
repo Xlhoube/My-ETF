@@ -4,15 +4,17 @@ import {
   AlertTriangle, 
   Target, 
   ShieldAlert, 
-  Zap
+  Zap,
+  FlaskConical
 } from 'lucide-react';
 
 interface ActionableSignalsProps {
   etfs: MarketEtf[];
   onAskAdvisor: (query: string) => void;
+  onSimulateDemo?: (ticker: string) => void;
 }
 
-export default function ActionableSignals({ etfs, onAskAdvisor }: ActionableSignalsProps) {
+export default function ActionableSignals({ etfs, onAskAdvisor, onSimulateDemo }: ActionableSignalsProps) {
   // Isola apenas os ETFs com sinais fortes de ação imediata (STRONG_BUY, BUY, TRIM, STRONG_SELL)
   const buyOpportunities = etfs.filter(e => e.signal === 'STRONG_BUY' || e.signal === 'BUY')
     .sort((a, b) => b.score - a.score);
@@ -130,13 +132,25 @@ export default function ActionableSignals({ etfs, onAskAdvisor }: ActionableSign
                     </div>
                   </div>
 
-                  <button 
-                    onClick={() => onAskAdvisor(`Detalha o plano de entrada para o ETF ${etf.ticker}. Qual a proporção ideal de alocação de capital e que corretora em Portugal tem melhores custos para este ativo?`)}
-                    className="btn btn-secondary" 
-                    style={{ width: '100%', fontSize: '0.8rem', padding: '0.55rem', gap: '0.4rem', justifyContent: 'center' }}
-                  >
-                    <Zap size={14} style={{ color: '#10b981' }} /> Planear Entrada c/ Consultor
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button 
+                      onClick={() => onAskAdvisor(`Detalha o plano de entrada para o ETF ${etf.ticker}. Qual a proporção ideal de alocação de capital e que corretora em Portugal tem melhores custos para este ativo?`)}
+                      className="btn btn-secondary" 
+                      style={{ flex: 1, fontSize: '0.8rem', padding: '0.55rem', gap: '0.4rem', justifyContent: 'center' }}
+                    >
+                      <Zap size={14} style={{ color: '#10b981' }} /> Planear Entrada
+                    </button>
+                    {onSimulateDemo && (
+                      <button 
+                        onClick={() => onSimulateDemo(etf.ticker)}
+                        className="btn btn-secondary" 
+                        style={{ padding: '0.55rem 0.85rem', fontSize: '0.8rem', gap: '0.35rem', color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.3)' }}
+                        title="Simular evolução e compra deste ativo na Conta Demo"
+                      >
+                        <FlaskConical size={14} /> Simular Demo
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}

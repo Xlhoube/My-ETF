@@ -12,6 +12,7 @@ import ActionableSignals from './components/ActionableSignals';
 import SectorRotationTab from './components/SectorRotationTab';
 import MarketChat from './components/MarketChat';
 import BeginnerCompass from './components/BeginnerCompass';
+import AssetDemoSimulator from './components/AssetDemoSimulator';
 import { syncRealMarketData } from './utils/realMarketService';
 import { 
   Home,
@@ -26,7 +27,8 @@ import {
   RefreshCw, 
   Sun, 
   Moon,
-  SlidersHorizontal
+  SlidersHorizontal,
+  FlaskConical
 } from 'lucide-react';
 
 export default function App() {
@@ -62,7 +64,8 @@ export default function App() {
   }, [experienceMode]);
 
   // Tab ativa: inicia sempre em 'home' para uma receção acolhedora e sem sobrecarga
-  const [activeTab, setActiveTab] = useState<'home' | 'longterm' | 'guide' | 'signals' | 'radar' | 'rotation' | 'watchlist' | 'chat'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'longterm' | 'guide' | 'signals' | 'radar' | 'rotation' | 'watchlist' | 'chat' | 'demo'>('home');
+  const [preselectedDemoTicker, setPreselectedDemoTicker] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState<boolean>(true);
   const [isSyncingReal, setIsSyncingReal] = useState<boolean>(false);
   const [lastSyncTime, setLastSyncTime] = useState<string>('');
@@ -155,6 +158,12 @@ export default function App() {
   const handleAskAdvisor = (query: string) => {
     setTriggeredChatQuery({ text: query, timestamp: Date.now() });
     setActiveTab('chat');
+  };
+
+  // Abre o simulador demo com um ETF opcional pré-selecionado
+  const handleOpenDemo = (ticker?: string) => {
+    setPreselectedDemoTicker(ticker || null);
+    setActiveTab('demo');
   };
 
   const unreadAlertsCount = alerts.filter(a => !a.read).length;
@@ -331,6 +340,35 @@ export default function App() {
               </button>
             </>
           )}
+
+          {/* SIMULAÇÃO & PRÁTICA LIVRE */}
+          <div className="nav-section-title" style={{ marginTop: '0.5rem' }}>
+            <span>🧪 Simulação &amp; Teste</span>
+          </div>
+
+          <button 
+            onClick={() => handleOpenDemo()}
+            className={`btn ${activeTab === 'demo' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ 
+              gap: '0.65rem',
+              border: activeTab === 'demo' ? '1px solid #10b981' : undefined,
+              background: activeTab === 'demo' ? 'rgba(16, 185, 129, 0.18)' : undefined
+            }}
+          >
+            <FlaskConical size={18} style={{ color: activeTab === 'demo' ? 'var(--text-primary)' : '#10b981' }} />
+            <span>Simulador Demo</span>
+            <span style={{ 
+              marginLeft: 'auto', 
+              fontSize: '0.65rem', 
+              fontWeight: 800, 
+              background: '#10b981', 
+              color: '#000', 
+              padding: '0.15rem 0.4rem', 
+              borderRadius: '4px' 
+            }}>
+              Livre
+            </span>
+          </button>
 
           {/* APOIO & INTELIGÊNCIA */}
           <div className="nav-section-title" style={{ marginTop: '0.5rem' }}>
@@ -581,6 +619,7 @@ export default function App() {
           <ActionableSignals 
             etfs={marketEtfs}
             onAskAdvisor={handleAskAdvisor}
+            onSimulateDemo={handleOpenDemo}
           />
         )}
 
@@ -608,6 +647,14 @@ export default function App() {
             etfs={marketEtfs}
             triggeredQuery={triggeredChatQuery}
             onClearTrigger={() => setTriggeredChatQuery(null)}
+          />
+        )}
+
+        {activeTab === 'demo' && (
+          <AssetDemoSimulator 
+            marketEtfs={marketEtfs}
+            initialTicker={preselectedDemoTicker}
+            onNavigateToTab={(tab) => setActiveTab(tab)}
           />
         )}
 

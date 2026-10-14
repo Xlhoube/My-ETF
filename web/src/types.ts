@@ -131,3 +131,14 @@ export interface UserProfile {
   name: string;
   broker: string;
 }
+
+export interface DemoTradePosition {
+  id: string;
+  ticker: string;
+  name: string;
+  shares: number;
+  entryPrice: number;
+  entryDate: string;
+  totalCost: number;
+  category?: MarketCategory;
+}

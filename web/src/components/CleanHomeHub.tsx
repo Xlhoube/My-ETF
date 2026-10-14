@@ -9,13 +9,15 @@ import {
   SlidersHorizontal,
   TrendingUp,
   Zap,
-  Sparkles
+  Sparkles,
+  FlaskConical,
+  PlayCircle
 } from 'lucide-react';
 
 interface CleanHomeHubProps {
   summary: MarketSummary;
   etfs: MarketEtf[];
-  onNavigate: (tab: 'home' | 'longterm' | 'guide' | 'signals' | 'radar' | 'chat') => void;
+  onNavigate: (tab: 'home' | 'longterm' | 'guide' | 'signals' | 'radar' | 'chat' | 'demo') => void;
   onSwitchToAdvanced: () => void;
 }
 
@@ -410,6 +412,52 @@ export default function CleanHomeHub({ summary, etfs, onNavigate, onSwitchToAdva
           </button>
         </div>
 
+      </div>
+
+      {/* 4. BANNER DO SIMULADOR DEMO (SEM REGISTO) */}
+      <div className="card" style={{ 
+        padding: '1.5rem', 
+        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(56, 189, 248, 0.08) 50%, rgba(0, 0, 0, 0.95))',
+        border: '1px solid rgba(16, 185, 129, 0.35)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '1.25rem',
+        borderRadius: '12px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ 
+            width: '46px', height: '46px', borderRadius: '12px', 
+            background: 'rgba(16, 185, 129, 0.2)', color: '#10b981',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: '1px solid rgba(16, 185, 129, 0.4)'
+          }}>
+            <FlaskConical size={24} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+              <span style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
+                Simulador de Ativos &amp; Conta Demo Livre
+              </span>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, background: '#10b981', color: '#000', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                Sem Registo
+              </span>
+            </div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, maxWidth: '640px' }}>
+              Queres ver como evolui qualquer ETF antes de arriscar capital? Testa compras simuladas com 10.000 € virtuais, projeta o efeito dos juros compostos e acompanha as cotações em tempo real da bolsa.
+            </p>
+          </div>
+        </div>
+
+        <button 
+          onClick={() => onNavigate('demo')}
+          className="btn btn-primary"
+          style={{ padding: '0.65rem 1.25rem', fontSize: '0.85rem', background: '#10b981', color: '#000', gap: '0.45rem' }}
+        >
+          <PlayCircle size={16} />
+          <span>Experimentar no Modo Demo</span>
+        </button>
       </div>
 
       {/* 5. ATALHO DISCRETO PARA MODO AVANÇADO */}

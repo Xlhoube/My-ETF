@@ -4,8 +4,8 @@ Este ficheiro regista o estado atual do projeto, regras, decisões de arquitetur
 
 ## 🚀 Estado Atual
 * **Fase:** 🏁 DOCUMENTER / CONCLUÍDO
-* **Versão:** 0.7.6 (Live European Exchange Data Integration — XETRA & Euronext)
-* **Objetivo:** Transição completa da plataforma de dados simulados/demo para cotações e barras históricas 100% REAIS das principais bolsas de valores europeias (Deutsche Börse XETRA, Euronext Amesterdão e Euronext Paris). Cálculo matemático em tempo real de RSI (14 períodos), SMA 200, SMA 50, Máximos/Mínimos de 52 semanas e Drawdowns reais. Indicador visual dinâmico no cabeçalho com carimbo temporal ao segundo e sincronização automática contínua.
+* **Versão:** 0.7.7 (Asset Demo Simulator & Frictionless Paper Trading — No Account Required)
+* **Objetivo:** Adição do Simulador de Ativos e Conta Demo Livre sem necessidade de registo de conta. Permite a qualquer investidor simular e projetar a evolução de qualquer ETF europeu com base em cotações e rentabilidades reais da bolsa, executar compras virtuais com um saldo inicial de 10.000 €, acompanhar posições em aberto e monitorizar ganhos/perdas (€ e %) em tempo real.
 
 ---
 
@@ -37,6 +37,7 @@ A aplicação Web é estruturada em:
 * `/web/src/components/ActionableSignals.tsx` — Ecrã nuclear de Compra e Venda de Ativos: Zonas de entrada recomendadas, metas de lucro (+12%) e stops de invalidação.
 * `/web/src/components/MarketRadar.tsx` — Scanner principal com barómetro Fear & Greed, filtros rápidos, visualização em cartões/tabela e modal Raio-X Técnico.
 * `/web/src/components/SectorRotationTab.tsx` — Termómetro de rotação de setores e ciclos macroeconómicos.
+* `/web/src/components/AssetDemoSimulator.tsx` — Simulador de Ativos e Conta Demo Livre sem necessidade de registo: Projeção de evolução temporal com juros compostos, compras virtuais com 10.000 € e acompanhamento de lucros/perdas em tempo real.
 * `/web/src/components/MarketChat.tsx` — Chat interativo de auditoria de mercado com o Consultor de Elite (.chat-wrapper responsivo).
 * `/web/src/utils/marketEngine.ts` — Universo curado de ETFs UCITS e motor de avaliação híbrida.
 * `/web/src/utils/marketAdvisorEngine.ts` — Motor de consultoria macro e didático em estrito PT-PT.
@@ -53,6 +54,15 @@ A aplicação Web é estruturada em:
 ---
 
 ## 📝 Histórico de Versões
+
+### Versão 0.7.7 (Asset Demo Simulator & Frictionless Paper Trading — No Account Required)
+* **Desenvolvimento do Simulador de Ativos & Conta Demo Livre:**
+  - Criação do componente `AssetDemoSimulator.tsx` com dupla funcionalidade: projeção temporal com juros compostos de qualquer ativo e paper trading contínuo.
+  - Atribuição de um saldo fictício inicial de 10.000 € em liquidez virtual sem necessidade de criar conta nem recolha de dados pessoais.
+  - Seleção dinâmica entre todos os 15 ETFs cotados nas bolsas europeias com preços e variações diárias em direto.
+  - Gráfico visual da curva de evolução patrimonial (SVG responsivo) com projeções até 30 anos cruzando aportes iniciais e reforços mensais (DCA).
+  - Gestão de posições demo abertas: cálculo automático de valor atual de mercado, preço de entrada, lucro/prejuízo (€ e %) e botão para fechar posição.
+  - Integração de atalhos diretos no ecrã inicial (`CleanHomeHub.tsx`) e nos cartões de sinais (`ActionableSignals.tsx`).
 
 ### Versão 0.7.6 (Live European Exchange Data Integration — XETRA & Euronext)
 * **Mudança Integral para Dados de Mercado 100% Reais:**
