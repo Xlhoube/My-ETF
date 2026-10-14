@@ -5,22 +5,25 @@ import {
   MessageSquare, 
   ShieldCheck, 
   ArrowRight, 
-  SlidersHorizontal
+  SlidersHorizontal,
+  TrendingUp,
+  Zap,
+  Sparkles
 } from 'lucide-react';
 
 interface CleanHomeHubProps {
   summary: MarketSummary;
   etfs: MarketEtf[];
-  onNavigate: (tab: 'guide' | 'signals' | 'radar' | 'chat') => void;
+  onNavigate: (tab: 'home' | 'longterm' | 'guide' | 'signals' | 'radar' | 'chat') => void;
   onSwitchToAdvanced: () => void;
 }
 
 export default function CleanHomeHub({ summary, etfs, onNavigate, onSwitchToAdvanced }: CleanHomeHubProps) {
-  // Encontra os 2 ETFs mundiais de referência
+  // Encontra os 2 ETFs mundiais de referência para Longo Prazo
   const spyi = etfs.find(e => e.ticker === 'SPYI');
   const vwce = etfs.find(e => e.ticker === 'VWCE');
 
-  // Encontra as 2 melhores oportunidades ativas de compra
+  // Encontra as 2 melhores oportunidades ativas de Compra e Venda
   const topBuys = etfs
     .filter(e => e.signal === 'STRONG_BUY' || e.signal === 'BUY')
     .sort((a, b) => b.score - a.score)
@@ -39,8 +42,8 @@ export default function CleanHomeHub({ summary, etfs, onNavigate, onSwitchToAdva
       return {
         badge: '🟡 Mercado Calmo e Equilibrado',
         color: '#fbbf24',
-        headline: 'O mercado está sereno. Um dia perfeito para a tua rotina mensal.',
-        subtext: 'Sem sobressaltos nem euforia desmedida. Se hoje é o teu dia de aplicar a poupança do mês, podes fazê-lo com total tranquilidade.'
+        headline: 'O mercado está sereno. Um dia perfeito para a tua rotina de investimentos.',
+        subtext: 'Sem sobressaltos nem euforia desmedida. Podes executar a tua estratégia com total tranquilidade e método.'
       };
     } else {
       return {
@@ -55,7 +58,7 @@ export default function CleanHomeHub({ summary, etfs, onNavigate, onSwitchToAdva
   const calmStatus = getCalmMarketStatus();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
       
       {/* 1. MENSAGEM PRINCIPAL TRANQUILIZADORA */}
       <div className="card" style={{ 
@@ -74,7 +77,7 @@ export default function CleanHomeHub({ summary, etfs, onNavigate, onSwitchToAdva
             {calmStatus.badge}
           </span>
           <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-            Atualizado automaticamente
+            Atualizado automaticamente em tempo real
           </span>
         </div>
 
@@ -82,18 +85,18 @@ export default function CleanHomeHub({ summary, etfs, onNavigate, onSwitchToAdva
           {calmStatus.headline}
         </h2>
         
-        <p style={{ fontSize: '0.96rem', color: 'var(--text-secondary)', lineHeight: 1.65, maxWidth: '820px', marginBottom: '1.5rem' }}>
+        <p style={{ fontSize: '0.96rem', color: 'var(--text-secondary)', lineHeight: 1.65, maxWidth: '840px', marginBottom: '1.5rem' }}>
           {calmStatus.subtext}
         </p>
 
         <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
           <button 
-            onClick={() => onNavigate('guide')}
+            onClick={() => onNavigate('longterm')}
             className="btn btn-primary"
-            style={{ padding: '0.75rem 1.4rem', fontSize: '0.9rem', gap: '0.5rem' }}
+            style={{ padding: '0.75rem 1.4rem', fontSize: '0.9rem', gap: '0.5rem', background: '#10b981', color: '#000' }}
           >
-            <Compass size={18} />
-            <span>Ver o Guia Passo a Passo (Começa Aqui)</span>
+            <ShieldCheck size={18} />
+            <span>Investimento a Longo Prazo</span>
           </button>
 
           <button 
@@ -102,205 +105,314 @@ export default function CleanHomeHub({ summary, etfs, onNavigate, onSwitchToAdva
             style={{ padding: '0.75rem 1.4rem', fontSize: '0.9rem', gap: '0.5rem' }}
           >
             <Target size={18} />
-            <span>Ver Oportunidades Selecionadas</span>
+            <span>Compra e Venda de Ativos</span>
           </button>
         </div>
       </div>
 
-      {/* 2. AS 3 PORTAS CLARAS: O QUE QUERES FAZER HOJE? */}
+      {/* 2. AS DUAS GRANDES SECÇÕES ESTRUTURAIS */}
       <div>
-        <div style={{ marginBottom: '1rem' }}>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Por Onde Queres Começar?</h3>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
-            Escolhe o teu objetivo e nós tratamos de te guiar sem complicações.
+        <div style={{ marginBottom: '1.25rem' }}>
+          <h3 style={{ fontSize: '1.35rem', fontWeight: 800 }}>Escolhe a Tua Estratégia de Investimento</h3>
+          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+            Duas abordagens complementares desenhadas para perfis e momentos distintos.
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '1.25rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
           
-          {/* PORTA 1 */}
+          {/* SECÇÃO 1: INVESTIMENTO A LONGO PRAZO */}
           <div 
             className="card" 
             style={{ 
-              cursor: 'pointer', padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-              transition: 'transform 0.2s ease, border-color 0.2s ease'
+              padding: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+              border: '1px solid rgba(16, 185, 129, 0.4)',
+              background: 'linear-gradient(145deg, rgba(16, 185, 129, 0.08), rgba(0, 0, 0, 0.95))',
+              position: 'relative', overflow: 'hidden'
             }}
-            onClick={() => onNavigate('guide')}
           >
+            <div style={{ 
+              position: 'absolute', top: 0, left: 0, right: 0, height: '4px',
+              background: 'linear-gradient(90deg, #10b981, #34d399)'
+            }} />
+
             <div>
-              <div style={{ 
-                width: '42px', height: '42px', borderRadius: '10px', 
-                background: 'rgba(16, 185, 129, 0.15)', color: '#10b981',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem',
-                border: '1px solid rgba(16, 185, 129, 0.3)'
-              }}>
-                <Compass size={22} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                <div style={{ 
+                  width: '48px', height: '48px', borderRadius: '12px', 
+                  background: 'rgba(16, 185, 129, 0.2)', color: '#10b981',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: '1px solid rgba(16, 185, 129, 0.4)'
+                }}>
+                  <ShieldCheck size={26} />
+                </div>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#10b981', background: 'rgba(16, 185, 129, 0.15)', padding: '0.25rem 0.6rem', borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Pilar de Liberdade
+                </span>
               </div>
-              <h4 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.45rem' }}>
-                Sou Principiante
+
+              <h4 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
+                Investimento a Longo Prazo
               </h4>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                Quero aprender os passos certos: como abrir conta numa corretora sem custos em Portugal e comprar o meu primeiro ETF global.
+              
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                Construção de património sólida, sem stress nem ansiedade. Aplicação mensal automática (DCA), reinvestimento total de dividendos sem pagar 28% de IRS em Portugal e o poder dos juros compostos a trabalhar durante 10 a 30 anos.
               </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.82rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
+                  <span style={{ color: '#10b981' }}>✓</span> <strong>ETFs de Acumulação Global:</strong> SPYI & VWCE
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
+                  <span style={{ color: '#10b981' }}>✓</span> <strong>Vantagem Fiscal Portugal:</strong> Domicílio Irlanda (retenção reduzida a 15%)
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
+                  <span style={{ color: '#10b981' }}>✓</span> <strong>Simulador DCA:</strong> Projeta a tua reforma e independência
+                </div>
+              </div>
             </div>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#10b981', fontWeight: 700, fontSize: '0.85rem', marginTop: '1.25rem' }}>
-              <span>Abrir Guia do Principiante</span>
-              <ArrowRight size={15} />
+
+            <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+              <button 
+                onClick={() => onNavigate('longterm')}
+                className="btn btn-primary"
+                style={{ flex: 1, padding: '0.65rem 1rem', fontSize: '0.85rem', background: '#10b981', color: '#000', justifyContent: 'center' }}
+              >
+                <span>Entrar em Longo Prazo</span>
+                <ArrowRight size={15} />
+              </button>
+
+              <button 
+                onClick={() => onNavigate('guide')}
+                className="btn btn-secondary"
+                style={{ padding: '0.65rem 0.9rem', fontSize: '0.82rem', justifyContent: 'center' }}
+                title="Abrir o Guia do Principiante"
+              >
+                <Compass size={15} style={{ color: '#10b981' }} />
+                <span>Guia Didático</span>
+              </button>
             </div>
           </div>
 
-          {/* PORTA 2 */}
+          {/* SECÇÃO 2: INVESTIMENTO DE COMPRA E VENDA DE ATIVOS */}
           <div 
             className="card" 
             style={{ 
-              cursor: 'pointer', padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-              transition: 'transform 0.2s ease, border-color 0.2s ease'
+              padding: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+              border: '1px solid rgba(56, 189, 248, 0.4)',
+              background: 'linear-gradient(145deg, rgba(56, 189, 248, 0.08), rgba(0, 0, 0, 0.95))',
+              position: 'relative', overflow: 'hidden'
             }}
-            onClick={() => onNavigate('signals')}
           >
-            <div>
-              <div style={{ 
-                width: '42px', height: '42px', borderRadius: '10px', 
-                background: 'rgba(56, 189, 248, 0.15)', color: 'var(--primary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem',
-                border: '1px solid rgba(56, 189, 248, 0.3)'
-              }}>
-                <Target size={22} />
-              </div>
-              <h4 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.45rem' }}>
-                Oportunidades de Compra
-              </h4>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                Quero ir direto ao assunto: ver os ETFs com preços atrativos e desconto hoje {topBuys.length > 0 ? `(ex: ${topBuys.map(b => b.ticker).join(', ')})` : ''}.
-              </p>
-            </div>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary)', fontWeight: 700, fontSize: '0.85rem', marginTop: '1.25rem' }}>
-              <span>Ver Sinais Acionáveis</span>
-              <ArrowRight size={15} />
-            </div>
-          </div>
+            <div style={{ 
+              position: 'absolute', top: 0, left: 0, right: 0, height: '4px',
+              background: 'linear-gradient(90deg, #38bdf8, #818cf8)'
+            }} />
 
-          {/* PORTA 3 */}
-          <div 
-            className="card" 
-            style={{ 
-              cursor: 'pointer', padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-              transition: 'transform 0.2s ease, border-color 0.2s ease'
-            }}
-            onClick={() => onNavigate('chat')}
-          >
             <div>
-              <div style={{ 
-                width: '42px', height: '42px', borderRadius: '10px', 
-                background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem',
-                border: '1px solid rgba(245, 158, 11, 0.3)'
-              }}>
-                <MessageSquare size={22} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                <div style={{ 
+                  width: '48px', height: '48px', borderRadius: '12px', 
+                  background: 'rgba(56, 189, 248, 0.2)', color: 'var(--primary)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: '1px solid rgba(56, 189, 248, 0.4)'
+                }}>
+                  <Target size={26} />
+                </div>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--primary)', background: 'rgba(56, 189, 248, 0.15)', padding: '0.25rem 0.6rem', borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Pilar Tático & Hunter
+                </span>
               </div>
-              <h4 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '0.45rem' }}>
-                Tenho Dúvidas
+
+              <h4 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
+                Compra e Venda de Ativos
               </h4>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                Quero falar com o Consultor de Elite para me tirar dúvidas sobre impostos em Portugal, corretoras ou ativos específicos.
+              
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                Aproveitamento de desequilíbrios do mercado para entrar com desconto e realizar mais-valias no topo. Scanner algorítmico contínuo com RSI, distância à média de 200 dias, alvos calculados e alertas de rotação setorial.
               </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.82rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
+                  <span style={{ color: 'var(--primary)' }}>⚡</span> <strong>Sinais de Compra com Desconto:</strong> Ativos em sobrevenda (RSI &lt; 40)
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
+                  <span style={{ color: 'var(--primary)' }}>⚡</span> <strong>Zonas de Saída &amp; Alvos:</strong> Alertas para realizar lucros (+12% a +15%)
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
+                  <span style={{ color: 'var(--primary)' }}>⚡</span> <strong>Rotação de Setores:</strong> Acompanha os fluxos de grandes instituições
+                </div>
+              </div>
             </div>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#fbbf24', fontWeight: 700, fontSize: '0.85rem', marginTop: '1.25rem' }}>
-              <span>Conversar com o Mentor</span>
-              <ArrowRight size={15} />
+
+            <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+              <button 
+                onClick={() => onNavigate('signals')}
+                className="btn btn-primary"
+                style={{ flex: 1, padding: '0.65rem 1rem', fontSize: '0.85rem', justifyContent: 'center' }}
+              >
+                <span>Ver Sinais de Compra/Venda</span>
+                <ArrowRight size={15} />
+              </button>
+
+              <button 
+                onClick={() => onNavigate('radar')}
+                className="btn btn-secondary"
+                style={{ padding: '0.65rem 0.9rem', fontSize: '0.82rem', justifyContent: 'center' }}
+                title="Abrir o Radar Completo de Mercado"
+              >
+                <Zap size={15} style={{ color: 'var(--primary)' }} />
+                <span>Radar Multi-Ativos</span>
+              </button>
             </div>
           </div>
 
         </div>
       </div>
 
-      {/* 3. OS DOIS ETFS DE BASE RECOMENDADOS (DESCOMPLICADOS) */}
-      <div className="card" style={{ padding: '1.75rem 2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+      {/* 3. CARTÃO DE APOIO: CONSULTOR DE CONFIANÇA */}
+      <div 
+        className="card"
+        style={{ 
+          padding: '1.5rem 2rem', 
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.25rem',
+          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(0, 0, 0, 0.95))',
+          border: '1px solid rgba(245, 158, 11, 0.3)'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ 
+            width: '44px', height: '44px', borderRadius: '10px', 
+            background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: '1px solid rgba(245, 158, 11, 0.35)'
+          }}>
+            <MessageSquare size={22} />
+          </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#10b981', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase' }}>
-              <ShieldCheck size={16} /> A Base de Confiança
-            </div>
-            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, marginTop: '0.2rem' }}>
-              Os Teus ETFs de Fundação: Comprar o Mundo com 1 Clique
-            </h3>
+            <h4 style={{ fontSize: '1.1rem', fontWeight: 800 }}>
+              Tens dúvidas sobre qual o caminho certo para ti?
+            </h4>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+              Fala diretamente com o Consultor de Confiança para auditar os teus ETFs, esclarecer impostos em Portugal ou pedir uma estratégia à tua medida.
+            </p>
           </div>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            Não precisas de adivinhar empresas vencedoras
-          </span>
         </div>
 
-        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-          Para 95% das pessoas, investir em ETFs resume-se a escolher um destes dois fundos. Ambos detêm automaticamente milhares das maiores empresas do mundo inteiro (Apple, Microsoft, Nestlé, Toyota, etc.), reinvestem os lucros sozinhos e têm custos microscópicos.
-        </p>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem' }}>
-          
-          {/* SPYI */}
-          <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-              <div>
-                <span style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)' }}>SPYI</span>
-                <span style={{ marginLeft: '0.5rem', fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', fontWeight: 700 }}>
-                  Mais Abrangente
-                </span>
-              </div>
-              <div style={{ fontSize: '1.3rem', fontWeight: 800 }}>
-                {spyi?.currentPrice.toFixed(2) ?? '224.50'}€
-              </div>
-            </div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-              SPDR MSCI All Country World Investable Market Index
-            </div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45, marginBottom: '0.75rem' }}>
-              Cobre mais de 9.000 empresas em países desenvolvidos e emergentes (Grandes, Médias e Pequenas). Custo anual minúsculo de apenas 0.17%.
-            </div>
-            <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600 }}>
-              ✓ Domicílio Irlanda (IE) • Acumulação (Isento de 28% IRS anual)
-            </div>
-          </div>
-
-          {/* VWCE */}
-          <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-              <div>
-                <span style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)' }}>VWCE</span>
-                <span style={{ marginLeft: '0.5rem', fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.15)', color: 'var(--primary)', fontWeight: 700 }}>
-                  O Mais Popular
-                </span>
-              </div>
-              <div style={{ fontSize: '1.3rem', fontWeight: 800 }}>
-                {vwce?.currentPrice.toFixed(2) ?? '124.80'}€
-              </div>
-            </div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-              Vanguard FTSE All-World UCITS ETF
-            </div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45, marginBottom: '0.75rem' }}>
-              O ETF mais transacionado e conhecido pelos investidores em Portugal. Detém cerca de 3.600 empresas globais com reputação inabalável da Vanguard.
-            </div>
-            <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600 }}>
-              ✓ Domicílio Irlanda (IE) • Acumulação (Isento de 28% IRS anual)
-            </div>
-          </div>
-
-        </div>
+        <button 
+          onClick={() => onNavigate('chat')}
+          className="btn btn-secondary"
+          style={{ padding: '0.65rem 1.25rem', fontSize: '0.85rem', gap: '0.45rem', borderColor: '#fbbf24', color: '#fbbf24' }}
+        >
+          <Sparkles size={16} />
+          <span>Falar com o Mentor</span>
+        </button>
       </div>
 
-      {/* 4. ATALHO PARA MODO AVANÇADO (PARA QUEM QUISER MAIS DETALHES) */}
+      {/* 4. OS DOIS MUNDOS LADO A LADO: BASE DE LONGO PRAZO VS OPORTUNIDADES IMEDIATAS */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+        
+        {/* LADO LONGO PRAZO: ETFS DE FUNDAÇÃO */}
+        <div className="card" style={{ padding: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#10b981', fontWeight: 800, fontSize: '0.82rem', textTransform: 'uppercase' }}>
+              <ShieldCheck size={16} /> Base para Longo Prazo
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Acumulação Mundial</span>
+          </div>
+
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1rem', lineHeight: 1.45 }}>
+            Dois ETFs que compram as maiores empresas do planeta num só clique, com reinvestimento automático.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            {spyi && (
+              <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '0.95rem' }}>SPYI ({spyi.currentPrice.toFixed(2)}€)</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>+9.000 empresas globais • TER 0.17%</div>
+                </div>
+                <span style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 700 }}>Irlanda (IE)</span>
+              </div>
+            )}
+            {vwce && (
+              <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '0.95rem' }}>VWCE ({vwce.currentPrice.toFixed(2)}€)</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>3.600 empresas globais • Vanguard</div>
+                </div>
+                <span style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 700 }}>Irlanda (IE)</span>
+              </div>
+            )}
+          </div>
+
+          <button 
+            onClick={() => onNavigate('longterm')}
+            className="btn btn-secondary"
+            style={{ width: '100%', fontSize: '0.8rem', padding: '0.55rem', justifyContent: 'center', gap: '0.4rem', color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)' }}
+          >
+            <TrendingUp size={14} />
+            <span>Abrir Simulador e Estratégia de Longo Prazo</span>
+          </button>
+        </div>
+
+        {/* LADO COMPRA E VENDA: SINAIS EM DESTAQUE */}
+        <div className="card" style={{ padding: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary)', fontWeight: 800, fontSize: '0.82rem', textTransform: 'uppercase' }}>
+              <Target size={16} /> Destaques de Compra & Venda
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Desconto Técnico</span>
+          </div>
+
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1rem', lineHeight: 1.45 }}>
+            Ativos que sofreram quedas excessivas e oferecem uma relação favorável de risco/recompensa.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            {topBuys.map(etf => (
+              <div key={etf.id} style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '0.95rem' }}>
+                    {etf.ticker} ({etf.currentPrice.toFixed(2)}€)
+                    <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', color: '#10b981', fontWeight: 700 }}>
+                      Score {etf.score}/100
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    RSI {etf.technical.rsi.toFixed(0)} • {etf.category}
+                  </div>
+                </div>
+                <span style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', fontSize: '0.72rem', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                  {etf.signal === 'STRONG_BUY' ? 'COMPRA FORTE' : 'COMPRA'}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <button 
+            onClick={() => onNavigate('signals')}
+            className="btn btn-secondary"
+            style={{ width: '100%', fontSize: '0.8rem', padding: '0.55rem', justifyContent: 'center', gap: '0.4rem', color: 'var(--primary)', borderColor: 'rgba(56, 189, 248, 0.3)' }}
+          >
+            <Zap size={14} />
+            <span>Ver Todos os Sinais com Preços-Alvo</span>
+          </button>
+        </div>
+
+      </div>
+
+      {/* 5. ATALHO DISCRETO PARA MODO AVANÇADO */}
       <div style={{ 
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem',
         padding: '1.25rem 1.5rem', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)'
       }}>
         <div>
           <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-            Queres ver os 15 ETFs, gráficos técnicos de RSI, médias e rotação de setores?
+            Queres ver os 15 ETFs, gráficos técnicos de RSI, médias móveis e rotação de setores?
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
-            Podes alternar a qualquer momento para o modo analítico completo.
+            Podes alternar a qualquer momento para o cockpit analítico completo.
           </div>
         </div>
 
@@ -310,10 +422,11 @@ export default function CleanHomeHub({ summary, etfs, onNavigate, onSwitchToAdva
           style={{ fontSize: '0.82rem', padding: '0.55rem 1rem', gap: '0.4rem' }}
         >
           <SlidersHorizontal size={14} />
-          <span>Ativar Modo Avançado (Scanner & Radar)</span>
+          <span>Ativar Cockpit Analítico Avançado</span>
         </button>
       </div>
 
     </div>
   );
 }
+

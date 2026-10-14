@@ -4,19 +4,19 @@ Este ficheiro regista o estado atual do projeto, regras, decisões de arquitetur
 
 ## 🚀 Estado Atual
 * **Fase:** 🏁 DOCUMENTER / CONCLUÍDO
-* **Versão:** 0.7.3 (Chat Responsive Layout & Zero Overflow Fix)
-* **Objetivo:** Correção do corte vertical na página do Consultor de Mercados: reformulação do contentor para `.chat-wrapper` com altura responsiva dinâmica, scroll interno de mensagens e fixação da barra de input e chips sem provocar cortes ou barras de rolagem globais da página.
+* **Versão:** 0.7.4 (Dedicated Investment Sections: Long-Term vs Active Trading)
+* **Objetivo:** Reorganização estrutural completa da aplicação em duas grandes secções nucleares: "Investimento a Longo Prazo" (acumulação passiva, disciplina DCA, regime Acc, vantagens fiscais da Irlanda com 15% de retenção nos EUA e simulador de juros compostos) e "Investimento de Compra e Venda de Ativos" (radar contínuo, caça de oportunidades em sobrevenda RSI < 40, zonas de entrada, metas de realização de lucros e rotação setorial).
 
 ---
 
 ## 🎯 Definição do Projeto
 
 ### 1. Missão
-Criar um radar contínuo de mercados de ETFs de elite e mentor financeiro que atue simultaneamente como scanner quantitativo para investidores experientes e como bússola pedagógica segura para quem está a começar do zero, indicando o que comprar, onde comprar, como colocar a ordem e exatamente quando o deve fazer.
+Criar um radar contínuo de mercados de ETFs de elite e mentor financeiro que atue simultaneamente como scanner quantitativo para investidores experientes e como bússola pedagógica segura para quem está a começar do zero, organizando a navegação de forma intuitiva entre as duas principais filosofias de investimento: Longo Prazo e Compra/Venda Ativa.
 
 ### 2. Stack Técnica
 * **Web:** React 18, Vite, TypeScript, Vanilla CSS (Design Premium Orion UI, Dark-First, Glassmorphic).
-* **Singlefile Bundle:** Empacotamento otimizado com `vite-plugin-singlefile` (283 kB total, carregamento instantâneo).
+* **Singlefile Bundle:** Empacotamento otimizado com `vite-plugin-singlefile` (300 kB total, carregamento instantâneo).
 * **Hospedagem:** Hostinger ou Vercel (distribuição estática de ficheiros ultra-leves).
 
 ### 3. Idioma e Localização
@@ -28,12 +28,13 @@ Criar um radar contínuo de mercados de ETFs de elite e mentor financeiro que at
 ## 🏗️ Estrutura do Projeto (Web)
 
 A aplicação Web é estruturada em:
-* `/web/src/components/CleanHomeHub.tsx` — Ecrã inicial acolhedor, sereno e sem ruído com 3 portas de decisão e cartões simplificados dos ETFs mundiais de base (SPYI e VWCE).
-* `/web/src/components/BeginnerCompass.tsx` — Bússola do Principiante com Semáforo de Timing, Guia dos 4 Passos, Simulador de Juros Compostos, Assistente de Ação Imediata e FAQ didática.
-* `/web/src/components/MarketRadar.tsx` — Scanner principal com barómetro Fear & Greed, filtros rápidos, visualização em cartões/tabela com tooltips didáticos e modal Raio-X Técnico.
-* `/web/src/components/ActionableSignals.tsx` — Ecrã de execução com zonas de entrada recomendadas, metas de lucro (+12%) e stops de invalidação.
+* `/web/src/components/CleanHomeHub.tsx` — Ecrã inicial acolhedor com acesso direto e em destaque às duas grandes secções estruturais da plataforma.
+* `/web/src/components/LongTermTab.tsx` — Ecrã dedicado de Investimento a Longo Prazo: As 3 Leis (Acc, Irlanda, DCA), ETFs de Fundação (SPYI, VWCE, IWDA, FUSD) e Simulador Interativo de Juros Compostos.
+* `/web/src/components/BeginnerCompass.tsx` — Bússola do Principiante com Semáforo de Timing, Guia dos 4 Passos, Simulador e Assistente de Ação Imediata.
+* `/web/src/components/ActionableSignals.tsx` — Ecrã nuclear de Compra e Venda de Ativos: Zonas de entrada recomendadas, metas de lucro (+12%) e stops de invalidação.
+* `/web/src/components/MarketRadar.tsx` — Scanner principal com barómetro Fear & Greed, filtros rápidos, visualização em cartões/tabela e modal Raio-X Técnico.
 * `/web/src/components/SectorRotationTab.tsx` — Termómetro de rotação de setores e ciclos macroeconómicos.
-* `/web/src/components/MarketChat.tsx` — Chat interativo de auditoria de mercado com o Consultor de Elite (contentor `.chat-wrapper` responsivo sem corte vertical).
+* `/web/src/components/MarketChat.tsx` — Chat interativo de auditoria de mercado com o Consultor de Elite (.chat-wrapper responsivo).
 * `/web/src/utils/marketEngine.ts` — Universo curado de ETFs UCITS e motor de avaliação híbrida.
 * `/web/src/utils/marketAdvisorEngine.ts` — Motor de consultoria macro e didático em estrito PT-PT.
 
@@ -50,11 +51,15 @@ A aplicação Web é estruturada em:
 
 ## 📝 Histórico de Versões
 
+### Versão 0.7.4 (Dedicated Investment Sections: Long-Term vs Active Trading)
+* **Separação Estrutural da Plataforma:**
+  - Criação da secção e separador **Investimento a Longo Prazo** (`LongTermTab.tsx`): 3 leis do investidor passivo, regras fiscais em Portugal (domicílio IE, regime Acc sem 28% no IRS anual), cartões detalhados dos ETFs de base e simulador de património a 20-30 anos.
+  - Consolidação da secção **Investimento de Compra e Venda de Ativos** (`ActionableSignals.tsx`, `MarketRadar.tsx`, `SectorRotationTab.tsx`): Scanner de desequilíbrios em sobrevenda (RSI < 40), zonas de entrada, metas de lucro (+12%) e alertas de take-profit.
+  - Reestruturação da barra lateral de navegação (`App.tsx`) com cabeçalhos de secção distintos (`🌱 INVESTIMENTO A LONGO PRAZO`, `⚡ COMPRA E VENDA DE ATIVOS`, `🤖 APOIO & AUDITORIA`).
+  - Reformulação do `CleanHomeHub.tsx` com duas portas principais de boas-vindas para conduzir o utilizador com clareza a cada uma das duas abordagens.
+
 ### Versão 0.7.3 (Chat Responsive Layout & Zero Overflow Fix)
-* **Correção do Corte Vertical no Consultor (`MarketChat.tsx` & `index.css`):**
-  - Substituição da altura fixa rígida (`calc(100vh - 120px)` e `minHeight: 650px`) pela classe `.chat-wrapper` com cálculo dinâmico (`calc(100vh - 210px)` em desktop e `calc(100vh - 240px)` em ecrãs menores).
-  - Isolamento de flexbox: O cabeçalho, os chips de perguntas rápidas e a barra de input possuem agora `flexShrink: 0`, enquanto a zona de mensagens assume `flex: 1 1 0` com `minHeight: 0` e scroll interno independente.
-  - O campo de input e o botão de envio permanecem sempre visíveis e acessíveis no ecrã sem que a página fique cortada ou exija rolagem externa.
+* Correção do corte vertical no Consultor com `.chat-wrapper` dinâmico e scroll interno.
 
 ### Versão 0.7.2 (Serene Landing Experience & Adaptive Experience Modes)
 * Ecrã Inicial Acolhedor (`CleanHomeHub.tsx`) e Alternador de Modos (Simples ↔ Avançado).

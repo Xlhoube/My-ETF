@@ -6,6 +6,7 @@ import {
   tickMarketPrices 
 } from './utils/marketEngine';
 import CleanHomeHub from './components/CleanHomeHub';
+import LongTermTab from './components/LongTermTab';
 import MarketRadar from './components/MarketRadar';
 import ActionableSignals from './components/ActionableSignals';
 import SectorRotationTab from './components/SectorRotationTab';
@@ -13,6 +14,7 @@ import MarketChat from './components/MarketChat';
 import BeginnerCompass from './components/BeginnerCompass';
 import { 
   Home,
+  ShieldCheck,
   Compass,
   Radar, 
   Target, 
@@ -60,7 +62,7 @@ export default function App() {
   }, [experienceMode]);
 
   // Tab ativa: inicia sempre em 'home' para uma receção acolhedora e sem sobrecarga
-  const [activeTab, setActiveTab] = useState<'home' | 'guide' | 'signals' | 'radar' | 'rotation' | 'watchlist' | 'chat'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'longterm' | 'guide' | 'signals' | 'radar' | 'rotation' | 'watchlist' | 'chat'>('home');
   const [isScanning, setIsScanning] = useState<boolean>(true);
   const [alerts, setAlerts] = useState<MarketAlert[]>([]);
   const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);
@@ -182,7 +184,7 @@ export default function App() {
             <button 
               onClick={() => {
                 setExperienceMode('simple');
-                if (activeTab === 'radar' || activeTab === 'rotation') setActiveTab('home');
+                if (activeTab === 'rotation') setActiveTab('home');
               }}
               style={{
                 flex: 1,
@@ -230,63 +232,76 @@ export default function App() {
           </div>
         </div>
 
-        {/* LINKS DE NAVEGAÇÃO CONFORME O MODO ATIVO */}
-        <nav style={{ flex: 1 }}>
+        {/* LINKS DE NAVEGAÇÃO ORGANIZADOS EM DUAS SECÇÕES PRINCIPAIS */}
+        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           
-          {/* BOTÃO HOME (INÍCIO SERENO) */}
+          {/* BOTÃO HOME (INÍCIO GERAL) */}
           <button 
             onClick={() => setActiveTab('home')}
             className={`btn ${activeTab === 'home' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ gap: '0.65rem' }}
+            style={{ gap: '0.65rem', marginBottom: '0.25rem' }}
           >
             <Home size={18} />
-            <span>Início (Resumo Calmo)</span>
+            <span>Início (Visão Geral)</span>
           </button>
 
-          {/* BÚSSOLA DO PRINCIPIANTE */}
+          {/* SECÇÃO 1: INVESTIMENTO A LONGO PRAZO */}
+          <div className="nav-section-title">
+            <span>🌱 Investimento a Longo Prazo</span>
+          </div>
+
+          <button 
+            onClick={() => setActiveTab('longterm')}
+            className={`btn ${activeTab === 'longterm' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ 
+              gap: '0.65rem',
+              border: activeTab === 'longterm' ? '1px solid #10b981' : undefined,
+              background: activeTab === 'longterm' ? 'rgba(16, 185, 129, 0.18)' : undefined
+            }}
+          >
+            <ShieldCheck size={18} style={{ color: activeTab === 'longterm' ? 'var(--text-primary)' : '#10b981' }} />
+            <span>Estratégia & Base</span>
+          </button>
+
           <button 
             onClick={() => setActiveTab('guide')}
             className={`btn ${activeTab === 'guide' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ 
               gap: '0.65rem', 
-              border: activeTab === 'guide' ? '1px solid #10b981' : '1px solid rgba(16, 185, 129, 0.25)',
-              background: activeTab === 'guide' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.04)'
+              border: activeTab === 'guide' ? '1px solid #10b981' : undefined,
+              background: activeTab === 'guide' ? 'rgba(16, 185, 129, 0.18)' : undefined
             }}
           >
-            <Compass size={18} style={{ color: '#10b981' }} />
-            <span style={{ fontWeight: 700, color: activeTab === 'guide' ? 'var(--text-primary)' : '#10b981' }}>
-              Bússola do Principiante
-            </span>
+            <Compass size={18} style={{ color: activeTab === 'guide' ? 'var(--text-primary)' : '#10b981' }} />
+            <span>Bússola do Principiante</span>
           </button>
 
-          {/* NO MODO AVANÇADO EXIBE O RADAR COMPLETO */}
-          {experienceMode === 'advanced' && (
-            <button 
-              onClick={() => setActiveTab('radar')}
-              className={`btn ${activeTab === 'radar' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ gap: '0.65rem' }}
-            >
-              <Radar size={18} />
-              <span>Radar Completo de Mercado</span>
-            </button>
-          )}
+          {/* SECÇÃO 2: COMPRA E VENDA DE ATIVOS */}
+          <div className="nav-section-title" style={{ marginTop: '0.5rem' }}>
+            <span>⚡ Compra e Venda de Ativos</span>
+          </div>
 
-          {/* SINAIS ACIONÁVEIS */}
           <button 
             onClick={() => setActiveTab('signals')}
             className={`btn ${activeTab === 'signals' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ gap: '0.65rem', position: 'relative' }}
           >
-            <Target size={18} />
-            <span>Oportunidades de Compra</span>
+            <Target size={18} style={{ color: 'var(--primary)' }} />
+            <span>Sinais Acionáveis</span>
             {summary.bullishCount > 0 && (
-              <span style={{ 
-                marginLeft: 'auto', background: '#10b981', color: '#000', 
-                fontSize: '0.68rem', fontWeight: 800, padding: '0.1rem 0.45rem', borderRadius: '10px' 
-              }}>
+              <span className="badge-count">
                 {summary.bullishCount}
               </span>
             )}
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('radar')}
+            className={`btn ${activeTab === 'radar' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ gap: '0.65rem' }}
+          >
+            <Radar size={18} />
+            <span>Radar de Mercado</span>
           </button>
 
           {/* NO MODO AVANÇADO EXIBE ROTAÇÃO SETORIAL E WATCHLIST */}
@@ -315,7 +330,11 @@ export default function App() {
             </>
           )}
 
-          {/* CONSULTOR DE MERCADOS */}
+          {/* APOIO & INTELIGÊNCIA */}
+          <div className="nav-section-title" style={{ marginTop: '0.5rem' }}>
+            <span>🤖 Apoio & Auditoria</span>
+          </div>
+
           <button 
             onClick={() => setActiveTab('chat')}
             className={`btn ${activeTab === 'chat' ? 'btn-primary' : 'btn-secondary'}`}
@@ -362,21 +381,23 @@ export default function App() {
           <div>
             <h1 style={{ fontSize: '1.45rem', fontWeight: 800 }}>
               {activeTab === 'home' && '👋 Olá! Vamos cuidar do teu futuro financeiro sem stress'}
+              {activeTab === 'longterm' && '🌱 Investimento a Longo Prazo: Construção de Liberdade'}
               {activeTab === 'guide' && '🧭 Bússola do Principiante: Os Teus Passos Seguros'}
+              {activeTab === 'signals' && '🎯 Compra e Venda de Ativos: Oportunidades & Sinais'}
               {activeTab === 'radar' && '📡 Radar Contínuo de Mercados de ETFs'}
-              {activeTab === 'signals' && '🎯 Oportunidades Selecionadas de Compra & Venda'}
               {activeTab === 'rotation' && '🔄 Termómetro de Rotação Setorial e Ciclos'}
               {activeTab === 'watchlist' && '⭐ ETFs Favoritos Sob Vigilância'}
               {activeTab === 'chat' && '🤖 Consultor de Mercados & Auditoria'}
             </h1>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
               {activeTab === 'home' && 'Escolhe o teu objetivo com calma. Estamos aqui para te orientar em cada passo.'}
+              {activeTab === 'longterm' && 'Estratégia de acumulação global, otimização fiscal em Portugal (retenção 15% Irlanda) e juros compostos.'}
               {activeTab === 'guide' && 'Guia didático sem jargão financeiro: quando comprar, onde comprar e como poupar em impostos.'}
-              {activeTab === 'signals' && 'Desequilíbrios favoráveis de mercado com zonas recomendadas de entrada.'}
+              {activeTab === 'signals' && 'Desequilíbrios estatísticos de mercado com zonas recomendadas de entrada e alvos de lucro.'}
               {activeTab === 'radar' && 'Painel analítico completo de ETFs UCITS europeus.'}
               {activeTab === 'rotation' && 'Fluxos de capital institucional entre setores económicos.'}
               {activeTab === 'watchlist' && 'Os teus ativos prioritários para vigilância de preços.'}
-              {activeTab === 'chat' && 'Tira qualquer dúvida em português simples sobre ETFs e investimentos.'}
+              {activeTab === 'chat' && 'Tira qualquer dúvida em português de Portugal sobre ETFs e investimentos.'}
             </p>
           </div>
 
@@ -494,6 +515,15 @@ export default function App() {
               setExperienceMode('advanced');
               setActiveTab('radar');
             }}
+          />
+        )}
+
+        {activeTab === 'longterm' && (
+          <LongTermTab 
+            etfs={marketEtfs}
+            summary={summary}
+            onAskAdvisor={handleAskAdvisor}
+            onNavigateToTab={(tab) => setActiveTab(tab)}
           />
         )}
 

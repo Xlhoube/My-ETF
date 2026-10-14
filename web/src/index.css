@@ -270,7 +270,28 @@ p { color: var(--text-secondary); line-height: 1.6; }
   background-color: rgba(15, 23, 42, 0.03);
 }
 
-/* Uiverse Theme Toggle Switch */
+.nav-section-title {
+  padding: 0.95rem 0.5rem 0.35rem 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.badge-count {
+  margin-left: auto;
+  background: #10b981;
+  color: #000;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+}
+
 .theme-switch {
   --toggle-size: 14px;
   --container-width: 3.5em;
