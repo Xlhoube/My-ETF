@@ -23,7 +23,6 @@ interface UserPortfolioTabProps {
   onOpenBrokerImport: (broker?: string) => void;
   onAskAdvisor: (query: string) => void;
   onClearPortfolio: () => void;
-  onLoadDemoExample: () => void;
 }
 
 export default function UserPortfolioTab({
@@ -31,8 +30,7 @@ export default function UserPortfolioTab({
   marketEtfs,
   onOpenBrokerImport,
   onAskAdvisor,
-  onClearPortfolio,
-  onLoadDemoExample
+  onClearPortfolio
 }: UserPortfolioTabProps) {
 
   // Mapeia os ETFs do portefólio com as cotações reais das bolsas do scanner
@@ -143,16 +141,7 @@ export default function UserPortfolioTab({
               }}
             >
               <Camera size={20} />
-              <span>Importar da Corretora (Captura de Ecrã)</span>
-            </button>
-
-            <button 
-              onClick={onLoadDemoExample}
-              className="btn btn-secondary"
-              style={{ padding: '0.85rem 1.4rem', fontSize: '0.92rem', gap: '0.55rem' }}
-            >
-              <Sparkles size={18} style={{ color: '#38bdf8' }} />
-              <span>Carregar Carteira Exemplo Real</span>
+              <span>Importar Carteira Real</span>
             </button>
           </div>
 

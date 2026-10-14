@@ -4,8 +4,8 @@ Este ficheiro regista o estado atual do projeto, regras, decisões de arquitetur
 
 ## 🚀 Estado Atual
 * **Fase:** 🏁 DOCUMENTER / CONCLUÍDO
-* **Versão:** 0.7.10 (100% Universal Broker Nomenclature & Dynamic Portfolio Identity)
-* **Objetivo:** Universalização integral da nomenclatura e identidade de carteira em toda a plataforma. Eliminação de qualquer menção hardcoded à XTB nos botões e títulos principais. A barra lateral exibe "O Meu Portefólio" (com crachá dinâmico da corretora conectada), o ecrã inicial apresenta "O Meu Portefólio Real" e o botão universal "Importar da Corretora", com suporte equitativo a DEGIRO, XTB, Trading 212, Interactive Brokers, Trade Republic, Revolut e bancos portugueses.
+* **Versão:** 0.7.11 (Frictionless Zero-Key Broker Import & Direct Visual Companion)
+* **Objetivo:** Eliminação total de atrito e de exigência de chaves de API para os clientes finais. Remoção do botão de "Carregar Exemplo Real". Ativação do Modo Assistente Visual com a captura de ecrã do cliente colocada em destaque ao lado da tabela, permitindo adicionar os ETFs mais transacionados (SPYI, SXR8, SXRV/NASDAQ 100, VWCE, etc.) em 1 clique sem qualquer barreira técnica.
 
 ---
 
@@ -38,6 +38,7 @@ A aplicação Web é estruturada em:
 * `/web/src/components/MarketRadar.tsx` — Scanner principal com barómetro Fear & Greed, filtros rápidos, visualização em cartões/tabela e modal Raio-X Técnico.
 * `/web/src/components/SectorRotationTab.tsx` — Termómetro de rotação de setores e ciclos macroeconómicos.
 * `/web/src/components/AssetDemoSimulator.tsx` — Simulador de Ativos e Conta Demo Livre sem necessidade de registo: Projeção de evolução temporal com juros compostos, compras virtuais com 10.000 € e acompanhamento de lucros/perdas em tempo real.
+* `/web/src/components/BrokerImportModal.tsx` — Importador Universal sem atrito: Suporte a capturas de ecrã com Assistente Visual embutido, atalhos rápidos em 1 clique (SPYI, SXR8, SXRV, VWCE) e zero exigência de chaves de API para clientes.
 * `/web/src/components/MarketChat.tsx` — Chat interativo de auditoria de mercado com o Consultor de Elite (.chat-wrapper responsivo).
 * `/web/src/utils/marketEngine.ts` — Universo curado de ETFs UCITS e motor de avaliação híbrida.
 * `/web/src/utils/marketAdvisorEngine.ts` — Motor de consultoria macro e didático em estrito PT-PT.
@@ -54,6 +55,15 @@ A aplicação Web é estruturada em:
 ---
 
 ## 📝 Histórico de Versões
+
+### Versão 0.7.11 (Frictionless Zero-Key Broker Import & Direct Visual Companion)
+* **Experiência de Importação 100% Sem Atrito (Zero Chaves de API para Clientes):**
+  - Resolução da questão sobre a ausência de chave de API pelo cliente: a aplicação jamais bloqueia, emite alertas ou obriga o cliente a introduzir credenciais de programador.
+  - O campo da chave da API do Gemini passa a estar recolhido por defeito num acordeão técnico opcional (`Opções Avançadas`).
+  - Ao carregar qualquer captura de ecrã (screenshot), o fluxo avança de imediato para o **Passo 2 com o Assistente Visual**: a imagem do portefólio da corretora é apresentada num visor dedicado embutido (`Visual Companion`).
+  - Adição de barra de botões de 1 clique para os ETFs europeus mais populares: `+ SPYI`, `+ SXR8`, `+ SXRV (NASDAQ 100)`, `+ VWCE`, `+ QDVE`, `+ IWDA`, `+ IS3N`, `+ MEUD`, `+ FUSD`.
+  - Remoção definitiva de todos os botões e textos de "Carregar Exemplo Real" e de amostras fictícias em `UserPortfolioTab.tsx`, `BrokerImportModal.tsx` e `App.tsx`.
+  - Sincronização e empacotamento validados em Singlefile HTML de 417 kB.
 
 ### Versão 0.7.10 (100% Universal Broker Nomenclature & Dynamic Portfolio Identity)
 * **Universalização Completa de Nomenclatura e Identidade Visual da Carteira:**

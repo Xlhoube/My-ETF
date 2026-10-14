@@ -11,7 +11,7 @@ import {
   Camera, 
   ListPlus, 
   Building2, 
-  FileText
+  Eye
 } from 'lucide-react';
 
 interface BrokerImportModalProps {
@@ -40,6 +40,18 @@ export const POPULAR_BROKERS = [
   { id: 'Outra Corretora', name: 'Outra Corretora', country: 'Global', zeroCommission: false }
 ];
 
+export const POPULAR_QUICK_ETFS = [
+  { ticker: 'SPYI', name: 'SPDR MSCI ACWI IMI UCITS ETF (Acc)', price: 264.30 },
+  { ticker: 'SXR8', name: 'iShares Core S&P 500 UCITS ETF (Acc)', price: 752.28 },
+  { ticker: 'SXRV', name: 'iShares NASDAQ 100 UCITS ETF (Acc)', price: 1045.20 },
+  { ticker: 'VWCE', name: 'Vanguard FTSE All-World UCITS ETF (Acc)', price: 172.74 },
+  { ticker: 'QDVE', name: 'iShares S&P 500 Info Tech UCITS ETF (Acc)', price: 42.10 },
+  { ticker: 'IWDA', name: 'iShares Core MSCI World UCITS ETF (Acc)', price: 118.40 },
+  { ticker: 'IS3N', name: 'iShares Core MSCI EM IMI UCITS ETF (Acc)', price: 38.60 },
+  { ticker: 'MEUD', name: 'Amundi Stoxx Europe 600 UCITS ETF (Acc)', price: 142.20 },
+  { ticker: 'FUSD', name: 'Fidelity US Quality Income UCITS ETF (Acc)', price: 12.80 }
+];
+
 export default function BrokerImportModal({ 
   isOpen, 
   onClose, 
@@ -58,6 +70,8 @@ export default function BrokerImportModal({
   const [scanStep, setScanStep] = useState(0); // 0: Config/Upload, 1: Processamento IA, 2: Revisão Tabela
   const [scanResults, setScanResults] = useState<ETF[]>([]);
   const [cashBalance, setCashBalance] = useState<number>(0);
+  const [showAdvancedApiKey, setShowAdvancedApiKey] = useState<boolean>(false);
+  const [isImageExpanded, setIsImageExpanded] = useState<boolean>(true);
   const [geminiApiKey, setGeminiApiKey] = useState<string>(() => {
     try {
       return localStorage.getItem('gemini_api_key') || '';
@@ -65,6 +79,10 @@ export default function BrokerImportModal({
       return '';
     }
   });
+
+  // Chave efetiva: verifica localStorage e variáveis de ambiente Vite (VITE_GEMINI_API_KEY)
+  const effectiveApiKey = geminiApiKey.trim() || ((import.meta as any).env?.VITE_GEMINI_API_KEY as string || '').trim();
+  const hasApiKey = Boolean(effectiveApiKey);
 
   // Limpa o estado quando o modal abre
   useEffect(() => {
@@ -78,6 +96,8 @@ export default function BrokerImportModal({
       setScanResults([]);
       setCashBalance(0);
       setPortfolioName(`Carteira ${brokerToUse}`);
+      setShowAdvancedApiKey(false);
+      setIsImageExpanded(true);
     }
   }, [isOpen, initialBroker]);
 
@@ -123,15 +143,21 @@ export default function BrokerImportModal({
     }
   };
 
-  // Executa a leitura inteligente via Visão Artificial
+  // Executa a leitura inteligente via Visão Artificial ou Assistente Visual direto
   const startScanning = async () => {
     if (!selectedFile || !imagePreview) return;
 
-    if (!geminiApiKey.trim()) {
-      alert('Para usar a leitura automática por imagem, introduz a tua chave da API do Google Gemini. Se não tiveres chave, podes usar a opção "Adição Rápida Assistida" sem qualquer chave.');
+    // Se o cliente NÃO tiver chave do Gemini (cenário normal do utilizador final):
+    // Zero erros, zero alertas, zero atrito! Avança diretamente para o Assistente Visual com o print carregado!
+    if (!hasApiKey) {
+      if (scanResults.length === 0) {
+        handleAddRow();
+      }
+      setScanStep(2);
       return;
     }
 
+    // Se tiver chave configurada (inserida ou de ambiente):
     setLogs([]);
     setScanStep(1);
 
@@ -148,7 +174,7 @@ export default function BrokerImportModal({
       const base64Data = imagePreview.split(',')[1];
       const mimeType = imagePreview.split(';')[0].split(':')[1];
 
-      const genAI = new GoogleGenerativeAI(geminiApiKey);
+      const genAI = new GoogleGenerativeAI(effectiveApiKey);
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
       const prompt = `Analisa esta captura de ecrã da corretora financeira "${selectedBroker}" (ou similar: XTB, DEGIRO, Trading 212, Interactive Brokers, Trade Republic, Revolut, bancos).
@@ -204,7 +230,7 @@ ATENÇÃO: Extrai apenas números nas propriedades de valor, sem símbolos de mo
       });
 
       if (foundEtfs.length === 0) {
-        addLog("⚠️ A IA não encontrou nenhum ETF com clareza na imagem. A preencher com linha vazia para edição.", 'warning');
+        addLog("⚠️ A IA não encontrou nenhum ETF com clareza na imagem. A carregar o Assistente Visual para confirmares os valores.", 'warning');
         handleAddRow();
       }
 
@@ -214,45 +240,33 @@ ATENÇÃO: Extrai apenas números nas propriedades de valor, sem símbolos de mo
 
     } catch (err) {
       console.error(err);
-      addLog(`❌ Erro na leitura automática: verifica a tua chave de API ou experimenta o modo de adição assistida.`, 'warning');
+      if (scanResults.length === 0) {
+        handleAddRow();
+      }
       setScanStep(2);
     }
   };
 
-  // Carrega exemplo padrão de teste rápido (sem necessidade de upload nem chave)
-  const handleLoadDemoExample = () => {
-    const exampleEtfs: ETF[] = [
+  // Adição rápida com 1 clique de um ETF popular
+  const handleAddQuickEtf = (ticker: string, defaultName?: string, defaultPrice?: number) => {
+    const match = availableMarketEtfs.find(e => e.ticker.toUpperCase() === ticker.toUpperCase());
+    const newId = `quick-${Math.random().toString(36).substring(2, 7)}`;
+    setScanResults(prev => [
+      ...prev,
       {
-        id: 'demo-1',
-        ticker: 'VWCE',
-        name: 'Vanguard FTSE All-World UCITS ETF (Acc)',
-        ter: 0.22,
-        domicile: 'IE',
+        id: newId,
+        ticker: match ? match.ticker : ticker,
+        name: match ? match.name : (defaultName || `${ticker} UCITS ETF`),
+        ter: match?.fundamental?.ter ?? 0.20,
+        domicile: (match?.fundamental?.domicile as any) || 'IE',
         distribution: 'Acc',
         replication: 'Physical',
-        weight: 70,
-        amountInvested: 3500,
-        currentValue: 3680,
-        lastPrice: 172.74
-      },
-      {
-        id: 'demo-2',
-        ticker: 'SXR8',
-        name: 'iShares Core S&P 500 UCITS ETF (Acc)',
-        ter: 0.07,
-        domicile: 'IE',
-        distribution: 'Acc',
-        replication: 'Physical',
-        weight: 30,
-        amountInvested: 1500,
-        currentValue: 1560,
-        lastPrice: 752.28
+        weight: 0,
+        amountInvested: 1000,
+        currentValue: 1000,
+        lastPrice: match ? (match.currentPrice || 100) : (defaultPrice || 100)
       }
-    ];
-
-    setScanResults(exampleEtfs);
-    setCashBalance(250);
-    setScanStep(2);
+    ]);
   };
 
   // Manipulação da tabela de revisão
@@ -445,32 +459,71 @@ ATENÇÃO: Extrai apenas números nas propriedades de valor, sem símbolos de mo
               {importMethod === 'screenshot' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   
-                  {/* CHAVE DE API DO GEMINI */}
-                  <div style={{ padding: '0.85rem 1rem', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                      <Sparkles size={14} style={{ color: '#10b981' }} /> Chave de API Google Gemini (para Visão Artificial):
-                    </label>
-                    <input
-                      type="password"
-                      value={geminiApiKey}
-                      onChange={e => {
-                        setGeminiApiKey(e.target.value);
-                        localStorage.setItem('gemini_api_key', e.target.value);
-                      }}
-                      placeholder="Cola a tua chave do Gemini (começa por AIza...)"
-                      style={{ 
-                        width: '100%', 
-                        padding: '0.45rem 0.65rem', 
-                        borderRadius: '6px', 
-                        background: 'rgba(0, 0, 0, 0.4)', 
-                        border: '1px solid var(--border-color)', 
-                        color: 'var(--text-primary)',
-                        fontSize: '0.82rem'
-                      }}
-                    />
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>
-                      Não tens chave? Podes clicar em <strong>"Adição Rápida Assistida"</strong> acima ou no botão <strong>"Carregar Exemplo de Teste"</strong> abaixo.
+                  {/* INFORMATIVO FRICTIONLESS: ZERO CHAVE NECESSÁRIA */}
+                  <div style={{ 
+                    padding: '0.85rem 1rem', 
+                    borderRadius: '10px', 
+                    background: hasApiKey ? 'rgba(16, 185, 129, 0.08)' : 'rgba(56, 189, 248, 0.08)', 
+                    border: hasApiKey ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid rgba(56, 189, 248, 0.25)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {hasApiKey ? <Sparkles size={16} style={{ color: '#10b981' }} /> : <Eye size={16} style={{ color: '#38bdf8' }} />}
+                        <span style={{ fontSize: '0.82rem', fontWeight: 800, color: hasApiKey ? '#10b981' : '#38bdf8' }}>
+                          {hasApiKey ? 'Leitura Automática por IA Pronta' : 'Importação Sem Chaves de API (Frictionless)'}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowAdvancedApiKey(!showAdvancedApiKey)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--text-muted)',
+                          fontSize: '0.73rem',
+                          cursor: 'pointer',
+                          textDecoration: 'underline'
+                        }}
+                      >
+                        {showAdvancedApiKey ? 'Ocultar Opções Avançadas' : 'Tens chave pessoal do Gemini? (Opcional)'}
+                      </button>
                     </div>
+
+                    <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                      {hasApiKey 
+                        ? 'A IA do Google Gemini vai extrair os teus ETFs e montantes diretamente da imagem.'
+                        : 'Não precisas de nenhuma chave de API. Carrega a captura de ecrã da tua corretora e o Assistente Visual coloca o teu print em destaque para preencheres ou clicares nos teus ETFs em segundos.'}
+                    </p>
+
+                    {showAdvancedApiKey && (
+                      <div style={{ marginTop: '0.4rem', paddingTop: '0.6rem', borderTop: '1px solid var(--border-color)' }}>
+                        <label style={{ display: 'block', fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '0.35rem' }}>
+                          Chave API Gemini (opcional para quem quiser leitura automática direta por IA):
+                        </label>
+                        <input
+                          type="password"
+                          value={geminiApiKey}
+                          onChange={e => {
+                            setGeminiApiKey(e.target.value);
+                            localStorage.setItem('gemini_api_key', e.target.value);
+                          }}
+                          placeholder="AIzaSy..."
+                          style={{
+                            width: '100%',
+                            padding: '0.4rem 0.6rem',
+                            borderRadius: '6px',
+                            background: 'rgba(0, 0, 0, 0.4)',
+                            border: '1px solid var(--border-color)',
+                            color: 'var(--text-primary)',
+                            fontSize: '0.8rem'
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* ZONA DE ARRASTO */}
@@ -525,33 +578,25 @@ ATENÇÃO: Extrai apenas números nas propriedades de valor, sem símbolos de mo
                   </div>
 
                   {/* BOTÕES DE AÇÃO */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-                    <button
-                      type="button"
-                      onClick={handleLoadDemoExample}
-                      className="btn btn-secondary"
-                      style={{ fontSize: '0.8rem', padding: '0.55rem 0.9rem', gap: '0.4rem' }}
-                    >
-                      <FileText size={14} />
-                      <span>Carregar Exemplo Real ({selectedBroker})</span>
-                    </button>
-
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.75rem' }}>
                     <button
                       type="button"
                       disabled={!selectedFile}
                       onClick={startScanning}
                       className="btn btn-primary"
                       style={{ 
-                        fontSize: '0.85rem', 
-                        padding: '0.65rem 1.4rem', 
+                        fontSize: '0.88rem', 
+                        padding: '0.7rem 1.6rem', 
                         background: selectedFile ? '#10b981' : 'var(--text-muted)',
                         color: '#000',
-                        gap: '0.45rem',
-                        cursor: selectedFile ? 'pointer' : 'not-allowed'
+                        gap: '0.5rem',
+                        fontWeight: 800,
+                        cursor: selectedFile ? 'pointer' : 'not-allowed',
+                        boxShadow: selectedFile ? '0 4px 15px rgba(16, 185, 129, 0.35)' : 'none'
                       }}
                     >
-                      <Sparkles size={16} />
-                      <span>Iniciar Leitura Inteligente</span>
+                      {hasApiKey ? <Sparkles size={16} /> : <Eye size={16} />}
+                      <span>{hasApiKey ? 'Iniciar Leitura Inteligente com IA' : 'Continuar com Assistente Visual da Imagem'}</span>
                     </button>
                   </div>
 
@@ -594,13 +639,104 @@ ATENÇÃO: Extrai apenas números nas propriedades de valor, sem símbolos de mo
           {/* PASSO 2: REVISÃO E CONFIRMAÇÃO DA TABELA */}
           {scanStep === 2 && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              
+              {/* GUIA VISUAL DA IMAGEM CARREGADA (SE EXISTIR) */}
+              {imagePreview && (
+                <div style={{ 
+                  marginTop: '0.25rem',
+                  marginBottom: '1.25rem', 
+                  padding: '0.85rem 1.15rem', 
+                  borderRadius: '12px', 
+                  background: 'rgba(56, 189, 248, 0.04)', 
+                  border: '1px solid rgba(56, 189, 248, 0.25)' 
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', fontWeight: 700, color: '#38bdf8' }}>
+                      <Camera size={16} />
+                      <span>Captura de Ecrã ({selectedBroker}): Podes consultar o teu print abaixo</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsImageExpanded(!isImageExpanded)}
+                      style={{ 
+                        background: 'none', 
+                        border: 'none', 
+                        color: 'var(--text-muted)', 
+                        fontSize: '0.75rem', 
+                        cursor: 'pointer', 
+                        textDecoration: 'underline' 
+                      }}
+                    >
+                      {isImageExpanded ? 'Ocultar Imagem' : 'Ver Imagem Carregada'}
+                    </button>
+                  </div>
+
+                  {isImageExpanded && (
+                    <div style={{ 
+                      marginTop: '0.75rem', 
+                      maxHeight: '220px', 
+                      overflowY: 'auto', 
+                      borderRadius: '8px', 
+                      border: '1px solid rgba(255, 255, 255, 0.08)', 
+                      background: 'rgba(0, 0, 0, 0.4)', 
+                      textAlign: 'center', 
+                      padding: '0.5rem' 
+                    }}>
+                      <img 
+                        src={imagePreview} 
+                        alt="Captura de ecrã da corretora" 
+                        style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px' }} 
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* BARRA DE ATALHOS: ADIÇÃO DE ETFS POPULARES EM 1 CLIQUE */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.45rem', 
+                flexWrap: 'wrap', 
+                marginBottom: '1.1rem', 
+                padding: '0.75rem 1rem', 
+                background: 'rgba(16, 185, 129, 0.05)', 
+                borderRadius: '8px', 
+                border: '1px solid rgba(16, 185, 129, 0.2)' 
+              }}>
+                <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#10b981', marginRight: '0.25rem' }}>
+                  + Adicionar em 1 Clique:
+                </span>
+                {POPULAR_QUICK_ETFS.map(etf => (
+                  <button
+                    key={etf.ticker}
+                    type="button"
+                    onClick={() => handleAddQuickEtf(etf.ticker, etf.name, etf.price)}
+                    style={{
+                      fontSize: '0.72rem',
+                      padding: '0.22rem 0.6rem',
+                      borderRadius: '6px',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid var(--border-color)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                      transition: 'all 0.15s ease'
+                    }}
+                    title={`Adicionar ${etf.name}`}
+                  >
+                    + {etf.ticker}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <div>
-                  <h4 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>
-                    Revê os Ativos da Tua Carteira ({selectedBroker})
+                  <h4 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0 }}>
+                    Posições da Carteira ({selectedBroker})
                   </h4>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                    Podes ajustar os valores ou adicionar mais ETFs antes de confirmar.
+                  <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0 }}>
+                    Indica o montante investido e o valor de cada ativo.
                   </p>
                 </div>
 
@@ -610,7 +746,7 @@ ATENÇÃO: Extrai apenas números nas propriedades de valor, sem símbolos de mo
                   className="btn btn-secondary"
                   style={{ fontSize: '0.78rem', padding: '0.45rem 0.8rem', gap: '0.35rem' }}
                 >
-                  <Plus size={14} /> Adicionar ETF
+                  <Plus size={14} /> Adicionar Linha Manual
                 </button>
               </div>
 

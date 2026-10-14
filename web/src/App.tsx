@@ -122,50 +122,6 @@ export default function App() {
     }
   };
 
-  const handleLoadDemoPortfolio = () => {
-    handleImportBrokerPortfolio([
-      {
-        id: 'demo-pos-1',
-        ticker: 'VWCE',
-        name: 'Vanguard FTSE All-World UCITS ETF (Acc)',
-        ter: 0.22,
-        domicile: 'IE',
-        distribution: 'Acc',
-        replication: 'Physical',
-        weight: 60,
-        amountInvested: 3000,
-        currentValue: 3180,
-        lastPrice: 172.74
-      },
-      {
-        id: 'demo-pos-2',
-        ticker: 'SXR8',
-        name: 'iShares Core S&P 500 UCITS ETF (Acc)',
-        ter: 0.07,
-        domicile: 'IE',
-        distribution: 'Acc',
-        replication: 'Physical',
-        weight: 30,
-        amountInvested: 1500,
-        currentValue: 1590,
-        lastPrice: 752.28
-      },
-      {
-        id: 'demo-pos-3',
-        ticker: 'QDVE',
-        name: 'iShares S&P 500 Information Tech UCITS ETF',
-        ter: 0.15,
-        domicile: 'IE',
-        distribution: 'Acc',
-        replication: 'Physical',
-        weight: 10,
-        amountInvested: 500,
-        currentValue: 545,
-        lastPrice: 42.10
-      }
-    ], 250, 'A Minha Carteira', 'DEGIRO');
-  };
-
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try {
       const savedTheme = localStorage.getItem('my_etf_theme');
@@ -743,7 +699,6 @@ export default function App() {
             onOpenBrokerImport={handleOpenBrokerImport}
             onAskAdvisor={handleAskAdvisor}
             onClearPortfolio={handleClearPortfolio}
-            onLoadDemoExample={handleLoadDemoPortfolio}
           />
         )}
 
