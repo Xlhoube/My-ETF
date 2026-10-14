@@ -3,25 +3,25 @@
 Este ficheiro regista o estado atual do projeto, regras, decisões de arquitetura e histórico de desenvolvimento para o projeto **My ETF**.
 
 ## 🚀 Estado Atual
-* **Fase:** 💻 CODER
-* **Versão:** 0.6.0 (Broker-Tailored Guidance & Smart Legibility)
-* **Objetivo:** Integração de sistemas personalizados por Corretora (XTB, DEGIRO, Trading212, Interactive Brokers) detetando-as no nome da carteira, emitindo orientações fiscais de IRS e colocação de ordens à medida, e reformulação da legibilidade do chat do consultor de elite com renderização de Markdown dinâmico.
+* **Fase:** 🏁 DOCUMENTER / CONCLUÍDO
+* **Versão:** 0.7.0 (Continuous Market Scanner & Opportunity Hunter)
+* **Objetivo:** Reinício e pivot da aplicação: de avaliador de carteira pessoal para um **Radar Contínuo de Mercados de ETFs UCITS Europeus**, procurando continuamente oportunidades de compra (sobrevenda/desconto) e venda/realização de mais-valias (sobrecompra/risco) através de uma metodologia híbrida (técnica, quantitativa, fundamental e fiscal).
 
 ---
 
 ## 🎯 Definição do Projeto
 
 ### 1. Missão
-Criar um assistente e gestor de ETFs pessoal de elite que atue como um "insider" focado em proteger e multiplicar capital, sendo cético em relação ao mercado, obsessivo com custos de gestão (TER) e focado na otimização fiscal em Portugal.
+Criar um radar contínuo de mercados de ETFs de elite focado em avaliar continuamente mercados europeus e globais, filtrar ruído e alertar o investidor em direto sobre desequilíbrios estatísticos assimétricos favoráveis para compras (Buy the Dip, sobrevendidos) e momentos prudentes de saída ou realização de lucros (Take Profit, sobreaquecidos).
 
 ### 2. Stack Técnica
-* **Web:** React 18, Vite, TypeScript, Vanilla CSS (Design Premium, Dark-First, Glassmorphic).
-* **Mobile:** React Native (Expo) - a ser implementado após estabilização da base Web.
-* **Hospedagem:** Hostinger (distribuição estática de ficheiros otimizados).
+* **Web:** React 18, Vite, TypeScript, Vanilla CSS (Design Premium Orion UI, Dark-First, Glassmorphic).
+* **Singlefile Bundle:** Empacotamento otimizado com `vite-plugin-singlefile` (243 kB total, carregamento instantâneo).
+* **Hospedagem:** Hostinger ou Vercel (distribuição estática de ficheiros ultra-leves).
 
 ### 3. Idioma e Localização
-* **Idioma principal:** Português de Portugal (PT-PT).
-* **Foco Fiscal:** Regime fiscal de Portugal (retenção na fonte de 28% sobre dividendos, otimização de retenção fiscal nos EUA via tratado e domicílio na Irlanda [IE]).
+* **Idioma principal:** Português de Portugal (PT-PT) estrito.
+* **Foco Fiscal & Regulatório:** Regulamentação UCITS europeia e fiscalidade de Portugal (otimização via domicílio na Irlanda [IE] com tratado fiscal EUA a 15% e preferência por regimes de Acumulação [Acc] para isenção anual de retenção de 28% no IRS).
 
 ---
 
@@ -29,77 +29,54 @@ Criar um assistente e gestor de ETFs pessoal de elite que atue como um "insider"
 
 A aplicação Web é estruturada em:
 * `/web/package.json` — Gestão de dependências (React, Vite, TS, Lucide React).
-* `/web/index.html` — SEO e ponto de entrada HTML.
+* `/web/index.html` — Ponto de entrada HTML.
 * `/web/src/main.tsx` — Ponto de entrada React.
-* `/web/src/index.css` — Estilo e sistema de design premium (Vanilla CSS).
-* `/web/src/types.ts` — Tipos TypeScript para consistência.
-* `/web/src/utils/advisorEngine.ts` — Motor lógico de consultoria de ETFs.
-* `/web/src/components/` — Componentes modulares de UI (Dashboard, Listas, Modais, Chat, Otimização, Importador XTB, ToolsTab).
+* `/web/src/App.tsx` — Hub central do scanner com navegação lateral, barómetro Fear & Greed, ticker de alertas e polling contínuo.
+* `/web/src/index.css` — Sistema de design premium (tokens de cores de trading: verde esmeralda para compra, vermelho para venda, âmbar para neutro e ciano para informação).
+* `/web/src/types.ts` — Definições de tipos (`MarketEtf`, `TechnicalIndicators`, `FundamentalMetrics`, `MarketSummary`, `MarketAlert`).
+* `/web/src/utils/marketEngine.ts` — Universo curado de ETFs UCITS e motor de avaliação híbrida (RSI, SMA200, drawdown 52w, P/E, TER, domicílio).
+* `/web/src/utils/marketAdvisorEngine.ts` — Motor de consultoria macro em linguagem natural (PT-PT).
+* `/web/src/components/MarketRadar.tsx` — Scanner principal com barómetro de sentimento, filtros por setor/sinal, visualização em cartões/tabela e modal Raio-X Técnico.
+* `/web/src/components/ActionableSignals.tsx` — Ecrã de execução com zonas de entrada recomendadas, metas de lucro (+12%) e stops de invalidação.
+* `/web/src/components/SectorRotationTab.tsx` — Termómetro de rotação de setores e ciclos macroeconómicos.
+* `/web/src/components/MarketChat.tsx` — Chat interativo de auditoria de mercado com o Consultor de Elite.
 
 ---
 
 ## 📜 Regras de Desenvolvimento e Qualidade
 1. **Legibilidade:** Variáveis descritivas, código modular e tipado em TypeScript.
-2. **Comentários:** Cada função deve ter um comentário explicativo de uma linha em PT-PT.
-3. **Sem Duplicação (DRY):** Extração de lógicas redundantes para funções utilitárias ou custom hooks.
-4. **Clean Code:** Funções pequenas, com uma única responsabilidade e sem código morto.
-5. **Tratamento de Erros:** Try/catch em todas as lógicas críticas e cálculo financeiro.
-6. **Consultoria Fundamentada:** Nenhuma sugestão do sistema ou do consultor deve ser dada sem antes consultar e mencionar explicitamente as informações dos mercados (ex: Bloomberg, Reuters, Domicílio, TER, CMS).
+2. **Comentários:** Funções com comentários explicativos em PT-PT.
+3. **Sem Duplicação (DRY):** Extração de lógica reutilizável para utilitários independentes.
+4. **Clean Code & Performance:** Ficheiro único otimizado, sem dependências externas pesadas ou render blocks.
+5. **Zero Alucinação de Mercados:** Sinais fundamentados em indicadores técnicos reconhecidos (RSI, SMA200, Máximos/Mínimos 52 semanas) e métricas oficiais de KID/UCITS (TER, domicílio, P/E médio).
 
 ---
 
 ## 📝 Histórico de Versões
 
+### Versão 0.7.0 (Continuous Market Scanner & Opportunity Hunter)
+* **Pivot Completo do Core de Negócio:**
+  - Transição de gestor de carteira pessoal para **Radar Contínuo de Mercados e Caçador de Oportunidades**.
+  - Novo motor `marketEngine.ts` com universo curado de 15+ dos principais ETFs negociados em bolsas europeias (VWCE, SXR8, SXRV, QDVE, IWDA, SPYI, MEUD, EIMI, FUSD, DFND, SGLD, XDWH, XFFE, CBU0, INRG).
+  - Algoritmo de Pontuação Híbrida (0 a 100): Pondera indicadores quantitativos (RSI, distâncias à média de 200 dias, desvios de 52 semanas) com critérios fundamentais (múltiplos P/E, custos TER e eficiência fiscal irlandesa).
+* **Barómetro Macro Fear & Greed:**
+  - Medidor dinâmico do sentimento de mercado de 0 a 100 (*Extremo Medo* a *Extrema Ganância*) baseado no RSI médio e amplitude percentual de ETFs acima da SMA 200.
+* **Separador de Sinais Acionáveis de Compra & Venda:**
+  - Separação imediata de oportunidades de alta convicção com zonas de preço recomendadas de entrada, metas de realização (+12%) e níveis de invalidação/stop loss.
+* **Termómetro de Rotação Setorial:**
+  - Mapa de força relativa de setores e fluxos institucionais (Inflow / Outflow) e contextualização com a fase do ciclo macroeconómico.
+* **Modal de Raio-X Técnico e Fundamental:**
+  - Inspeção detalhada de cada ETF com suporte, resistência, intervalo de 52 semanas, enquadramento fiscal e auditoria instantânea com o consultor.
+* **Redução de Peso do Bundle:**
+  - Otimização do tamanho de compilação de 764 kB para 243 kB (HTML singlefile auto-suficiente).
+
 ### Versão 0.6.0
-* **Motor de Orientação Personalizado por Corretora (Broker-Tailored Guidance):**
-  - Deteção automática do broker ativo (XTB, DEGIRO, Trading212, Interactive Brokers) a partir do nome da carteira (sem alterar esquemas antigos ou comprometer compatibilidade).
-  - **Guias do Dashboard com Orientações de Corretora:** Cada guia interativo de alertas exibe agora uma secção específica detalhando cuidados específicos da tua corretora (como taxas de câmbio FX de 0.50% ocultas na XTB, ou a declaração obrigatória do IBAN alemão da conta Flatex da DEGIRO no Quadro 11 do Anexo J do IRS).
-  - **Instruções de Execução no Rebalanceador:** A calculadora de rebalanceamento por aporte exibe cartões específicos ensinando a submeter as compras na corretora ativa (uso de Pies na Trading212, ordens limitadas na xStation da XTB, ou periodicidades na IBKR).
-* **Parser de Markdown e Legibilidade Superior no Chat:**
-  - O chat do consultor de elite possui agora um parser próprio que converte títulos, marcadores de listas (bullet points), negritos iluminados e trechos de código em elementos JSX polidos e com excelente contraste, acabando com os blocos de texto denso.
-  - Inclusão das dicas específicas da corretora ativa em todas as respostas gerais e auditorias do chat do consultor.
+* Motor de Orientação Personalizado por Corretora (XTB, DEGIRO, Trading212, Interactive Brokers).
+* Parser de Markdown e legibilidade superior no chat do consultor.
 
-### Versão 0.5.0
-* **Feiticeiro de Auto-Correção de Alertas (Alert Resolution Wizard):**
-  - Integração de um painel dropdown interativo ("Como Corrigir?") dentro de cada cartão de alerta no Relatório do Consultor Cético.
-  - Disponibilização de **Correções Rápidas de 1-Clique (⚡ Quick Fixes)** para resolução automática de ineficiências estruturais (toggles de Distribuição para Acumulação, correção de Domicílio para a Irlanda (IE), transição para Replicação Física, ou normalização proporcional de pesos para 100%).
-  - Atalho rápido para edição direta do ativo em causa através do modal de edição, além de cópia de texto das orientações de resolução.
-  - **Mapeamento de Causas ("Porque" & "Onde"):** Os alertas agregados (como TER médio elevado) mostram agora uma lista discriminada dos ativos responsáveis (onde corrigir) com botões de atalho de edição inline, e listam de forma detalhada o impacto das taxas em juros compostos (porque corrigir).
-* **Canal Direto "Falar c/ Broker" nos Ativos:**
-  - Botão de chat integrado em cada cartão de ETF registado. Ao clicar, abre automaticamente o chat e envia uma consulta de auditoria ultra-detalhada predefinida, à qual o Consultor de Elite responde de imediato analisando individualmente aquele ativo.
-* **Multi-Carteiras Unificado (Reais e Demo):**
-  - Permite criar, gerir e alternar instantaneamente entre múltiplas carteiras de ETFs reais e contas simuladas/demo na mesma seleção dropdown.
-  - Sincronização profunda no LocalStorage (`my_etf_portfolios`) que salva as carteiras.
-  - Destaque visual: Contas Demo são realçadas a vermelho e com um badge "DEMO", permitindo testar estratégias, simular mais-valias, adicionar e remover ativos livremente sem comprometer as avaliações reais. Todas as contas podem ser nomeadas livremente.
-  - Módulo que projeta o progresso real para atingir a liberdade financeira com base na **Regra dos 4%** (ou taxas de retirada personalizadas - SWR).
-  - Escala dinâmica de 5 Fases motivacionais de acumulação (desde a "Fundação Básica" até ao "Reformado e Livre - Matrix Escaped").
-  - Gráfico de barra de percentagem de cobertura e juros compostos com cálculo exato de anos em tempo real com base no capital de mercado e aportes mensais.
-* **Assistente Fiscal de IRS de Portugal (Anexo J):**
-  - Guia visual detalhado e reativo que mostra de forma didática como declarar mais-valias s/ venda de ETFs no **Anexo J (Quadro 9.2A)**, detalhando os códigos de país corretos (ex: `372` para Irlanda, `442` para Luxemburgo) e código de ativo `G01`.
-  - Auditoria e validação automática de dividendos no **Anexo J (Quadro 8 - Código E21)** para ETFs de Distribuição (Dist), gerando avisos de otimização de acumulação com direito a congratulações por isenção total anual para carteiras 100% de Acumulação (Acc).
-  - Simulador e explicação prática das diferenças e vantagens da Taxa Autónoma de 28% face à Opção de Englobamento Progressivo.
-* **Multi-Carteiras Integrado (Switcher & LocalStorage):**
-  - Permite criar, gerir, e alternar instantaneamente entre múltiplas carteiras de ETFs (Ex: XTB Real, DEGIRO Poupanças, Contas de Reformas ou Filhos).
-  - Sincronização profunda no LocalStorage que salva individualmente os ativos de cada carteira sem qualquer conflito.
-* **Preços de Mercado e Rentabilidade em Tempo Real:**
-  - `setInterval` de flutuação de cotações a cada 4 segundos, simulando a volatilidade em direto das bolsas de valores europeias.
-  - Cartões de estatísticas no Dashboard totalmente remodelados: exibe Custo de Aquisição (Total Investido), Valor de Mercado Atual, e mais-valia global em euros e percentagem, mudando dinamicamente com transições suaves e badges de cor.
-* **Separador Oportunidades de Elite (Pesquisa e Curadoria Editável):**
-  - **Feed em Direto:** Notícias financeiras mundiais da Bloomberg/Reuters e discussões de fóruns de investidores como r/literaciafinanceira.
-  - **Crawler de Auditoria Fiscal (Deep Search):** Caixa de pesquisa que simula logs de verificação de KID, CMVM e vazamento de retenção nos EUA, oferecendo notas de auditoria isentas e isonómicas.
-  - **Curadoria Editável em Tempo Real:** Tabela de recomendações de elite que o próprio utilizador pode ativar o modo de edição para alterar ratings, fundamentações, comissões ou eliminar e adicionar novos ETFs recomendados em direto.
+---
 
-### Versão 0.3.0
-* **Importação Inteligente de Corretoras (XTB):**
-  - **Aba de Print Screen:** Simulação OCR animada e visual com console de logs.
-  - **Aba de Copiar-Colar:** Leitura heurística com Regex que analisa posições coladas diretamente da xStation da XTB com 100% de exatidão.
-  - **Spreadsheet Editor:** Ecrã interativo de revisão estilo tabela Excel que permite alterar montantes, domicílio, taxas, tickers, adicionar ou remover linhas antes da importação final.
-* **Investment Calculator Composto (calculator.net style):**
-  - Adicionado controlo de **Aporte Mensal Recorrente** no simulador de Arrasto Fiscal.
-  - Atualizado o motor composto mensalmente na `advisorEngine.ts` para projetar juros compostos em acumulação constante, tornando as perdas fiscais acumuladas ainda mais evidentes para investimentos periódicos.
-
-### Versão 0.2.0
-* **Separador de Otimização Avançada:**
-  - **Rebalanceador por Aporte (Water-filling):** Aloca poupanças novas em ativos sub-ponderados para reequilibrar a carteira sem vender ativos, esquivando a taxa de 28% de mais-valias do IRS.
-  - **Simulador de Arrasto Fiscal (TER Drag):** Projeta e compara o crescimento composto do portefólio contra um benchmark irlandês de acumulação (TER 0.07%), discriminando perdas invisíveis por comissões, leakage de retenção dos EUA e impostos de distribuição.
-  - **Visualização de Gráficos CSS:** Barras dinâmicas de comparação patrimonial em tempo real.
+## 🔧 Roadmap & Dívida Técnica Futura
+- [ ] Integração opcional de chamadas diretas a APIs externas de cotações EOD/tempo real adicionais (ex: Alpha Vantage, EODHD ou Yahoo Finance proxy).
+- [ ] Alargamento da base de ETFs monitorizados de 15 para 50+ títulos UCITS.
+- [ ] Versão mobile em React Native (Expo) baseada no novo scanner de mercado.

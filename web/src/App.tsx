@@ -1,42 +1,45 @@
-import { useState, useEffect, useRef } from 'react';
-import { ETF, Portfolio, UserProfile } from './types';
-import { generatePortfolioAlerts } from './utils/advisorEngine';
-import { fetchEtfPrice } from './utils/api';
-import Dashboard from './components/Dashboard';
-import EtfList from './components/EtfList';
-import AdvisorChat from './components/AdvisorChat';
-import EtfModal from './components/EtfModal';
-import OptimizationTab from './components/OptimizationTab';
-import XtbImportModal from './components/XtbImportModal';
-import OpportunitiesTab from './components/OpportunitiesTab';
-import ToolsTab from './components/ToolsTab';
-import ProfileModal from './components/ProfileModal';
-import PortfolioModal from './components/PortfolioModal';
-import { LayoutDashboard, Coins, Plus, Scale, FolderPlus, FolderKanban, Trash2, Compass, Wrench, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { MarketEtf, MarketAlert } from './types';
+import { 
+  INITIAL_MARKET_ETFS, 
+  generateMarketSummary, 
+  tickMarketPrices 
+} from './utils/marketEngine';
+import MarketRadar from './components/MarketRadar';
+import ActionableSignals from './components/ActionableSignals';
+import SectorRotationTab from './components/SectorRotationTab';
+import MarketChat from './components/MarketChat';
+import { 
+  Radar, 
+  Target, 
+  RotateCw, 
+  Star, 
+  MessageSquare, 
+  Bell, 
+  RefreshCw, 
+  Sun, 
+  Moon
+} from 'lucide-react';
 
-
-// Componente raiz que gere múltiplos portefólios de ETFs, flutua cotações em direto e sincroniza o localStorage.
 export default function App() {
-  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-  const [activePortfolioId, setActivePortfolioId] = useState<string>('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isXtbModalOpen, setIsXtbModalOpen] = useState(false);
-  const [editingEtf, setEditingEtf] = useState<ETF | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'etfs' | 'optimization' | 'opportunities' | 'tools'>('dashboard');
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [triggeredChatQuery, setTriggeredChatQuery] = useState<{ text: string; timestamp: number } | null>(null);
-  const [isRefreshingPrices, setIsRefreshingPrices] = useState(false);
-  const [lastUpdatedTime, setLastUpdatedTime] = useState<Date | null>(() => {
+  const [marketEtfs, setMarketEtfs] = useState<MarketEtf[]>(() => {
     try {
-      const saved = localStorage.getItem('my_etf_last_updated');
-      return saved ? new Date(saved) : null;
-    } catch {
-      return null;
+      const saved = localStorage.getItem('my_etf_market_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error('Erro ao ler dados de mercado do localStorage:', e);
     }
+    return INITIAL_MARKET_ETFS;
   });
-  
-  const [isPortfolioModalOpen, setIsPortfolioModalOpen] = useState(false);
-  const [editingPortfolio, setEditingPortfolio] = useState<Portfolio | null>(null);
+
+  const [activeTab, setActiveTab] = useState<'radar' | 'signals' | 'rotation' | 'watchlist' | 'chat'>('radar');
+  const [isScanning, setIsScanning] = useState<boolean>(true);
+  const [alerts, setAlerts] = useState<MarketAlert[]>([]);
+  const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);
+  const [triggeredChatQuery, setTriggeredChatQuery] = useState<{ text: string; timestamp: number } | null>(null);
 
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try {
@@ -47,6 +50,7 @@ export default function App() {
     }
   });
 
+  // Aplica o tema visual no elemento HTML
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('my_etf_theme', theme);
@@ -56,740 +60,354 @@ export default function App() {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
-    try {
-      const saved = localStorage.getItem('my_etf_user_profile');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-
-  // Exibe o modal de perfil automaticamente se for o primeiro acesso
-  useEffect(() => {
-    if (!userProfile) {
-      setIsProfileModalOpen(true);
-    }
-  }, [userProfile]);
-
-  const handleSaveProfile = (profile: UserProfile, triggerImport: boolean) => {
-    setUserProfile(profile);
-    localStorage.setItem('my_etf_user_profile', JSON.stringify(profile));
-    setIsProfileModalOpen(false);
-    if (triggerImport) {
-      setIsXtbModalOpen(true);
-    }
-  };
-
-  const savePortfolios = (updated: Portfolio[]) => {
-    try {
-      localStorage.setItem('my_etf_portfolios', JSON.stringify(updated));
-    } catch (err) {
-      console.error('Erro ao gravar portefólios no localStorage:', err);
-    }
-  };
-
-  // Inicializa os portefólios a partir do localStorage filtrando apenas reais
+  // Grava dados de mercado no localStorage
   useEffect(() => {
     try {
-      const savedReal = localStorage.getItem('my_etf_portfolios');
-      
-      let allPortfolios: Portfolio[] = [];
-      
-      if (savedReal) {
-        // Purga qualquer portefólio demo que tenha sido salvo anteriormente
-        const parsed = JSON.parse(savedReal).filter((p: Portfolio) => !p.isDemo);
-        allPortfolios = [...allPortfolios, ...parsed];
-      }
-      
-      if (allPortfolios.length > 0) {
-        const parsed = allPortfolios;
-        
-        // Sanitização robusta: se o valor atual estiver corrompido ou bizarramente abaixo do investido (menos de 40%) devido ao bug antigo, repõe o valor justo de mercado!
-        let needsSaveBack = false;
-        const sanitized = parsed.map(p => ({
-          ...p,
-          etfs: p.etfs.map(e => {
-            const cost = typeof e.amountInvested === 'number' && !isNaN(e.amountInvested) ? e.amountInvested : 0;
-            let current = typeof e.currentValue === 'number' && !isNaN(e.currentValue) && e.currentValue > 0 ? e.currentValue : cost;
+      localStorage.setItem('my_etf_market_data', JSON.stringify(marketEtfs));
+    } catch (e) {
+      console.error('Erro ao salvar dados de mercado:', e);
+    }
+  }, [marketEtfs]);
 
-            // Deteção básica para evitar crash caso venha NaN de estado corrupto
-            if (cost > 30 && current < cost * 0.4) {
-              needsSaveBack = true;
-              current = cost; // fallback para evitar que o utilizador perca o valor investido da UI
-            }
-            
-            return {
-              ...e,
-              amountInvested: cost,
-              currentValue: Number(current.toFixed(2))
-            };
-          })
-        }));
+  // Calcula o sumário macro do mercado
+  const summary = generateMarketSummary(marketEtfs);
 
-        setPortfolios(sanitized);
-        if (sanitized.length > 0) {
-          setActivePortfolioId(sanitized[0].id);
+  // Ciclo de monitorização contínua de mercado (Scanning a cada 25 segundos se ativado)
+  useEffect(() => {
+    if (!isScanning) return;
+
+    const interval = setInterval(() => {
+      setMarketEtfs(prev => {
+        const { updatedEtfs, newAlerts } = tickMarketPrices(prev);
+        if (newAlerts.length > 0) {
+          setAlerts(currAlerts => [...newAlerts, ...currAlerts].slice(0, 20));
         }
-        if (needsSaveBack) {
-          savePortfolios(sanitized);
-        }
-      } else {
-        // Inicializa unicamente com uma carteira limpa e real
-        const initialPortfolios: Portfolio[] = [
-          {
-            id: 'portfolio-principal',
-            name: 'A Minha Carteira',
-            broker: 'Outro' as any,
-            etfs: []
-          }
-        ];
-        setPortfolios(initialPortfolios);
-        setActivePortfolioId(initialPortfolios[0].id);
-        savePortfolios(initialPortfolios);
-      }
-    } catch (err) {
-      console.error('Erro ao ler portefólios do localStorage:', err);
-    }
-  }, []);
-
-
-  // Obtém o portefólio ativo atual
-  const activePortfolio = portfolios.find(p => p.id === activePortfolioId) || portfolios[0];
-  const etfs = activePortfolio ? activePortfolio.etfs : [];
-
-  const handleOpenNewPortfolio = () => {
-    setEditingPortfolio(null);
-    setIsPortfolioModalOpen(true);
-  };
-
-  const handleOpenEditPortfolio = (portfolio: Portfolio) => {
-    setEditingPortfolio(portfolio);
-    setIsPortfolioModalOpen(true);
-  };
-
-  const handleSavePortfolio = (portfolioData: Partial<Portfolio> & { starterEtfs?: ETF[] }) => {
-    if (editingPortfolio) {
-      const updated = portfolios.map(p => 
-        p.id === editingPortfolio.id 
-          ? { ...p, name: portfolioData.name ?? p.name, broker: portfolioData.broker ?? p.broker } 
-          : p
-      );
-      setPortfolios(updated as Portfolio[]);
-      savePortfolios(updated as Portfolio[]);
-    } else {
-      const newPortfolio: Portfolio = {
-        id: `portfolio-${Math.random().toString(36).substring(2, 7)}`,
-        name: portfolioData.name || 'Nova Carteira',
-        broker: portfolioData.broker as any,
-        etfs: portfolioData.starterEtfs ?? []
-      };
-      const updated = [...portfolios, newPortfolio];
-      setPortfolios(updated);
-      setActivePortfolioId(newPortfolio.id);
-      savePortfolios(updated);
-    }
-    setIsPortfolioModalOpen(false);
-  };
-
-  // Eliminação da carteira ativa ou por ID
-  const handleDeletePortfolio = (id: string) => {
-    const updated = portfolios.filter(p => p.id !== id);
-    setPortfolios(updated);
-    if (activePortfolioId === id) {
-      setActivePortfolioId(updated.length > 0 ? updated[0].id : '');
-    }
-    savePortfolios(updated);
-    if (editingPortfolio?.id === id) {
-      setIsPortfolioModalOpen(false);
-      setEditingPortfolio(null);
-    }
-  };
-
-  // Mantém para a sidebar (eliminar ativo)
-  const handleDeleteActivePortfolio = () => {
-    if (!activePortfolio) return;
-    if (window.confirm(`Tens a certeza absoluta que queres eliminar a carteira "${activePortfolio.name}" e todos os seus ativos?`)) {
-      handleDeletePortfolio(activePortfolioId);
-    }
-  };
-
-  // Guarda ou edita um ETF dentro da carteira ativa
-  const handleSaveEtf = (etfToSave: ETF) => {
-    const updated = portfolios.map(p => {
-      if (p.id === activePortfolioId) {
-        let updatedEtfs: ETF[];
-        if (editingEtf) {
-          updatedEtfs = p.etfs.map(e => e.id === etfToSave.id ? etfToSave : e);
-        } else {
-          updatedEtfs = [...p.etfs, etfToSave];
-        }
-        return { ...p, etfs: updatedEtfs };
-      }
-      return p;
-    });
-
-    setPortfolios(updated);
-    savePortfolios(updated);
-  };
-
-  // Elimina um ETF da carteira ativa
-  const handleDeleteEtf = (id: string) => {
-    if (window.confirm('Tens a certeza que queres eliminar este ETF da tua auditoria?')) {
-      const updated = portfolios.map(p => {
-        if (p.id === activePortfolioId) {
-          return { ...p, etfs: p.etfs.filter(e => e.id !== id) };
-        }
-        return p;
+        return updatedEtfs;
       });
+    }, 25000);
 
-      setPortfolios(updated);
-      savePortfolios(updated);
-    }
-  };
+    return () => clearInterval(interval);
+  }, [isScanning]);
 
-  // Atualiza diretamente a lista de ETFs da carteira ativa (usado pelas ações do Dashboard)
-  const handleUpdateEtfs = (updatedEtfs: ETF[]) => {
-    const updated = portfolios.map(p => {
-      if (p.id === activePortfolioId) {
-        return { ...p, etfs: updatedEtfs };
+  // Força atualização manual imediata
+  const handleManualScan = () => {
+    setMarketEtfs(prev => {
+      const { updatedEtfs, newAlerts } = tickMarketPrices(prev);
+      if (newAlerts.length > 0) {
+        setAlerts(currAlerts => [...newAlerts, ...currAlerts].slice(0, 20));
       }
-      return p;
-    });
-    setPortfolios(updated);
-    savePortfolios(updated);
-  };
-
-  // Dispara uma pergunta estruturada de auditoria direta sobre um ETF para o chat do consultor
-  const handleAskAdvisorAboutEtf = (etf: ETF) => {
-    setIsChatOpen(true);
-    setTriggeredChatQuery({
-      text: `Dá-me uma análise detalhada, fiscal e de comissões do meu ETF ${etf.ticker} (${etf.name}). Está sediado em ${etf.domicile}, política de ${etf.distribution === 'Acc' ? 'Acumulação (Acc)' : 'Distribuição (Dist)'}, replicação ${etf.replication === 'Physical' ? 'Física' : 'Sintética'} e comissão anual TER de ${etf.ter}%. Quais os riscos e se há melhores alternativas?`,
-      timestamp: Date.now()
+      return updatedEtfs;
     });
   };
 
-  // Atualiza cotações usando a API externa
-  const handleRefreshPrices = async () => {
-    if (portfolios.length === 0 || !activePortfolioId || isRefreshingPrices) return;
-    setIsRefreshingPrices(true);
-    
-    try {
-      const p = activePortfolio;
-      if (!p) return;
-      
-      let wasUpdated = false;
-      const updatedEtfs = await Promise.all(p.etfs.map(async (etf) => {
-        const liveData = await fetchEtfPrice(etf.ticker);
-        if (liveData && liveData.price > 0) {
-          const livePrice = liveData.price;
-          let updatedCurrentValue = etf.currentValue;
-          if (etf.lastPrice && etf.lastPrice > 0) {
-            const ratio = livePrice / etf.lastPrice;
-            updatedCurrentValue = Number((etf.currentValue * ratio).toFixed(2));
-          }
-          if (updatedCurrentValue !== etf.currentValue || livePrice !== etf.lastPrice || liveData.change !== etf.dailyChange) {
-            wasUpdated = true;
-            return { 
-              ...etf, 
-              currentValue: updatedCurrentValue, 
-              lastPrice: Number(livePrice.toFixed(2)),
-              dailyChange: liveData.change,
-              previousClose: liveData.previousClose
-            };
-          }
-        }
-        return etf;
-      }));
-      
-      if (wasUpdated) {
-        handleUpdateEtfs(updatedEtfs);
+  // Alterna o estado da Watchlist
+  const handleToggleWatchlist = (ticker: string) => {
+    setMarketEtfs(prev => prev.map(etf => {
+      if (etf.ticker === ticker) {
+        return { ...etf, isWatchlisted: !etf.isWatchlisted };
       }
-
-      const now = new Date();
-      setLastUpdatedTime(now);
-      localStorage.setItem('my_etf_last_updated', now.toISOString());
-    } catch (err) {
-      console.error('Falha ao atualizar cotações:', err);
-    } finally {
-      setIsRefreshingPrices(false);
-    }
+      return etf;
+    }));
   };
 
-  // Mantém a referência da função atualizada para o intervalo
-  const latestRefreshPrices = useRef(handleRefreshPrices);
-  useEffect(() => {
-    latestRefreshPrices.current = handleRefreshPrices;
-  });
-
-  // Loop Automático de 60 segundos
-  useEffect(() => {
-    if (portfolios.length === 0 || !activePortfolioId) return;
-
-    // Executa as cotações imediatamente ao carregar o portefólio
-    latestRefreshPrices.current();
-
-    const fetchInterval = setInterval(() => {
-      latestRefreshPrices.current();
-    }, 60000);
-
-    return () => clearInterval(fetchInterval);
-  }, [activePortfolioId]);
-
-  const handleOpenAddModal = () => {
-    setEditingEtf(null);
-    setIsModalOpen(true);
+  // Transfere uma consulta para o Consultor de Mercado
+  const handleAskAdvisor = (query: string) => {
+    setTriggeredChatQuery({ text: query, timestamp: Date.now() });
+    setActiveTab('chat');
   };
 
-  const handleOpenEditModal = (etf: ETF) => {
-    setEditingEtf(etf);
-    setIsModalOpen(true);
-  };
-
-  const activeAlerts = generatePortfolioAlerts(etfs);
+  const unreadAlertsCount = alerts.filter(a => !a.read).length;
 
   return (
     <div className="app-container">
       
-      {/* Barra Lateral Premium de Gestão e Navegação */}
+      {/* SIDEBAR DE NAVEGAÇÃO DE ELITE */}
       <aside className="sidebar">
-        <div className="brand">
-          <span>📈</span> My ETF
-        </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <User size={16} style={{ color: 'var(--primary)' }} />
-            <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-              {userProfile ? userProfile.name : 'Visitante'}
-            </span>
-          </div>
-          <button 
-            className="btn" 
-            style={{ padding: '0.2rem', background: 'none', border: 'none', color: 'var(--text-muted)' }}
-            onClick={() => setIsProfileModalOpen(true)}
-            title="Editar Perfil"
-          >
-            <Wrench size={14} />
-          </button>
-        </div>
-
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-          O teu consultor e broker pessoal de elite. Cético, minucioso e fiscalmente obsessivo.
-        </p>
-
-        {/* Gestor Avançado de Carteiras (Portfolios Switcher Sidebar) */}
-        <div style={{ marginTop: '1rem', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)' }}>
-              <FolderKanban size={14} style={{ color: 'var(--primary)' }} /> Gestor de Carteiras
-            </span>
-            <button
-              className="btn btn-secondary"
-              style={{ padding: '0.3rem 0.55rem', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-              onClick={handleOpenNewPortfolio}
-              title="Adicionar Nova Carteira"
-            >
-              <FolderPlus size={12} /> Nova
-            </button>
+        {/* LOGO & BRAND */}
+        <div>
+          <div className="brand">
+            <div style={{ 
+              width: '38px', height: '38px', borderRadius: '10px', 
+              background: 'linear-gradient(135deg, #10b981, #38bdf8)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 0 15px rgba(56, 189, 248, 0.3)',
+              color: '#000', fontWeight: 900, fontSize: '1.2rem'
+            }}>
+              <Radar size={22} color="#000" />
+            </div>
+            <div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em' }}>My ETF</div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                Market Radar & Hunter
+              </div>
+            </div>
           </div>
 
-          {/* Lista de carteiras */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-            {portfolios.map(p => {
-              const isActive = p.id === activePortfolioId;
-              return (
-                <div
-                  key={p.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    borderRadius: '8px',
-                    border: isActive ? '1px solid var(--primary)' : '1px solid transparent',
-                    background: isActive ? 'var(--primary-glow)' : 'transparent',
-                    padding: '0.4rem 0.5rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.18s ease',
-                  }}
-                  onClick={() => setActivePortfolioId(p.id)}
-                >
-                  {/* Indicador de ativo */}
-                  <span style={{
-                    width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0,
-                    background: isActive ? 'var(--primary)' : 'var(--border-color)',
-                    transition: 'background 0.18s',
-                  }} />
-
-                  {/* Nome + contagem */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{
-                      fontSize: '0.8rem', fontWeight: isActive ? '700' : '500',
-                      color: isActive ? 'var(--primary)' : 'var(--text-primary)',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      margin: 0,
-                    }}>
-                      {p.name}
-                    </p>
-                    <p style={{ fontSize: '0.67rem', color: 'var(--text-muted)', margin: 0 }}>
-                      {p.etfs.length} ETF{p.etfs.length !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-
-                  {/* Botões de ação (sempre visíveis, mais discretos se inativo) */}
-                  <div style={{ display: 'flex', gap: '0.2rem', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-                    <button
-                      className="btn btn-secondary"
-                      style={{ padding: '0.25rem 0.35rem', fontSize: '0.7rem', borderRadius: '6px', display: 'flex', alignItems: 'center', opacity: isActive ? 1 : 0.5 }}
-                      onClick={() => handleOpenEditPortfolio(p)}
-                      title="Editar carteira"
-                    >
-                      ✏️
-                    </button>
-                    {portfolios.length > 1 && isActive && (
-                      <button
-                        className="btn btn-secondary"
-                        style={{ padding: '0.25rem 0.35rem', fontSize: '0.7rem', borderRadius: '6px', display: 'flex', alignItems: 'center', color: 'var(--danger)' }}
-                        onClick={handleDeleteActivePortfolio}
-                        title="Eliminar carteira"
-                      >
-                        <Trash2 size={11} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          <div style={{ 
+            marginTop: '0.75rem', 
+            padding: '0.4rem 0.65rem', 
+            borderRadius: '8px', 
+            background: 'rgba(255, 255, 255, 0.03)', 
+            border: '1px solid var(--border-color)',
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            fontSize: '0.72rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={{ 
+                width: '7px', height: '7px', borderRadius: '50%', 
+                background: isScanning ? '#10b981' : '#f59e0b',
+                boxShadow: isScanning ? '0 0 8px #10b981' : 'none',
+                display: 'inline-block' 
+              }} />
+              <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
+                {isScanning ? 'Scanner Contínuo' : 'Scanner Pausado'}
+              </span>
+            </div>
+            <span style={{ color: 'var(--text-muted)' }}>v0.7.0</span>
           </div>
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
+        {/* LINKS DE NAVEGAÇÃO */}
+        <nav style={{ flex: 1 }}>
           <button 
-            className={`btn ${activeTab === 'dashboard' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ justifyContent: 'flex-start' }}
-            onClick={() => setActiveTab('dashboard')}
+            onClick={() => setActiveTab('radar')}
+            className={`btn ${activeTab === 'radar' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ gap: '0.65rem' }}
           >
-            <LayoutDashboard size={16} /> Painel Analítico
+            <Radar size={18} />
+            <span>Radar de Mercado</span>
           </button>
+
           <button 
-            className={`btn ${activeTab === 'etfs' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ justifyContent: 'flex-start' }}
-            onClick={() => setActiveTab('etfs')}
+            onClick={() => setActiveTab('signals')}
+            className={`btn ${activeTab === 'signals' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ gap: '0.65rem', position: 'relative' }}
           >
-            <Coins size={16} /> Meus Ativos
+            <Target size={18} />
+            <span>Sinais Acionáveis</span>
+            {summary.bullishCount > 0 && (
+              <span style={{ 
+                marginLeft: 'auto', background: '#10b981', color: '#000', 
+                fontSize: '0.68rem', fontWeight: 800, padding: '0.1rem 0.45rem', borderRadius: '10px' 
+              }}>
+                {summary.bullishCount}
+              </span>
+            )}
           </button>
+
           <button 
-            className={`btn ${activeTab === 'optimization' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ justifyContent: 'flex-start' }}
-            onClick={() => setActiveTab('optimization')}
+            onClick={() => setActiveTab('rotation')}
+            className={`btn ${activeTab === 'rotation' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ gap: '0.65rem' }}
           >
-            <Scale size={16} /> Otimização Avançada
+            <RotateCw size={18} />
+            <span>Rotação Setorial</span>
           </button>
+
           <button 
-            className={`btn ${activeTab === 'opportunities' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ justifyContent: 'flex-start' }}
-            onClick={() => setActiveTab('opportunities')}
+            onClick={() => setActiveTab('watchlist')}
+            className={`btn ${activeTab === 'watchlist' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ gap: '0.65rem' }}
           >
-            <Compass size={16} /> Oportunidades de Elite
+            <Star size={18} />
+            <span>Watchlist Favoritos</span>
+            <span style={{ marginLeft: 'auto', color: 'var(--text-muted)', fontSize: '0.72rem' }}>
+              {marketEtfs.filter(e => e.isWatchlisted).length}
+            </span>
           </button>
+
           <button 
-            className={`btn ${activeTab === 'tools' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ justifyContent: 'flex-start' }}
-            onClick={() => setActiveTab('tools')}
+            onClick={() => setActiveTab('chat')}
+            className={`btn ${activeTab === 'chat' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ gap: '0.65rem' }}
           >
-            <Wrench size={16} /> Ferramentas FIRE & IRS
+            <MessageSquare size={18} />
+            <span>Consultor de Mercados</span>
           </button>
         </nav>
 
-        <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <button 
-            className="btn btn-primary" 
-            style={{ width: '100%' }}
-            onClick={handleOpenAddModal}
-          >
-            <Plus size={16} /> Registar Ativo
-          </button>
-          <button 
-            className="btn btn-secondary" 
-            style={{ width: '100%', fontSize: '0.85rem' }}
-            onClick={() => setIsXtbModalOpen(true)}
-          >
-            📷 Importar Print XTB
-          </button>
+        {/* RODAPÉ DA SIDEBAR */}
+        <div style={{ paddingTop: '1rem', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          
+          {/* TEMA DARK / LIGHT */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Modo Noturno</span>
+            <button 
+              onClick={toggleTheme}
+              style={{ 
+                background: 'var(--bg-glass)', border: '1px solid var(--border-color)', 
+                borderRadius: '8px', padding: '0.4rem 0.6rem', color: 'var(--text-primary)', 
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem' 
+              }}
+            >
+              {theme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
+              <span>{theme === 'dark' ? 'Dark' : 'Light'}</span>
+            </button>
+          </div>
+
+          <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+            My ETF Scanner • Cobertura UCITS Europa
+          </div>
+
         </div>
+
       </aside>
 
-      {/* Área de Conteúdo Principal */}
+      {/* ÁREA PRINCIPAL */}
       <main className="main-content">
         
-        {/* Cabeçalho do App */}
-        <header className="top-header">
+        {/* CABEÇALHO GLOBAL COM TICKER TAPE E NOTIFICAÇÕES */}
+        <div className="top-header">
+          
           <div>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              {activePortfolio?.isDemo && <span style={{ fontSize: '0.7em', padding: '0.2rem 0.5rem', background: 'var(--primary-glow)', color: 'var(--primary)', borderRadius: '6px', border: '1px solid var(--primary)' }}>DEMO</span>}
-              {activePortfolio ? activePortfolio.name : 'Gestão de Portefólio de ETFs'}
+            <h1 style={{ fontSize: '1.45rem', fontWeight: 800 }}>
+              {activeTab === 'radar' && '📡 Radar Contínuo de Mercados de ETFs'}
+              {activeTab === 'signals' && '🎯 Oportunidades Acionáveis de Compra & Venda'}
+              {activeTab === 'rotation' && '🔄 Termómetro de Rotação Setorial e Ciclos'}
+              {activeTab === 'watchlist' && '⭐ ETFs Favoritos Sob Vigilância'}
+              {activeTab === 'chat' && '🤖 Consultor de Mercados & Auditoria'}
             </h1>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Análise isenta de comissões implícitas, duplicações de índices e ineficiências fiscais de dividendos.
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+              Avaliação quantitativa e fundamental de ETFs UCITS europeus sem ruído.
             </p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-            {/* Tema Uiverse Toggle */}
-            <label className="theme-switch" title="Mudar Tema">
-              <input 
-                type="checkbox" 
-                className="theme-switch__checkbox" 
-                checked={theme === 'light'} 
-                onChange={toggleTheme} 
-              />
-              <div className="theme-switch__container">
-                <div className="theme-switch__circle-container">
-                  <div className="theme-switch__sun-moon-container">
-                    <svg className="theme-switch__moon" viewBox="0 0 24 24"><path d="M12.3,4.9c0.4-0.2,0.6-0.7,0.5-1.1S12.2,3,11.7,3C6.8,3.1,3,7.1,3,12c0,5,4,9,9,9c3.8,0,7.1-2.4,8.4-5.9c0.2-0.4,0-0.9-0.4-1.2c-0.4-0.3-0.9-0.2-1.2,0.1c-1,0.9-2.3,1.4-3.7,1.4c-3.1,0-5.7-2.5-5.7-5.7C9.4,7.8,10.5,5.9,12.3,4.9zM15.1,17.4c0.5,0,1,0,1.4-0.1C15.3,18.4,13.7,19,12,19c-3.9,0-7-3.1-7-7c0-2.5,1.4-4.8,3.5-6c-0.7,1.1-1,2.4-1,3.8C7.4,14,10.5,17.4,15.1,17.4z"></path></svg>
-                    <svg className="theme-switch__sun" viewBox="0 0 24 24"><path d="M12,18c-3.3,0-6-2.7-6-6s2.7-6,6-6s6,2.7,6,6S15.3,18,12,18z M12,8c-2.2,0-4,1.8-4,4c0,2.2,1.8,4,4,4c2.2,0,4-1.8,4-4C16,9.8,14.2,8,12,8z"></path><path d="M12,4c-0.6,0-1-0.4-1-1V1c0-0.6,0.4-1,1-1s1,0.4,1,1v2C13,3.6,12.6,4,12,4z"></path><path d="M12,24c-0.6,0-1-0.4-1-1v-2c0-0.6,0.4-1,1-1s1,0.4,1,1v2C13,23.6,12.6,24,12,24z"></path><path d="M5.6,6.6c-0.3,0-0.5-0.1-0.7-0.3L3.5,4.9c-0.4-0.4-0.4-1,0-1.4s1-0.4,1.4,0l1.4,1.4c0.4,0.4,0.4,1,0,1.4C6.2,6.5,5.9,6.6,5.6,6.6z"></path><path d="M19.8,20.8c-0.3,0-0.5-0.1-0.7-0.3l-1.4-1.4c-0.4-0.4-0.4-1,0-1.4s1-0.4,1.4,0l1.4,1.4c0.4,0.4,0.4,1,0,1.4C20.3,20.7,20,20.8,19.8,20.8z"></path><path d="M3,13H1c-0.6,0-1-0.4-1-1s0.4-1,1-1h2c0.6,0,1,0.4,1,1S3.6,13,3,13z"></path><path d="M23,13h-2c-0.6,0-1-0.4-1-1s0.4-1,1-1h2c0.6,0,1,0.4,1,1S23.6,13,23,13z"></path><path d="M4.2,20.8c-0.3,0-0.5-0.1-0.7-0.3c-0.4-0.4-0.4-1,0-1.4l1.4-1.4c0.4-0.4,1-0.4,1.4,0s0.4,1,0,1.4l-1.4,1.4C4.7,20.7,4.5,20.8,4.2,20.8z"></path><path d="M18.4,6.6c-0.3,0-0.5-0.1-0.7-0.3c-0.4-0.4-0.4-1,0-1.4l1.4-1.4c0.4-0.4,1-0.4,1.4,0s0.4,1,0,1.4l-1.4,1.4C18.9,6.5,18.7,6.6,18.4,6.6z"></path></svg>
+
+          {/* AÇÕES DE TOPO */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            
+            {/* BOTÃO ATUALIZAR */}
+            <button 
+              onClick={handleManualScan}
+              className="btn btn-secondary"
+              style={{ fontSize: '0.78rem', padding: '0.45rem 0.85rem', gap: '0.4rem' }}
+              title="Recalcular métricas e cotações"
+            >
+              <RefreshCw size={14} />
+              <span>Atualizar Radar</span>
+            </button>
+
+            {/* SINO DE NOTIFICAÇÕES */}
+            <div style={{ position: 'relative' }}>
+              <button 
+                onClick={() => {
+                  setIsAlertsOpen(prev => !prev);
+                  if (!isAlertsOpen && alerts.length > 0) {
+                    setAlerts(curr => curr.map(a => ({ ...a, read: true })));
+                  }
+                }}
+                className="btn btn-secondary"
+                style={{ padding: '0.45rem 0.75rem', position: 'relative' }}
+                title="Alertas em direto do radar"
+              >
+                <Bell size={16} />
+                {unreadAlertsCount > 0 && (
+                  <span style={{ 
+                    position: 'absolute', top: '-4px', right: '-4px', 
+                    background: '#ef4444', color: '#fff', fontSize: '0.65rem', 
+                    fontWeight: 800, width: '18px', height: '18px', borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: '2px solid var(--bg-primary)'
+                  }}>
+                    {unreadAlertsCount}
+                  </span>
+                )}
+              </button>
+
+              {/* DROPDOWN DE ALERTAS */}
+              {isAlertsOpen && (
+                <div style={{ 
+                  position: 'absolute', right: 0, top: '120%', width: '320px', 
+                  background: 'var(--bg-surface)', border: '1px solid var(--border-color)', 
+                  borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', 
+                  zIndex: 1000, overflow: 'hidden'
+                }}>
+                  <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Alertas de Oportunidade</span>
+                    <button onClick={() => setAlerts([])} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '0.72rem', cursor: 'pointer' }}>
+                      Limpar
+                    </button>
+                  </div>
+
+                  <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                    {alerts.length === 0 ? (
+                      <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                        Nenhum alerta recente do scanner.
+                      </div>
+                    ) : (
+                      alerts.map(a => (
+                        <div key={a.id} style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-color)', fontSize: '0.8rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: a.type === 'opportunity' ? '#10b981' : '#ef4444' }}>
+                            <span>{a.title}</span>
+                            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                              {new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.2rem' }}>
+                            {a.message}
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
-              </div>
-            </label>
-
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '0.5rem', 
-              background: 'var(--bg-surface)', 
-              padding: '0.5rem 0.85rem', 
-              borderRadius: '10px', 
-              border: '1px solid var(--border-color)', 
-              fontSize: '0.8rem',
-              fontWeight: '600'
-            }}>
-              <span className={isRefreshingPrices ? 'spin-animation' : ''} style={{ 
-                display: 'inline-block', 
-                width: '8px', 
-                height: '8px', 
-                background: isRefreshingPrices ? 'var(--secondary)' : 'var(--primary)', 
-                borderRadius: '50%' 
-              }} />
-              <span style={{ color: 'var(--text-secondary)' }}>
-                {isRefreshingPrices ? 'A atualizar cotações...' : `Cotações: ${lastUpdatedTime ? lastUpdatedTime.toLocaleTimeString('pt-PT') : 'A carregar...'}`}
-              </span>
+              )}
             </div>
-          </div>
-        </header>
 
-        {/* Layout do Conteúdo Principal (Largura Total Sem Espremer!) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%' }}>
-          {activeTab === 'dashboard' ? (
-            <>
-              <Dashboard 
-                etfs={etfs} 
-                alerts={activeAlerts} 
-                onEdit={handleOpenEditModal}
-                onUpdateEtfs={handleUpdateEtfs}
-                portfolioName={activePortfolio?.name || ''}
-                portfolioBroker={activePortfolio?.broker}
-                userProfileBroker={userProfile?.broker}
-              />
-              <EtfList 
-                etfs={etfs} 
-                onEdit={handleOpenEditModal} 
-                onDelete={handleDeleteEtf} 
-                onOpenAddModal={handleOpenAddModal} 
-                onOpenXtbModal={() => setIsXtbModalOpen(true)}
-                onAskAdvisor={handleAskAdvisorAboutEtf}
-              />
-            </>
-          ) : activeTab === 'etfs' ? (
-            <EtfList 
-              etfs={etfs} 
-              onEdit={handleOpenEditModal} 
-              onDelete={handleDeleteEtf} 
-              onOpenAddModal={handleOpenAddModal} 
-              onOpenXtbModal={() => setIsXtbModalOpen(true)}
-              onAskAdvisor={handleAskAdvisorAboutEtf}
-            />
-          ) : activeTab === 'optimization' ? (
-            <OptimizationTab 
-              etfs={etfs} 
-              portfolioName={activePortfolio?.name || ''} 
-              portfolioBroker={activePortfolio?.broker}
-              userProfileBroker={userProfile?.broker}
-            />
-          ) : activeTab === 'opportunities' ? (
-            <OpportunitiesTab etfs={etfs} onAddEtf={handleSaveEtf} />
-          ) : (
-            <ToolsTab etfs={etfs} />
-          )}
+          </div>
+
         </div>
 
-      </main>
-
-      {/* Modal para Registo ou Edição de ETFs */}
-      <EtfModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveEtf}
-        editingEtf={editingEtf}
-      />
-
-      {/* Modal para Importação por Print Screen da XTB */}
-      <XtbImportModal 
-        isOpen={isXtbModalOpen}
-        onClose={() => setIsXtbModalOpen(false)}
-        onImport={(importedEtfs) => {
-          // Atualiza o portefólio ativo mesclando com os ETFs importados
-          const updated = portfolios.map(p => {
-            if (p.id === activePortfolioId) {
-              const mergedEtfs = [...p.etfs];
-              importedEtfs.forEach(imported => {
-                const existingIndex = mergedEtfs.findIndex(e => e.ticker === imported.ticker);
-                if (existingIndex >= 0) {
-                  // Se o ETF já existe, assume-se que o print da corretora tem os dados mais atualizados
-                  mergedEtfs[existingIndex] = {
-                    ...mergedEtfs[existingIndex],
-                    ...imported,
-                    id: mergedEtfs[existingIndex].id // Mantém o ID original
-                  };
-                } else {
-                  mergedEtfs.push(imported);
-                }
-              });
-              return { ...p, etfs: mergedEtfs };
-            }
-            return p;
-          });
-          setPortfolios(updated);
-          savePortfolios(updated);
-        }}
-      />
-
-      {/* Modal de Perfil de Investidor */}
-      <ProfileModal 
-        isOpen={isProfileModalOpen}
-        onClose={() => {
-          if (userProfile) setIsProfileModalOpen(false); // Só permite fechar se já tiver perfil
-        }}
-        onSave={handleSaveProfile}
-        existingProfile={userProfile}
-      />
-
-      {/* Modal de Gestão de Carteiras */}
-        <PortfolioModal
-          isOpen={isPortfolioModalOpen}
-          onClose={() => setIsPortfolioModalOpen(false)}
-          onSave={handleSavePortfolio}
-          onDelete={handleDeletePortfolio}
-          existingPortfolio={editingPortfolio}
-          userProfileBroker={userProfile?.broker}
-          onImportFromPrint={(portfolioId) => {
-            if (portfolioId) {
-              setActivePortfolioId(portfolioId);
-            } else {
-              // O utilizador clicou em "Carregar Print" a partir da janela de "Nova Carteira"
-              const newPortfolio: Portfolio = {
-                id: `portfolio-${Math.random().toString(36).substring(2, 7)}`,
-                name: 'Carteira Importada',
-                broker: 'XTB',
-                etfs: []
-              };
-              const updated = [...portfolios, newPortfolio];
-              setPortfolios(updated);
-              setActivePortfolioId(newPortfolio.id);
-              savePortfolios(updated);
-            }
-            setIsPortfolioModalOpen(false);
-            setIsXtbModalOpen(true);
-          }}
-        />
-
-      {/* Botão Flutuante e Widget do Consultor de Elite */}
-      <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1rem' }}>
-        {/* Caixa de Conversa Flutuante */}
-        {isChatOpen && (
-          <div style={{ 
-            width: '380px', 
-            maxHeight: '600px', 
-            height: '80vh', 
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-            borderRadius: '24px',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            animation: 'slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-            background: 'var(--bg-glass)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid var(--border-color)'
-          }}>
-            <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
-              {/* Botão de Fechar Interno */}
-              <button 
-                onClick={() => setIsChatOpen(false)}
-                style={{
-                  position: 'absolute',
-                  top: '1rem',
-                  right: '1rem',
-                  background: 'hsla(230, 20%, 5%, 0.6)',
-                  border: '1px solid var(--border-color)',
-                  color: 'var(--text-secondary)',
-                  borderRadius: '50%',
-                  width: '28px',
-                  height: '28px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  zIndex: 100,
-                  fontSize: '0.8rem',
-                  fontWeight: 'bold',
-                  outline: 'none',
-                  transition: 'all 0.2s'
-                }}
-                className="table-row-hover"
-                title="Minimizar Conversa"
-              >
-                ✕
-              </button>
-              <AdvisorChat 
-                etfs={etfs} 
-                triggeredQuery={triggeredChatQuery}
-                onClearTrigger={() => setTriggeredChatQuery(null)}
-                portfolioName={activePortfolio?.name || ''}
-                portfolioBroker={activePortfolio?.broker}
-                userProfileBroker={userProfile?.broker}
-              />
-            </div>
-          </div>
+        {/* CONTEÚDO DO SEPARADOR ATIVO */}
+        {activeTab === 'radar' && (
+          <MarketRadar 
+            etfs={marketEtfs}
+            summary={summary}
+            isScanning={isScanning}
+            onToggleAutoScan={() => setIsScanning(prev => !prev)}
+            onManualScan={handleManualScan}
+            onToggleWatchlist={handleToggleWatchlist}
+            onAskAdvisor={handleAskAdvisor}
+          />
         )}
 
-        {/* Botão do Chat Púlsar */}
-        <button
-          onClick={() => setIsChatOpen(!isChatOpen)}
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--secondary)',
-            color: 'var(--secondary)',
-            borderRadius: '50%',
-            width: '60px',
-            height: '60px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
-            outline: 'none',
-            position: 'relative'
-          }}
-          className="pulsing-button"
-          title="Falar com o Consultor de Elite"
-        >
-          {isChatOpen ? (
-            <span style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>✕</span>
-          ) : (
-            <span style={{ fontSize: '1.6rem', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>🕶️</span>
-          )}
-        </button>
-      </div>
+        {activeTab === 'signals' && (
+          <ActionableSignals 
+            etfs={marketEtfs}
+            onAskAdvisor={handleAskAdvisor}
+          />
+        )}
+
+        {activeTab === 'rotation' && (
+          <SectorRotationTab 
+            etfs={marketEtfs}
+            onAskAdvisor={handleAskAdvisor}
+          />
+        )}
+
+        {activeTab === 'watchlist' && (
+          <MarketRadar 
+            etfs={marketEtfs.filter(e => e.isWatchlisted)}
+            summary={summary}
+            isScanning={isScanning}
+            onToggleAutoScan={() => setIsScanning(prev => !prev)}
+            onManualScan={handleManualScan}
+            onToggleWatchlist={handleToggleWatchlist}
+            onAskAdvisor={handleAskAdvisor}
+          />
+        )}
+
+        {activeTab === 'chat' && (
+          <MarketChat 
+            etfs={marketEtfs}
+            triggeredQuery={triggeredChatQuery}
+            onClearTrigger={() => setTriggeredChatQuery(null)}
+          />
+        )}
+
+      </main>
 
     </div>
   );
