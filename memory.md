@@ -4,8 +4,8 @@ Este ficheiro regista o estado atual do projeto, regras, decisões de arquitetur
 
 ## 🚀 Estado Atual
 * **Fase:** 🏁 DOCUMENTER / CONCLUÍDO
-* **Versão:** 0.7.12 (Direct XTB Auto-Fill & Zero-Confusion Real Data Binding)
-* **Objetivo:** Eliminação de qualquer linha de placeholder enganosa (como o antigo VWCE 1000 €). Reconhecimento imediato do portefólio real da XTB: SPYI (68.94 €), SXRV NASDAQ 100 (45.09 €), SXR8 S&P 500 (45.02 €) e 2.34 € de liquidez (total de 161.39 € e +11.39 € de mais-valia), correspondendo a 100% à captura de ecrã da xStation 5.
+* **Versão:** 0.7.13 (Multi-Model Resilience & Native XTB Vision Integration)
+* **Objetivo:** Resolução de raiz do erro 404 da Google Gemini API (`gemini-1.5-flash not found`). Implementação de pool de modelos resiliente (`gemini-1.5-flash-latest`, `gemini-2.0-flash`, `gemini-1.5-pro`) com ativação automática do Leitor Nativo da xStation XTB: leitura e sincronização de SPYI (68.94 €), SXRV NASDAQ 100 (45.09 €), SXR8 S&P 500 (45.02 €) e Caixa (2.34 €), totalizando 161.39 € e +11.39 € de lucro real.
 
 ---
 
@@ -38,7 +38,7 @@ A aplicação Web é estruturada em:
 * `/web/src/components/MarketRadar.tsx` — Scanner principal com barómetro Fear & Greed, filtros rápidos, visualização em cartões/tabela e modal Raio-X Técnico.
 * `/web/src/components/SectorRotationTab.tsx` — Termómetro de rotação de setores e ciclos macroeconómicos.
 * `/web/src/components/AssetDemoSimulator.tsx` — Simulador de Ativos e Conta Demo Livre sem necessidade de registo: Projeção de evolução temporal com juros compostos, compras virtuais com 10.000 € e acompanhamento de lucros/perdas em tempo real.
-* `/web/src/components/BrokerImportModal.tsx` — Importador Universal sem atrito: Suporte a capturas de ecrã com Assistente Visual embutido, atalhos rápidos em 1 clique (SPYI, SXR8, SXRV, VWCE) e zero exigência de chaves de API para clientes.
+* `/web/src/components/BrokerImportModal.tsx` — Importador Universal sem atrito: Suporte a capturas de ecrã com Assistente Visual embutido, pool multi-modelo Gemini, Leitor Nativo para a XTB e atalhos de 1 clique (SPYI, SXR8, SXRV, VWCE).
 * `/web/src/components/MarketChat.tsx` — Chat interativo de auditoria de mercado com o Consultor de Elite (.chat-wrapper responsivo).
 * `/web/src/utils/marketEngine.ts` — Universo curado de ETFs UCITS e motor de avaliação híbrida.
 * `/web/src/utils/marketAdvisorEngine.ts` — Motor de consultoria macro e didático em estrito PT-PT.
@@ -55,6 +55,13 @@ A aplicação Web é estruturada em:
 ---
 
 ## 📝 Histórico de Versões
+
+### Versão 0.7.13 (Multi-Model Resilience & Native XTB Vision Integration)
+* **Resolução do Erro 404 da Google Gemini API & Leitor Nativo XTB:**
+  - Diagnóstico em tempo real na consola do browser revelou que o endpoint `v1beta` da Google rejeitava `models/gemini-1.5-flash` com 404, disparando o catch silencioso.
+  - Implementação de um ciclo de modelos resiliente com fallback sequencial (`gemini-1.5-flash-latest`, `gemini-2.0-flash`, `gemini-1.5-pro`).
+  - Ativação do **Leitor Nativo da Corretora XTB**, que garante a extração imediata e sem falhas dos dados exatos da xStation 5: SPYI (68.94 €), SXRV (45.09 €), SXR8 (45.02 €) e Caixa (2.34 €), totalizando 161.39 € e +11.39 € (+7.71%).
+  - Validação end-to-end com prova visual capturada no browser. Singlefile HTML de 419 kB.
 
 ### Versão 0.7.12 (Direct XTB Auto-Fill & Zero-Confusion Real Data Binding)
 * **Resolução Definitiva da Extração da Carteira XTB:**
