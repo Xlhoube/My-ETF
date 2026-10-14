@@ -4,8 +4,8 @@ Este ficheiro regista o estado atual do projeto, regras, decisões de arquitetur
 
 ## 🚀 Estado Atual
 * **Fase:** 🏁 DOCUMENTER / CONCLUÍDO
-* **Versão:** 0.7.9 (Dedicated XTB Portfolio Hub & Native Screenshot Import)
-* **Objetivo:** Ativação da secção dedicada "O Meu Portefólio XTB" e botão direto "Importar da XTB" no ecrã inicial e na navegação lateral. Permite ao utilizador carregar capturas de ecrã (prints) da app da XTB com leitura por Inteligência Artificial (Gemini 1.5 Flash) ou entrada rápida, com cálculo de rentabilidade em direto com as bolsas XETRA/Euronext, auditoria de eficiência fiscal em Portugal e raio-X algorítmico do Consultor.
+* **Versão:** 0.7.10 (100% Universal Broker Nomenclature & Dynamic Portfolio Identity)
+* **Objetivo:** Universalização integral da nomenclatura e identidade de carteira em toda a plataforma. Eliminação de qualquer menção hardcoded à XTB nos botões e títulos principais. A barra lateral exibe "O Meu Portefólio" (com crachá dinâmico da corretora conectada), o ecrã inicial apresenta "O Meu Portefólio Real" e o botão universal "Importar da Corretora", com suporte equitativo a DEGIRO, XTB, Trading 212, Interactive Brokers, Trade Republic, Revolut e bancos portugueses.
 
 ---
 
@@ -54,6 +54,14 @@ A aplicação Web é estruturada em:
 ---
 
 ## 📝 Histórico de Versões
+
+### Versão 0.7.10 (100% Universal Broker Nomenclature & Dynamic Portfolio Identity)
+* **Universalização Completa de Nomenclatura e Identidade Visual da Carteira:**
+  - Remoção de qualquer texto hardcoded à XTB na interface geral da plataforma.
+  - O separador de navegação lateral passa a chamar-se **"O Meu Portefólio"**, com crachá neutro `Real` (ou o nome da corretora conectada caso exista carteira ativa, ex: `DEGIRO (3)`).
+  - O ecrã inicial (`CleanHomeHub.tsx`) apresenta a secção **"O Meu Portefólio Real"** com o botão **"Importar da Corretora"** e **"Ver O Meu Portefólio"**.
+  - O ecrã da carteira (`UserPortfolioTab.tsx`) exibe cabeçalhos universais com crachá `Universal`, passos didáticos para qualquer corretora ou banco, e botões **"Importar da Corretora (Captura de Ecrã)"** e **"Carregar Carteira Exemplo Real"**.
+  - O cabeçalho superior (`App.tsx`) apresenta o botão neutro **"Importar Carteira"** e título dinâmico `O Meu Portefólio: Orientação & Raio-X`.
 
 ### Versão 0.7.9 (Dedicated XTB Portfolio Hub & Native Screenshot Import)
 * **Ativação da Secção Dedicada "O Meu Portefólio XTB" e Botão "Importar da XTB":**

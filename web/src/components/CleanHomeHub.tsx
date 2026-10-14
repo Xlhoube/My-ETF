@@ -138,7 +138,7 @@ export default function CleanHomeHub({
         </div>
       </div>
 
-      {/* 1.5. SECÇÃO DEDICADA: O MEU PORTEFÓLIO XTB */}
+      {/* 1.5. SECÇÃO DEDICADA: O MEU PORTEFÓLIO REAL */}
       <div className="card" style={{ 
         padding: '1.75rem 2rem',
         background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(0, 0, 0, 0.95))',
@@ -165,10 +165,10 @@ export default function CleanHomeHub({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>
-                {userPortfolio ? (userPortfolio.name || 'O Meu Portefólio XTB') : 'O Meu Portefólio XTB'}
+                {userPortfolio ? (userPortfolio.name || 'O Meu Portefólio Real') : 'O Meu Portefólio Real'}
               </h3>
               <span style={{ fontSize: '0.72rem', fontWeight: 800, background: '#10b981', color: '#000', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
-                {userPortfolio ? userPortfolio.broker : 'XTB Oficial'}
+                {userPortfolio ? userPortfolio.broker : 'Universal'}
               </span>
               {userPortfolio && (
                 <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 700 }}>
@@ -181,7 +181,7 @@ export default function CleanHomeHub({
               {userPortfolio ? (
                 <span>Tens a tua carteira conectada com dados em direto. Acede ao raio-X completo para verificares alinhamento fiscal e rebalanceamento.</span>
               ) : (
-                <span>Tens conta na <strong>XTB</strong>? Tira um print (captura de ecrã) das tuas posições e a aplicação audita a tua diversificação, calcula a rentabilidade real e orienta os teus próximos passos.</span>
+                <span>Tens carteira na <strong>DEGIRO, XTB, Trading 212, Interactive Brokers, Trade Republic, Revolut</strong> ou num banco? Tira um print (captura de ecrã) das tuas posições e a aplicação audita a tua diversificação, calcula a rentabilidade real e orienta os teus próximos passos.</span>
               )}
             </p>
           </div>
@@ -190,7 +190,7 @@ export default function CleanHomeHub({
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
           {onOpenBrokerImport && (
             <button 
-              onClick={() => onOpenBrokerImport('XTB')}
+              onClick={() => onOpenBrokerImport()}
               className="btn btn-primary"
               style={{ 
                 padding: '0.7rem 1.3rem', 
@@ -201,10 +201,10 @@ export default function CleanHomeHub({
                 gap: '0.5rem',
                 boxShadow: '0 4px 15px rgba(16, 185, 129, 0.35)'
               }}
-              title="Carregar captura de ecrã da XTB para leitura automática por Inteligência Artificial"
+              title="Carregar captura de ecrã da tua corretora para leitura automática por Inteligência Artificial"
             >
               <Camera size={17} />
-              <span>Importar da XTB</span>
+              <span>Importar da Corretora</span>
             </button>
           )}
 
@@ -213,7 +213,7 @@ export default function CleanHomeHub({
             className="btn btn-secondary"
             style={{ padding: '0.7rem 1.15rem', fontSize: '0.88rem', gap: '0.45rem', borderColor: 'rgba(16, 185, 129, 0.4)', color: '#10b981' }}
           >
-            <span>Ver O Meu Portefólio XTB</span>
+            <span>Ver O Meu Portefólio</span>
             <ArrowRight size={15} />
           </button>
         </div>

@@ -100,10 +100,10 @@ export default function UserPortfolioTab({
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <h2 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0 }}>
-                    O Meu Portefólio XTB
+                    O Meu Portefólio Real
                   </h2>
                   <span style={{ fontSize: '0.72rem', fontWeight: 800, background: '#10b981', color: '#000', padding: '0.2rem 0.55rem', borderRadius: '6px' }}>
-                    0% Comissões
+                    Universal
                   </span>
                 </div>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0.25rem 0 0 0' }}>
@@ -123,14 +123,14 @@ export default function UserPortfolioTab({
             </h3>
             <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)', lineHeight: 1.65 }}>
               Não precisas de ligar contas bancárias nem partilhar palavras-passe. 
-              Basta tirares uma <strong>captura de ecrã (print)</strong> da tua carteira na aplicação da XTB (ou DEGIRO/Trading 212) e o nosso motor de Inteligência Artificial lê de imediato os teus ETFs e cotações.
+              Basta tirares uma <strong>captura de ecrã (print)</strong> da tua carteira em qualquer corretora ou banco (DEGIRO, XTB, Trading 212, Interactive Brokers, Trade Republic, Revolut, etc.) e o nosso motor de Inteligência Artificial lê de imediato os teus ETFs e cotações.
             </p>
           </div>
 
           {/* AÇÕES DE IMPORTAÇÃO */}
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <button 
-              onClick={() => onOpenBrokerImport('XTB')}
+              onClick={() => onOpenBrokerImport()}
               className="btn btn-primary"
               style={{ 
                 padding: '0.85rem 1.6rem', 
@@ -143,7 +143,7 @@ export default function UserPortfolioTab({
               }}
             >
               <Camera size={20} />
-              <span>Importar da XTB (Captura de Ecrã)</span>
+              <span>Importar da Corretora (Captura de Ecrã)</span>
             </button>
 
             <button 
@@ -152,7 +152,7 @@ export default function UserPortfolioTab({
               style={{ padding: '0.85rem 1.4rem', fontSize: '0.92rem', gap: '0.55rem' }}
             >
               <Sparkles size={18} style={{ color: '#38bdf8' }} />
-              <span>Carregar Carteira Exemplo da XTB</span>
+              <span>Carregar Carteira Exemplo Real</span>
             </button>
           </div>
 
@@ -166,10 +166,10 @@ export default function UserPortfolioTab({
               1
             </div>
             <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.4rem' }}>
-              Abre a tua App da XTB
+              Abre a tua Corretora ou Banco
             </h4>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-              Navega até ao separador <strong>"Portfólio"</strong> ou <strong>"Posições Abertas"</strong> onde aparecem os teus ETFs e o valor investido.
+              Navega até ao separador de <strong>"Portfólio"</strong> ou <strong>"Posições Abertas"</strong> onde aparecem os teus ETFs e o valor investido.
             </p>
           </div>
 
@@ -193,7 +193,7 @@ export default function UserPortfolioTab({
               Arrasta para a Aplicação
             </h4>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-              Clica em <strong>"Importar da XTB"</strong>. O motor de Visão Artificial interpreta os dados e cria o teu radar personalizado.
+              Clica em <strong>"Importar da Corretora"</strong>. O motor de Visão Artificial interpreta os dados e cria o teu radar personalizado.
             </p>
           </div>
 
@@ -226,10 +226,10 @@ export default function UserPortfolioTab({
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
                 <h2 style={{ fontSize: '1.45rem', fontWeight: 800, margin: 0 }}>
-                  {userPortfolio.name || 'O Meu Portefólio XTB'}
+                  {userPortfolio.name || 'O Meu Portefólio Real'}
                 </h2>
                 <span style={{ fontSize: '0.72rem', fontWeight: 800, background: '#10b981', color: '#000', padding: '0.2rem 0.55rem', borderRadius: '4px' }}>
-                  {userPortfolio.broker || 'XTB'}
+                  {userPortfolio.broker || 'Corretora'}
                 </span>
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.2rem 0 0 0' }}>
@@ -240,7 +240,7 @@ export default function UserPortfolioTab({
 
           <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
             <button 
-              onClick={() => onOpenBrokerImport(userPortfolio.broker || 'XTB')}
+              onClick={() => onOpenBrokerImport(userPortfolio.broker || undefined)}
               className="btn btn-secondary"
               style={{ fontSize: '0.82rem', padding: '0.55rem 0.95rem', gap: '0.45rem', color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.4)' }}
               title="Carregar nova captura de ecrã para atualizar dados"
@@ -250,7 +250,7 @@ export default function UserPortfolioTab({
             </button>
 
             <button 
-              onClick={() => onAskAdvisor(`Audita o meu portefólio da ${userPortfolio.broker}. Tenho ${totalNetWorth.toFixed(2)}€ investidos distribuídos por: ${enrichedEtfs.map(e => `${e.ticker} (${e.currentValue.toFixed(0)}€)`).join(', ')}. Quais são os pontos fortes e os riscos de diversificação ou fiscais em Portugal?`)}
+              onClick={() => onAskAdvisor(`Audita o meu portefólio da ${userPortfolio.broker || 'minha corretora'}. Tenho ${totalNetWorth.toFixed(2)}€ investidos distribuídos por: ${enrichedEtfs.map(e => `${e.ticker} (${e.currentValue.toFixed(0)}€)`).join(', ')}. Quais são os pontos fortes e os riscos de diversificação ou fiscais em Portugal?`)}
               className="btn btn-primary"
               style={{ fontSize: '0.82rem', padding: '0.55rem 1rem', gap: '0.45rem', background: '#10b981', color: '#000' }}
             >
@@ -274,7 +274,7 @@ export default function UserPortfolioTab({
           
           <div style={{ padding: '1rem', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--border-color)' }}>
             <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-              Património Total na XTB
+              Património Total {userPortfolio.broker ? `(${userPortfolio.broker})` : ''}
             </div>
             <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-primary)' }}>
               {totalNetWorth.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
@@ -325,7 +325,7 @@ export default function UserPortfolioTab({
         </div>
       </div>
 
-      {/* 2. RECOMENDAÇÃO INTELIGENTE DO CONSULTOR PARA A CARTEIRA XTB */}
+      {/* 2. RECOMENDAÇÃO INTELIGENTE DO CONSULTOR PARA A CARTEIRA */}
       <div className="card" style={{ 
         padding: '1.5rem', 
         background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(0, 0, 0, 0.95))',
@@ -344,7 +344,7 @@ export default function UserPortfolioTab({
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.4rem' }}>
               <h4 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0 }}>
-                Orientação Estratégica do Consultor para a tua carteira XTB
+                Orientação Estratégica do Consultor para a tua carteira {userPortfolio.broker ? `(${userPortfolio.broker})` : ''}
               </h4>
               <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                 Auditoria Algorítmica Contínua
@@ -361,7 +361,7 @@ export default function UserPortfolioTab({
 
             <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
               <button 
-                onClick={() => onAskAdvisor(`Faz um raio-X completo à minha carteira XTB. Compara as ponderações atuais dos meus ETFs (${enrichedEtfs.map(e => `${e.ticker}: ${e.weight}%`).join(', ')}) com as melhores práticas de investimento passivo global.`)}
+                onClick={() => onAskAdvisor(`Faz um raio-X completo à minha carteira ${userPortfolio.broker || 'de investimentos'}. Compara as ponderações atuais dos meus ETFs (${enrichedEtfs.map(e => `${e.ticker}: ${e.weight}%`).join(', ')}) com as melhores práticas de investimento passivo global.`)}
                 className="btn btn-secondary"
                 style={{ fontSize: '0.78rem', padding: '0.4rem 0.85rem', gap: '0.4rem', color: 'var(--primary)', borderColor: 'rgba(56, 189, 248, 0.35)' }}
               >
@@ -370,7 +370,7 @@ export default function UserPortfolioTab({
               </button>
 
               <button 
-                onClick={() => onAskAdvisor(`Como posso rebalancear a minha carteira XTB sem incorrer em pagamento desnecessário de impostos de 28% sobre mais-valias em Portugal?`)}
+                onClick={() => onAskAdvisor(`Como posso rebalancear a minha carteira ${userPortfolio.broker || 'de investimentos'} sem incorrer em pagamento desnecessário de impostos de 28% sobre mais-valias em Portugal?`)}
                 className="btn btn-secondary"
                 style={{ fontSize: '0.78rem', padding: '0.4rem 0.85rem', gap: '0.4rem' }}
               >
@@ -382,12 +382,12 @@ export default function UserPortfolioTab({
         </div>
       </div>
 
-      {/* 3. TABELA DETALHADA DE POSIÇÕES DA XTB */}
+      {/* 3. TABELA DETALHADA DE POSIÇÕES */}
       <div className="card" style={{ padding: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
           <div>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>
-              Posições Ativas na XTB
+              Posições Ativas {userPortfolio.broker ? `(${userPortfolio.broker})` : ''}
             </h3>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.15rem 0 0 0' }}>
               Cotações sincronizadas em direto com as bolsas XETRA e Euronext.
@@ -396,7 +396,7 @@ export default function UserPortfolioTab({
 
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button 
-              onClick={() => onOpenBrokerImport(userPortfolio.broker || 'XTB')}
+              onClick={() => onOpenBrokerImport(userPortfolio.broker || undefined)}
               className="btn btn-secondary"
               style={{ fontSize: '0.78rem', padding: '0.4rem 0.75rem', gap: '0.35rem' }}
             >
