@@ -4,8 +4,8 @@ Este ficheiro regista o estado atual do projeto, regras, decisões de arquitetur
 
 ## 🚀 Estado Atual
 * **Fase:** 🏁 DOCUMENTER / CONCLUÍDO
-* **Versão:** 0.7.8 (Universal Multi-Broker Importer & Asset Demo Simulator)
-* **Objetivo:** Adição de suporte universal à importação de carteiras a partir de qualquer corretora europeia ou banco (XTB, DEGIRO, Trading 212, Interactive Brokers, Trade Republic, Revolut, Bancos Portugueses como Invest/BiG/Best e Outra Corretora). Implementação de duplo método de importação: via Visão Artificial com IA (captura de ecrã/screenshot) e via Adição Rápida Assistida (sem necessidade de chaves de API), com gestão de liquidez, normalização de pesos e visualização do estado ativo no cabeçalho global. Integração total com o Simulador Demo Livre sem registo.
+* **Versão:** 0.7.9 (Dedicated XTB Portfolio Hub & Native Screenshot Import)
+* **Objetivo:** Ativação da secção dedicada "O Meu Portefólio XTB" e botão direto "Importar da XTB" no ecrã inicial e na navegação lateral. Permite ao utilizador carregar capturas de ecrã (prints) da app da XTB com leitura por Inteligência Artificial (Gemini 1.5 Flash) ou entrada rápida, com cálculo de rentabilidade em direto com as bolsas XETRA/Euronext, auditoria de eficiência fiscal em Portugal e raio-X algorítmico do Consultor.
 
 ---
 
@@ -54,6 +54,16 @@ A aplicação Web é estruturada em:
 ---
 
 ## 📝 Histórico de Versões
+
+### Versão 0.7.9 (Dedicated XTB Portfolio Hub & Native Screenshot Import)
+* **Ativação da Secção Dedicada "O Meu Portefólio XTB" e Botão "Importar da XTB":**
+  - Criação do componente `UserPortfolioTab.tsx` com ecrã dedicado para a carteira XTB.
+  - 4 Cards de Métricas em direto: Património Total (€), Mais-Valia Acumulada (€ e %), Custo Médio de Gestão (TER %/ano) e Eficiência Fiscal em Portugal (Tratado Irlanda 15% e Regime de Acumulação sem retenção anual de IRS 28%).
+  - Orientação Estratégica Inteligente do Consultor de Elite para rebalanceamento e análise de concentração.
+  - Tabela detalhada de posições ativas com sincronização em direto com cotações oficiais da XETRA e Euronext.
+  - Card dedicado no ecrã inicial (`CleanHomeHub.tsx`) com botão de acesso direto **"Importar da XTB"** e **"Ver O Meu Portefólio XTB"**.
+  - Novo botão de navegação permanente na barra lateral: **"O Meu Portefólio XTB"** com contador de ativos.
+  - Abertura imediata do modal de importação focado na XTB com suporte a captura de ecrã (print da app XTB).
 
 ### Versão 0.7.8 (Universal Multi-Broker Importer & Asset Demo Simulator)
 * **Importador Universal de Corretoras (`BrokerImportModal.tsx`):**

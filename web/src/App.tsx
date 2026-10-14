@@ -14,6 +14,7 @@ import MarketChat from './components/MarketChat';
 import BeginnerCompass from './components/BeginnerCompass';
 import AssetDemoSimulator from './components/AssetDemoSimulator';
 import BrokerImportModal from './components/BrokerImportModal';
+import UserPortfolioTab from './components/UserPortfolioTab';
 import { syncRealMarketData } from './utils/realMarketService';
 import { ETF } from './types';
 import { 
@@ -67,7 +68,7 @@ export default function App() {
   }, [experienceMode]);
 
   // Tab ativa: inicia sempre em 'home' para uma receção acolhedora e sem sobrecarga
-  const [activeTab, setActiveTab] = useState<'home' | 'longterm' | 'guide' | 'signals' | 'radar' | 'rotation' | 'watchlist' | 'chat' | 'demo'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'longterm' | 'guide' | 'signals' | 'radar' | 'rotation' | 'watchlist' | 'chat' | 'demo' | 'portfolio'>('home');
   const [preselectedDemoTicker, setPreselectedDemoTicker] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState<boolean>(true);
   const [isSyncingReal, setIsSyncingReal] = useState<boolean>(false);
@@ -76,6 +77,7 @@ export default function App() {
   const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);
   const [triggeredChatQuery, setTriggeredChatQuery] = useState<{ text: string; timestamp: number } | null>(null);
   const [isBrokerImportOpen, setIsBrokerImportOpen] = useState<boolean>(false);
+  const [targetBrokerImport, setTargetBrokerImport] = useState<string>('XTB');
   const [userPortfolio, setUserPortfolio] = useState<{
     name: string;
     broker: string;
@@ -90,9 +92,14 @@ export default function App() {
     }
   });
 
+  const handleOpenBrokerImport = (broker?: string) => {
+    setTargetBrokerImport(broker || 'XTB');
+    setIsBrokerImportOpen(true);
+  };
+
   const handleImportBrokerPortfolio = (etfs: ETF[], cash: number, name?: string, broker?: string) => {
     const portfolio = {
-      name: name || `Carteira ${broker || 'Corretora'}`,
+      name: name || `Carteira ${broker || 'XTB'}`,
       broker: broker || 'XTB',
       etfs,
       cashBalance: cash
@@ -103,6 +110,59 @@ export default function App() {
     } catch (e) {
       console.error('Erro ao guardar portefólio importado:', e);
     }
+  };
+
+  const handleClearPortfolio = () => {
+    setUserPortfolio(null);
+    try {
+      localStorage.removeItem('my_etf_user_portfolio');
+    } catch (e) {
+      console.error('Erro ao remover portefólio:', e);
+    }
+  };
+
+  const handleLoadDemoXTBPortfolio = () => {
+    handleImportBrokerPortfolio([
+      {
+        id: 'xtb-1',
+        ticker: 'VWCE',
+        name: 'Vanguard FTSE All-World UCITS ETF (Acc)',
+        ter: 0.22,
+        domicile: 'IE',
+        distribution: 'Acc',
+        replication: 'Physical',
+        weight: 60,
+        amountInvested: 3000,
+        currentValue: 3180,
+        lastPrice: 172.74
+      },
+      {
+        id: 'xtb-2',
+        ticker: 'SXR8',
+        name: 'iShares Core S&P 500 UCITS ETF (Acc)',
+        ter: 0.07,
+        domicile: 'IE',
+        distribution: 'Acc',
+        replication: 'Physical',
+        weight: 30,
+        amountInvested: 1500,
+        currentValue: 1590,
+        lastPrice: 752.28
+      },
+      {
+        id: 'xtb-3',
+        ticker: 'QDVE',
+        name: 'iShares S&P 500 Information Tech UCITS ETF',
+        ter: 0.15,
+        domicile: 'IE',
+        distribution: 'Acc',
+        replication: 'Physical',
+        weight: 10,
+        amountInvested: 500,
+        currentValue: 545,
+        lastPrice: 42.10
+      }
+    ], 250, 'Carteira XTB', 'XTB');
   };
 
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -319,6 +379,49 @@ export default function App() {
             <span>Bússola do Principiante</span>
           </button>
 
+          {/* SECÇÃO DEDICADA: CARTEIRA REAL XTB */}
+          <div className="nav-section-title" style={{ marginTop: '0.5rem' }}>
+            <span>🏦 Carteira Real</span>
+          </div>
+
+          <button 
+            onClick={() => setActiveTab('portfolio')}
+            className={`btn ${activeTab === 'portfolio' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ 
+              gap: '0.65rem',
+              border: activeTab === 'portfolio' ? '1px solid #10b981' : undefined,
+              background: activeTab === 'portfolio' ? 'rgba(16, 185, 129, 0.18)' : undefined
+            }}
+          >
+            <Building2 size={18} style={{ color: activeTab === 'portfolio' ? 'var(--text-primary)' : '#10b981' }} />
+            <span>O Meu Portefólio XTB</span>
+            {userPortfolio && userPortfolio.etfs.length > 0 ? (
+              <span style={{ 
+                marginLeft: 'auto', 
+                fontSize: '0.65rem', 
+                fontWeight: 800, 
+                background: '#10b981', 
+                color: '#000', 
+                padding: '0.15rem 0.45rem', 
+                borderRadius: '4px' 
+              }}>
+                {userPortfolio.etfs.length}
+              </span>
+            ) : (
+              <span style={{ 
+                marginLeft: 'auto', 
+                fontSize: '0.65rem', 
+                fontWeight: 700, 
+                background: 'rgba(16, 185, 129, 0.15)', 
+                color: '#10b981', 
+                padding: '0.15rem 0.4rem', 
+                borderRadius: '4px' 
+              }}>
+                XTB
+              </span>
+            )}
+          </button>
+
           {/* SECÇÃO 2: COMPRA E VENDA DE ATIVOS */}
           <div className="nav-section-title" style={{ marginTop: '0.5rem' }}>
             <span>⚡ Compra e Venda de Ativos</span>
@@ -455,6 +558,7 @@ export default function App() {
               {activeTab === 'home' && '👋 Olá! Vamos cuidar do teu futuro financeiro sem stress'}
               {activeTab === 'longterm' && '🌱 Investimento a Longo Prazo: Construção de Liberdade'}
               {activeTab === 'guide' && '🧭 Bússola do Principiante: Os Teus Passos Seguros'}
+              {activeTab === 'portfolio' && '🏦 O Meu Portefólio XTB: Orientação & Raio-X'}
               {activeTab === 'signals' && '🎯 Compra e Venda de Ativos: Oportunidades & Sinais'}
               {activeTab === 'radar' && '📡 Radar Contínuo de Mercados de ETFs'}
               {activeTab === 'rotation' && '🔄 Termómetro de Rotação Setorial e Ciclos'}
@@ -465,6 +569,7 @@ export default function App() {
               {activeTab === 'home' && 'Escolhe o teu objetivo com calma. Estamos aqui para te orientar em cada passo.'}
               {activeTab === 'longterm' && 'Estratégia de acumulação global, otimização fiscal em Portugal (retenção 15% Irlanda) e juros compostos.'}
               {activeTab === 'guide' && 'Guia didático sem jargão financeiro: quando comprar, onde comprar e como poupar em impostos.'}
+              {activeTab === 'portfolio' && 'Auditoria de diversificação, rentabilidade real calculada e eficiência fiscal em Portugal.'}
               {activeTab === 'signals' && 'Desequilíbrios estatísticos de mercado com zonas recomendadas de entrada e alvos de lucro.'}
               {activeTab === 'radar' && 'Painel analítico completo de ETFs UCITS europeus.'}
               {activeTab === 'rotation' && 'Fluxos de capital institucional entre setores económicos.'}
@@ -533,15 +638,15 @@ export default function App() {
               <span>{isSyncingReal ? 'A sincronizar...' : 'Atualizar Bolsas'}</span>
             </button>
 
-            {/* BOTÃO IMPORTAR CARTEIRA DA CORRETORA */}
+            {/* BOTÃO IMPORTAR DA XTB / CARTEIRA */}
             <button 
-              onClick={() => setIsBrokerImportOpen(true)}
+              onClick={() => handleOpenBrokerImport(userPortfolio?.broker || 'XTB')}
               className="btn btn-secondary"
               style={{ fontSize: '0.78rem', padding: '0.45rem 0.85rem', gap: '0.4rem', borderColor: 'rgba(16, 185, 129, 0.4)', color: '#10b981' }}
-              title={userPortfolio ? `Carteira ativa: ${userPortfolio.name} na ${userPortfolio.broker} (${userPortfolio.etfs.length} ativos)` : "Importar portefólio da tua corretora (XTB, DEGIRO, Trading 212, etc.)"}
+              title={userPortfolio ? `Carteira ativa: ${userPortfolio.name} na ${userPortfolio.broker} (${userPortfolio.etfs.length} ativos)` : "Importar portefólio da tua conta XTB via captura de ecrã"}
             >
               <Building2 size={14} />
-              <span>{userPortfolio ? `${userPortfolio.broker} (${userPortfolio.etfs.length})` : 'Importar Carteira'}</span>
+              <span>{userPortfolio ? `${userPortfolio.broker} (${userPortfolio.etfs.length})` : 'Importar da XTB'}</span>
             </button>
 
             {/* SINO DE NOTIFICAÇÕES */}
@@ -625,7 +730,19 @@ export default function App() {
               setExperienceMode('advanced');
               setActiveTab('radar');
             }}
-            onOpenBrokerImport={() => setIsBrokerImportOpen(true)}
+            onOpenBrokerImport={handleOpenBrokerImport}
+            userPortfolio={userPortfolio}
+          />
+        )}
+
+        {activeTab === 'portfolio' && (
+          <UserPortfolioTab 
+            userPortfolio={userPortfolio}
+            marketEtfs={marketEtfs}
+            onOpenBrokerImport={handleOpenBrokerImport}
+            onAskAdvisor={handleAskAdvisor}
+            onClearPortfolio={handleClearPortfolio}
+            onLoadDemoExample={handleLoadDemoXTBPortfolio}
           />
         )}
 
@@ -699,7 +816,7 @@ export default function App() {
             marketEtfs={marketEtfs}
             initialTicker={preselectedDemoTicker}
             onNavigateToTab={(tab) => setActiveTab(tab)}
-            onOpenBrokerImport={() => setIsBrokerImportOpen(true)}
+            onOpenBrokerImport={() => handleOpenBrokerImport('XTB')}
           />
         )}
 
@@ -712,6 +829,7 @@ export default function App() {
         onImport={handleImportBrokerPortfolio}
         isNewPortfolio={true}
         availableMarketEtfs={marketEtfs}
+        initialBroker={targetBrokerImport}
       />
 
     </div>

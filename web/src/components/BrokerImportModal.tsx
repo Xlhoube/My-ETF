@@ -20,6 +20,7 @@ interface BrokerImportModalProps {
   onImport: (etfs: ETF[], cashBalance: number, name?: string, broker?: string) => void;
   isNewPortfolio?: boolean;
   availableMarketEtfs?: MarketEtf[];
+  initialBroker?: string;
 }
 
 interface ScannerLog {
@@ -44,9 +45,10 @@ export default function BrokerImportModal({
   onClose, 
   onImport, 
   isNewPortfolio: _isNewPortfolio = false,
-  availableMarketEtfs = []
+  availableMarketEtfs = [],
+  initialBroker = 'XTB'
 }: BrokerImportModalProps) {
-  const [selectedBroker, setSelectedBroker] = useState<string>('XTB');
+  const [selectedBroker, setSelectedBroker] = useState<string>(initialBroker);
   const [importMethod, setImportMethod] = useState<'screenshot' | 'quick_add'>('screenshot');
   const [portfolioName, setPortfolioName] = useState<string>('A Minha Carteira');
   const [dragActive, setDragActive] = useState(false);
@@ -67,15 +69,17 @@ export default function BrokerImportModal({
   // Limpa o estado quando o modal abre
   useEffect(() => {
     if (isOpen) {
+      const brokerToUse = initialBroker || 'XTB';
+      setSelectedBroker(brokerToUse);
       setSelectedFile(null);
       setImagePreview(null);
       setLogs([]);
       setScanStep(0);
       setScanResults([]);
       setCashBalance(0);
-      setPortfolioName(`Carteira ${selectedBroker}`);
+      setPortfolioName(`Carteira ${brokerToUse}`);
     }
-  }, [isOpen, selectedBroker]);
+  }, [isOpen, initialBroker]);
 
   if (!isOpen) return null;
 
