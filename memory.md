@@ -4,8 +4,8 @@ Este ficheiro regista o estado atual do projeto, regras, decisões de arquitetur
 
 ## 🚀 Estado Atual
 * **Fase:** 🏁 DOCUMENTER / CONCLUÍDO
-* **Versão:** 0.7.7 (Asset Demo Simulator & Frictionless Paper Trading — No Account Required)
-* **Objetivo:** Adição do Simulador de Ativos e Conta Demo Livre sem necessidade de registo de conta. Permite a qualquer investidor simular e projetar a evolução de qualquer ETF europeu com base em cotações e rentabilidades reais da bolsa, executar compras virtuais com um saldo inicial de 10.000 €, acompanhar posições em aberto e monitorizar ganhos/perdas (€ e %) em tempo real.
+* **Versão:** 0.7.8 (Universal Multi-Broker Importer & Asset Demo Simulator)
+* **Objetivo:** Adição de suporte universal à importação de carteiras a partir de qualquer corretora europeia ou banco (XTB, DEGIRO, Trading 212, Interactive Brokers, Trade Republic, Revolut, Bancos Portugueses como Invest/BiG/Best e Outra Corretora). Implementação de duplo método de importação: via Visão Artificial com IA (captura de ecrã/screenshot) e via Adição Rápida Assistida (sem necessidade de chaves de API), com gestão de liquidez, normalização de pesos e visualização do estado ativo no cabeçalho global. Integração total com o Simulador Demo Livre sem registo.
 
 ---
 
@@ -54,6 +54,17 @@ A aplicação Web é estruturada em:
 ---
 
 ## 📝 Histórico de Versões
+
+### Versão 0.7.8 (Universal Multi-Broker Importer & Asset Demo Simulator)
+* **Importador Universal de Corretoras (`BrokerImportModal.tsx`):**
+  - Eliminação de qualquer restrição à XTB: suporte oficial com badges a XTB, DEGIRO, Trading 212, Interactive Brokers (IBKR), Trade Republic, Revolut, Bancos Portugueses (Invest, BiG, Best) e Outra Corretora.
+  - Duplo método de entrada:
+    1. **Captura de Ecrã (Screenshot OCR via Gemini 1.5 Flash):** Análise por Visão Artificial de tabelas e posições a partir de qualquer captura da app ou web da corretora.
+    2. **Adição Rápida Assistida (Frictionless):** Entrada manual simplificada com catálogo de ETFs pré-carregado e valores imediatos, sem necessidade de qualquer chave de API.
+  - Tabela interativa de revisão com edição de tickers, nomes, montantes investidos, valor atual de mercado, tipos de acumulação/domicílio e liquidez por investir.
+  - Normalização automática das ponderações percentuais da carteira no momento da gravação.
+  - Botão dinâmico no cabeçalho: indica `Importar Carteira` ou o nome da corretora com o número de posições ativas (ex: `DEGIRO (2)` ou `XTB (3)`).
+  - Botão de atalho integrado no banner do ecrã inicial (`CleanHomeHub.tsx`).
 
 ### Versão 0.7.7 (Asset Demo Simulator & Frictionless Paper Trading — No Account Required)
 * **Desenvolvimento do Simulador de Ativos & Conta Demo Livre:**

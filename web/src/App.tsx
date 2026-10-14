@@ -13,7 +13,9 @@ import SectorRotationTab from './components/SectorRotationTab';
 import MarketChat from './components/MarketChat';
 import BeginnerCompass from './components/BeginnerCompass';
 import AssetDemoSimulator from './components/AssetDemoSimulator';
+import BrokerImportModal from './components/BrokerImportModal';
 import { syncRealMarketData } from './utils/realMarketService';
+import { ETF } from './types';
 import { 
   Home,
   ShieldCheck,
@@ -28,7 +30,8 @@ import {
   Sun, 
   Moon,
   SlidersHorizontal,
-  FlaskConical
+  FlaskConical,
+  Building2
 } from 'lucide-react';
 
 export default function App() {
@@ -72,6 +75,35 @@ export default function App() {
   const [alerts, setAlerts] = useState<MarketAlert[]>([]);
   const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);
   const [triggeredChatQuery, setTriggeredChatQuery] = useState<{ text: string; timestamp: number } | null>(null);
+  const [isBrokerImportOpen, setIsBrokerImportOpen] = useState<boolean>(false);
+  const [userPortfolio, setUserPortfolio] = useState<{
+    name: string;
+    broker: string;
+    etfs: ETF[];
+    cashBalance: number;
+  } | null>(() => {
+    try {
+      const saved = localStorage.getItem('my_etf_user_portfolio');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleImportBrokerPortfolio = (etfs: ETF[], cash: number, name?: string, broker?: string) => {
+    const portfolio = {
+      name: name || `Carteira ${broker || 'Corretora'}`,
+      broker: broker || 'XTB',
+      etfs,
+      cashBalance: cash
+    };
+    setUserPortfolio(portfolio);
+    try {
+      localStorage.setItem('my_etf_user_portfolio', JSON.stringify(portfolio));
+    } catch (e) {
+      console.error('Erro ao guardar portefólio importado:', e);
+    }
+  };
 
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try {
@@ -501,6 +533,17 @@ export default function App() {
               <span>{isSyncingReal ? 'A sincronizar...' : 'Atualizar Bolsas'}</span>
             </button>
 
+            {/* BOTÃO IMPORTAR CARTEIRA DA CORRETORA */}
+            <button 
+              onClick={() => setIsBrokerImportOpen(true)}
+              className="btn btn-secondary"
+              style={{ fontSize: '0.78rem', padding: '0.45rem 0.85rem', gap: '0.4rem', borderColor: 'rgba(16, 185, 129, 0.4)', color: '#10b981' }}
+              title={userPortfolio ? `Carteira ativa: ${userPortfolio.name} na ${userPortfolio.broker} (${userPortfolio.etfs.length} ativos)` : "Importar portefólio da tua corretora (XTB, DEGIRO, Trading 212, etc.)"}
+            >
+              <Building2 size={14} />
+              <span>{userPortfolio ? `${userPortfolio.broker} (${userPortfolio.etfs.length})` : 'Importar Carteira'}</span>
+            </button>
+
             {/* SINO DE NOTIFICAÇÕES */}
             <div style={{ position: 'relative' }}>
               <button 
@@ -582,6 +625,7 @@ export default function App() {
               setExperienceMode('advanced');
               setActiveTab('radar');
             }}
+            onOpenBrokerImport={() => setIsBrokerImportOpen(true)}
           />
         )}
 
@@ -655,10 +699,20 @@ export default function App() {
             marketEtfs={marketEtfs}
             initialTicker={preselectedDemoTicker}
             onNavigateToTab={(tab) => setActiveTab(tab)}
+            onOpenBrokerImport={() => setIsBrokerImportOpen(true)}
           />
         )}
 
       </main>
+
+      {/* MODAL UNIVERSAL DE IMPORTAÇÃO DE QUALQUER CORRETORA */}
+      <BrokerImportModal 
+        isOpen={isBrokerImportOpen}
+        onClose={() => setIsBrokerImportOpen(false)}
+        onImport={handleImportBrokerPortfolio}
+        isNewPortfolio={true}
+        availableMarketEtfs={marketEtfs}
+      />
 
     </div>
   );

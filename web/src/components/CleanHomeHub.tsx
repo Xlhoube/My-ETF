@@ -11,7 +11,8 @@ import {
   Zap,
   Sparkles,
   FlaskConical,
-  PlayCircle
+  PlayCircle,
+  Building2
 } from 'lucide-react';
 
 interface CleanHomeHubProps {
@@ -19,9 +20,10 @@ interface CleanHomeHubProps {
   etfs: MarketEtf[];
   onNavigate: (tab: 'home' | 'longterm' | 'guide' | 'signals' | 'radar' | 'chat' | 'demo') => void;
   onSwitchToAdvanced: () => void;
+  onOpenBrokerImport?: () => void;
 }
 
-export default function CleanHomeHub({ summary, etfs, onNavigate, onSwitchToAdvanced }: CleanHomeHubProps) {
+export default function CleanHomeHub({ summary, etfs, onNavigate, onSwitchToAdvanced, onOpenBrokerImport }: CleanHomeHubProps) {
   // Encontra os 2 ETFs mundiais de referência para Longo Prazo
   const spyi = etfs.find(e => e.ticker === 'SPYI');
   const vwce = etfs.find(e => e.ticker === 'VWCE');
@@ -450,14 +452,28 @@ export default function CleanHomeHub({ summary, etfs, onNavigate, onSwitchToAdva
           </div>
         </div>
 
-        <button 
-          onClick={() => onNavigate('demo')}
-          className="btn btn-primary"
-          style={{ padding: '0.65rem 1.25rem', fontSize: '0.85rem', background: '#10b981', color: '#000', gap: '0.45rem' }}
-        >
-          <PlayCircle size={16} />
-          <span>Experimentar no Modo Demo</span>
-        </button>
+        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+          {onOpenBrokerImport && (
+            <button 
+              onClick={onOpenBrokerImport}
+              className="btn btn-secondary"
+              style={{ padding: '0.65rem 1.1rem', fontSize: '0.85rem', gap: '0.45rem', color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.4)' }}
+              title="Importar de qualquer corretora (XTB, DEGIRO, Trading 212, etc.)"
+            >
+              <Building2 size={16} />
+              <span>Importar da Corretora</span>
+            </button>
+          )}
+
+          <button 
+            onClick={() => onNavigate('demo')}
+            className="btn btn-primary"
+            style={{ padding: '0.65rem 1.25rem', fontSize: '0.85rem', background: '#10b981', color: '#000', gap: '0.45rem' }}
+          >
+            <PlayCircle size={16} />
+            <span>Experimentar no Modo Demo</span>
+          </button>
+        </div>
       </div>
 
       {/* 5. ATALHO DISCRETO PARA MODO AVANÇADO */}

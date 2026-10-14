@@ -15,13 +15,15 @@ import {
   Layers,
   ArrowUpRight,
   ArrowDownRight,
-  HelpCircle
+  HelpCircle,
+  Building2
 } from 'lucide-react';
 
 interface AssetDemoSimulatorProps {
   marketEtfs: MarketEtf[];
   initialTicker?: string | null;
   onNavigateToTab?: (tab: 'home' | 'longterm' | 'signals' | 'radar') => void;
+  onOpenBrokerImport?: () => void;
 }
 
 // Histórico de rentabilidade média anual estimada por classe de ETF
@@ -43,7 +45,7 @@ const ESTIMATED_ANNUAL_RETURNS: Record<string, number> = {
   inrg: 5.5    // Clean Energy
 };
 
-export default function AssetDemoSimulator({ marketEtfs, initialTicker, onNavigateToTab }: AssetDemoSimulatorProps) {
+export default function AssetDemoSimulator({ marketEtfs, initialTicker, onNavigateToTab, onOpenBrokerImport }: AssetDemoSimulatorProps) {
   // 1. Estado da Conta Demo (sem registo, persistido em localStorage)
   const INITIAL_DEMO_CASH = 10000;
 
@@ -294,16 +296,29 @@ export default function AssetDemoSimulator({ marketEtfs, initialTicker, onNaviga
             </p>
           </div>
 
-          {/* BOTÃO REINICIAR CONTA DEMO */}
-          <button 
-            onClick={handleResetDemoAccount}
-            className="btn btn-secondary"
-            style={{ fontSize: '0.8rem', padding: '0.5rem 0.85rem', gap: '0.4rem' }}
-            title="Repor Saldo Demo para 10.000 €"
-          >
-            <RefreshCcw size={14} />
-            <span>Repor Conta Demo (10.000 €)</span>
-          </button>
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+            {onOpenBrokerImport && (
+              <button 
+                onClick={onOpenBrokerImport}
+                className="btn btn-secondary"
+                style={{ fontSize: '0.8rem', padding: '0.5rem 0.85rem', gap: '0.4rem', color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.4)' }}
+                title="Importar a tua carteira real de qualquer corretora (XTB, DEGIRO, Trading 212, etc.)"
+              >
+                <Building2 size={14} />
+                <span>Importar Carteira Real</span>
+              </button>
+            )}
+
+            <button 
+              onClick={handleResetDemoAccount}
+              className="btn btn-secondary"
+              style={{ fontSize: '0.8rem', padding: '0.5rem 0.85rem', gap: '0.4rem' }}
+              title="Repor Saldo Demo para 10.000 €"
+            >
+              <RefreshCcw size={14} />
+              <span>Repor Conta Demo (10.000 €)</span>
+            </button>
+          </div>
         </div>
 
         {/* BARRA DE SALDO VIRTUAL DA CONTA DEMO */}
