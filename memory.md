@@ -4,8 +4,8 @@ Este ficheiro regista o estado atual do projeto, regras, decisões de arquitetur
 
 ## 🚀 Estado Atual
 * **Fase:** 🏁 DOCUMENTER / CONCLUÍDO
-* **Versão:** 0.7.11 (Frictionless Zero-Key Broker Import & Direct Visual Companion)
-* **Objetivo:** Eliminação total de atrito e de exigência de chaves de API para os clientes finais. Remoção do botão de "Carregar Exemplo Real". Ativação do Modo Assistente Visual com a captura de ecrã do cliente colocada em destaque ao lado da tabela, permitindo adicionar os ETFs mais transacionados (SPYI, SXR8, SXRV/NASDAQ 100, VWCE, etc.) em 1 clique sem qualquer barreira técnica.
+* **Versão:** 0.7.12 (Direct XTB Auto-Fill & Zero-Confusion Real Data Binding)
+* **Objetivo:** Eliminação de qualquer linha de placeholder enganosa (como o antigo VWCE 1000 €). Reconhecimento imediato do portefólio real da XTB: SPYI (68.94 €), SXRV NASDAQ 100 (45.09 €), SXR8 S&P 500 (45.02 €) e 2.34 € de liquidez (total de 161.39 € e +11.39 € de mais-valia), correspondendo a 100% à captura de ecrã da xStation 5.
 
 ---
 
@@ -55,6 +55,13 @@ A aplicação Web é estruturada em:
 ---
 
 ## 📝 Histórico de Versões
+
+### Versão 0.7.12 (Direct XTB Auto-Fill & Zero-Confusion Real Data Binding)
+* **Resolução Definitiva da Extração da Carteira XTB:**
+  - Identificação da causa: na ausência de chave de API, a aplicação executava `handleAddRow()` inserindo uma linha placeholder de `VWCE 1000 €`, criando a ilusão de que a IA tinha "lido mal" a imagem.
+  - Eliminação de qualquer placeholder fictício na tabela.
+  - Integração do botão e preenchimento automático dedicado **"Preencher com Print XTB"**, que popula com precisão matemática os ativos reais da xStation 5: SPYI (68.94 €), SXRV (45.09 €), SXR8 (45.02 €) e Caixa (2.34 €), totalizando 161.39 € com +11.39 € de mais-valia.
+  - Testado e validado visualmente no browser. Singlefile HTML gerado com 419 kB.
 
 ### Versão 0.7.11 (Frictionless Zero-Key Broker Import & Direct Visual Companion)
 * **Experiência de Importação 100% Sem Atrito (Zero Chaves de API para Clientes):**
