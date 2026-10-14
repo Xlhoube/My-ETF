@@ -4,8 +4,8 @@ Este ficheiro regista o estado atual do projeto, regras, decisões de arquitetur
 
 ## 🚀 Estado Atual
 * **Fase:** 🏁 DOCUMENTER / CONCLUÍDO
-* **Versão:** 0.7.2 (Serene Landing Experience & Adaptive Experience Modes)
-* **Objetivo:** Eliminação total do ruído cognitivo no primeiro impacto visual da aplicação. Criação do `CleanHomeHub` (ecrã inicial acolhedor e sereno com 3 portas claras de ação) e alternador de modos (`Modo Simples (Iniciante)` vs `Modo Avançado (Scanner & Radar)`), permitindo que quem entra pela primeira vez não sinta medo nem paralisia por análise.
+* **Versão:** 0.7.3 (Chat Responsive Layout & Zero Overflow Fix)
+* **Objetivo:** Correção do corte vertical na página do Consultor de Mercados: reformulação do contentor para `.chat-wrapper` com altura responsiva dinâmica, scroll interno de mensagens e fixação da barra de input e chips sem provocar cortes ou barras de rolagem globais da página.
 
 ---
 
@@ -16,7 +16,7 @@ Criar um radar contínuo de mercados de ETFs de elite e mentor financeiro que at
 
 ### 2. Stack Técnica
 * **Web:** React 18, Vite, TypeScript, Vanilla CSS (Design Premium Orion UI, Dark-First, Glassmorphic).
-* **Singlefile Bundle:** Empacotamento otimizado com `vite-plugin-singlefile` (282 kB total, carregamento instantâneo).
+* **Singlefile Bundle:** Empacotamento otimizado com `vite-plugin-singlefile` (283 kB total, carregamento instantâneo).
 * **Hospedagem:** Hostinger ou Vercel (distribuição estática de ficheiros ultra-leves).
 
 ### 3. Idioma e Localização
@@ -33,7 +33,7 @@ A aplicação Web é estruturada em:
 * `/web/src/components/MarketRadar.tsx` — Scanner principal com barómetro Fear & Greed, filtros rápidos, visualização em cartões/tabela com tooltips didáticos e modal Raio-X Técnico.
 * `/web/src/components/ActionableSignals.tsx` — Ecrã de execução com zonas de entrada recomendadas, metas de lucro (+12%) e stops de invalidação.
 * `/web/src/components/SectorRotationTab.tsx` — Termómetro de rotação de setores e ciclos macroeconómicos.
-* `/web/src/components/MarketChat.tsx` — Chat interativo de auditoria de mercado com o Consultor de Elite.
+* `/web/src/components/MarketChat.tsx` — Chat interativo de auditoria de mercado com o Consultor de Elite (contentor `.chat-wrapper` responsivo sem corte vertical).
 * `/web/src/utils/marketEngine.ts` — Universo curado de ETFs UCITS e motor de avaliação híbrida.
 * `/web/src/utils/marketAdvisorEngine.ts` — Motor de consultoria macro e didático em estrito PT-PT.
 
@@ -50,15 +50,14 @@ A aplicação Web é estruturada em:
 
 ## 📝 Histórico de Versões
 
+### Versão 0.7.3 (Chat Responsive Layout & Zero Overflow Fix)
+* **Correção do Corte Vertical no Consultor (`MarketChat.tsx` & `index.css`):**
+  - Substituição da altura fixa rígida (`calc(100vh - 120px)` e `minHeight: 650px`) pela classe `.chat-wrapper` com cálculo dinâmico (`calc(100vh - 210px)` em desktop e `calc(100vh - 240px)` em ecrãs menores).
+  - Isolamento de flexbox: O cabeçalho, os chips de perguntas rápidas e a barra de input possuem agora `flexShrink: 0`, enquanto a zona de mensagens assume `flex: 1 1 0` com `minHeight: 0` e scroll interno independente.
+  - O campo de input e o botão de envio permanecem sempre visíveis e acessíveis no ecrã sem que a página fique cortada ou exija rolagem externa.
+
 ### Versão 0.7.2 (Serene Landing Experience & Adaptive Experience Modes)
-* **Ecrã Inicial Acolhedor (`CleanHomeHub.tsx`):**
-  - O utilizador é recebido com uma mensagem acolhedora sem gráficos densos ou jargão intimidante (*"Olá! Vamos cuidar do teu futuro financeiro sem stress"*).
-  - 3 portas claras de ação imediata: 🐣 *Sou Principiante*, 🎯 *Oportunidades de Compra*, 💬 *Tenho Dúvidas*.
-  - Apresentação didática dos dois ETFs de fundação global (**SPYI** e **VWCE**) com cotações em direto.
-* **Alternador de Modos (Simples ↔ Avançado):**
-  - **Modo Simples (Predefinido):** Barra lateral e ecrãs focados exclusivamente no essencial e calmo (Início, Bússola, Oportunidades, Consultor).
-  - **Modo Avançado:** Ativa o radar completo de 15 ETFs com indicadores de RSI, SMA 200, rotação setorial e grelhas quantitativas.
-  - Comutador rápido no cabeçalho e na barra lateral com persistência em `localStorage`.
+* Ecrã Inicial Acolhedor (`CleanHomeHub.tsx`) e Alternador de Modos (Simples ↔ Avançado).
 
 ### Versão 0.7.1 (Bússola do Principiante & Semáforo de Timing)
 * Adição da Bússola do Principiante com Semáforo de Mercado, Guia dos 4 Passos e Simulador de Juros Compostos.

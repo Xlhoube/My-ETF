@@ -177,30 +177,31 @@ Podes colocar questões como:
   ];
 
   return (
-    <div className="card" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)', minHeight: '650px', padding: 0 }}>
+    <div className="chat-wrapper">
       
       {/* CABEÇALHO DO CHAT */}
       <div style={{ 
-        padding: '1.25rem 1.5rem', 
+        padding: '0.85rem 1.25rem', 
         borderBottom: '1px solid var(--border-color)', 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        background: 'rgba(255, 255, 255, 0.02)'
+        background: 'rgba(255, 255, 255, 0.02)',
+        flexShrink: 0
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ 
-            width: '38px', height: '38px', borderRadius: '10px', 
+            width: '36px', height: '36px', borderRadius: '10px', 
             background: 'var(--primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'var(--primary)', border: '1px solid rgba(56, 189, 248, 0.3)'
           }}>
             <Bot size={20} />
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>
+            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
               Consultor de Mercados & Radar de Oportunidades
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <div style={{ fontSize: '0.72rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
               Conectado aos dados em direto de {etfs.length} ETFs europeus
             </div>
@@ -210,14 +211,14 @@ Podes colocar questões como:
         <button 
           onClick={() => setMessages([messages[0]])}
           className="btn btn-secondary"
-          style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem' }}
+          style={{ fontSize: '0.72rem', padding: '0.3rem 0.6rem' }}
         >
           Limpar Conversa
         </button>
       </div>
 
-      {/* ÁREA DE MENSAGENS COM SCROLL */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {/* ÁREA DE MENSAGENS COM SCROLL INTERNO */}
+      <div style={{ flex: '1 1 0', minHeight: 0, overflowY: 'auto', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {messages.map(msg => {
           const isUser = msg.sender === 'user';
           return (
@@ -282,7 +283,7 @@ Podes colocar questões como:
       </div>
 
       {/* CHIPS DE SUGESTÃO RÁPIDA */}
-      <div style={{ padding: '0.5rem 1.5rem', display: 'flex', gap: '0.5rem', overflowX: 'auto', borderTop: '1px solid var(--border-color)' }}>
+      <div style={{ padding: '0.45rem 1.25rem', display: 'flex', gap: '0.5rem', overflowX: 'auto', borderTop: '1px solid var(--border-color)', flexShrink: 0, background: 'rgba(0, 0, 0, 0.15)' }}>
         {quickPrompts.map((p, idx) => (
           <button 
             key={idx}
@@ -291,7 +292,7 @@ Podes colocar questões como:
               background: 'rgba(255, 255, 255, 0.03)', 
               border: '1px solid var(--border-color)', 
               borderRadius: '20px', 
-              padding: '0.35rem 0.85rem', 
+              padding: '0.3rem 0.75rem', 
               color: 'var(--text-secondary)', 
               fontSize: '0.75rem', 
               cursor: 'pointer',
@@ -304,7 +305,7 @@ Podes colocar questões como:
       </div>
 
       {/* BARRA DE INPUT */}
-      <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '0.75rem' }}>
+      <div style={{ padding: '0.85rem 1.25rem', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '0.75rem', flexShrink: 0, background: 'var(--bg-surface)' }}>
         <input 
           type="text"
           placeholder="Escreve uma pergunta sobre mercados, tickers, oportunidades de compra ou venda..."

@@ -330,6 +330,28 @@ p { color: var(--text-secondary); line-height: 1.6; }
 @media (min-width: 1200px) { .dashboard-grid { grid-template-columns: 1.4fr 0.9fr; } }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; }
 
+/* Chat Container Responsivo Sem Cortes */
+.chat-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 210px);
+  min-height: 420px;
+  max-height: calc(100vh - 170px);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .chat-wrapper {
+    height: calc(100vh - 240px);
+    min-height: 380px;
+  }
+}
+
 /* Gráficos Recharts Container */
 .chart-container {
   width: 100%; height: 350px; margin-top: 1rem;

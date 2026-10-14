@@ -354,7 +354,7 @@ export default function App() {
       </aside>
 
       {/* ÁREA PRINCIPAL */}
-      <main className="main-content">
+      <main className="main-content" style={activeTab === 'chat' ? { paddingBottom: '1rem', gap: '0.75rem' } : undefined}>
         
         {/* CABEÇALHO GLOBAL */}
         <div className="top-header">
