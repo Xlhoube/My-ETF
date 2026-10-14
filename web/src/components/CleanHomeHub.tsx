@@ -1,4 +1,5 @@
 import { MarketEtf, MarketSummary } from '../types';
+import AppLogo from './AppLogo';
 import { 
   Compass, 
   Target, 
@@ -67,18 +68,27 @@ export default function CleanHomeHub({ summary, etfs, onNavigate, onSwitchToAdva
         border: '1px solid rgba(16, 185, 129, 0.3)',
         boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '1rem' }}>
-          <span style={{ 
-            fontSize: '0.8rem', fontWeight: 800, padding: '0.3rem 0.85rem', borderRadius: '20px',
-            background: 'rgba(255, 255, 255, 0.06)', color: calmStatus.color, border: `1px solid ${calmStatus.color}40`,
-            display: 'inline-flex', alignItems: 'center', gap: '0.4rem'
-          }}>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: calmStatus.color }} />
-            {calmStatus.badge}
-          </span>
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-            Atualizado automaticamente em tempo real
-          </span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <span style={{ 
+              fontSize: '0.8rem', fontWeight: 800, padding: '0.3rem 0.85rem', borderRadius: '20px',
+              background: 'rgba(255, 255, 255, 0.06)', color: calmStatus.color, border: `1px solid ${calmStatus.color}40`,
+              display: 'inline-flex', alignItems: 'center', gap: '0.4rem'
+            }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: calmStatus.color }} />
+              {calmStatus.badge}
+            </span>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              Atualizado automaticamente em tempo real
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.9 }}>
+            <AppLogo size={26} showText={false} />
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
+              MY ETF EMBL™
+            </span>
+          </div>
         </div>
 
         <h2 style={{ fontSize: '1.85rem', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.3, marginBottom: '0.75rem' }}>

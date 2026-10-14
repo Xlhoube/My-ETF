@@ -4,19 +4,20 @@ Este ficheiro regista o estado atual do projeto, regras, decisões de arquitetur
 
 ## 🚀 Estado Atual
 * **Fase:** 🏁 DOCUMENTER / CONCLUÍDO
-* **Versão:** 0.7.4 (Dedicated Investment Sections: Long-Term vs Active Trading)
-* **Objetivo:** Reorganização estrutural completa da aplicação em duas grandes secções nucleares: "Investimento a Longo Prazo" (acumulação passiva, disciplina DCA, regime Acc, vantagens fiscais da Irlanda com 15% de retenção nos EUA e simulador de juros compostos) e "Investimento de Compra e Venda de Ativos" (radar contínuo, caça de oportunidades em sobrevenda RSI < 40, zonas de entrada, metas de realização de lucros e rotação setorial).
+* **Versão:** 0.7.5 (Custom Brand Identity & Vector Logo System)
+* **Objetivo:** Criação da identidade visual e logótipo oficial do projeto My ETF: síntese visual do Escudo de Proteção Patrimonial (Longo Prazo), Ondas de Radar (Scanner Contínuo) e Seta Dinâmica de Crescimento Financeiro (Juros Compostos e Sinais). Implementação em componente SVG vetorial ultra-nítido (`AppLogo.tsx`), asset de alta resolução (`public/logo.jpg`), favicon vetorial (`public/favicon.svg`) e integração no cabeçalho e ecrã inicial.
 
 ---
 
 ## 🎯 Definição do Projeto
 
 ### 1. Missão
-Criar um radar contínuo de mercados de ETFs de elite e mentor financeiro que atue simultaneamente como scanner quantitativo para investidores experientes e como bússola pedagógica segura para quem está a começar do zero, organizando a navegação de forma intuitiva entre as duas principais filosofias de investimento: Longo Prazo e Compra/Venda Ativa.
+Criar um radar contínuo de mercados de ETFs de elite e mentor financeiro que atue simultaneamente como scanner quantitativo para investidores experientes e como bússola pedagógica segura para quem está a começar do zero, com uma identidade visual moderna, polida e memorável.
 
 ### 2. Stack Técnica
 * **Web:** React 18, Vite, TypeScript, Vanilla CSS (Design Premium Orion UI, Dark-First, Glassmorphic).
-* **Singlefile Bundle:** Empacotamento otimizado com `vite-plugin-singlefile` (300 kB total, carregamento instantâneo).
+* **Identidade Visual:** Componente vetorial `AppLogo.tsx` com gradiente esmeralda-ciano, filtro SVG de glow neon e favicon SVG de alta definição.
+* **Singlefile Bundle:** Empacotamento otimizado com `vite-plugin-singlefile` (302 kB total, carregamento instantâneo).
 * **Hospedagem:** Hostinger ou Vercel (distribuição estática de ficheiros ultra-leves).
 
 ### 3. Idioma e Localização
@@ -28,6 +29,8 @@ Criar um radar contínuo de mercados de ETFs de elite e mentor financeiro que at
 ## 🏗️ Estrutura do Projeto (Web)
 
 A aplicação Web é estruturada em:
+* `/web/src/components/AppLogo.tsx` — Componente vetorial de logótipo de alta fidelidade com suporte a tamanhos dinâmicos, texto gradiente e filtros SVG.
+* `/web/public/favicon.svg` & `/web/public/logo.jpg` — Ficheiros de asset de marca para o separador do browser e partilha.
 * `/web/src/components/CleanHomeHub.tsx` — Ecrã inicial acolhedor com acesso direto e em destaque às duas grandes secções estruturais da plataforma.
 * `/web/src/components/LongTermTab.tsx` — Ecrã dedicado de Investimento a Longo Prazo: As 3 Leis (Acc, Irlanda, DCA), ETFs de Fundação (SPYI, VWCE, IWDA, FUSD) e Simulador Interativo de Juros Compostos.
 * `/web/src/components/BeginnerCompass.tsx` — Bússola do Principiante com Semáforo de Timing, Guia dos 4 Passos, Simulador e Assistente de Ação Imediata.
@@ -51,12 +54,15 @@ A aplicação Web é estruturada em:
 
 ## 📝 Histórico de Versões
 
+### Versão 0.7.5 (Custom Brand Identity & Vector Logo System)
+* **Desenvolvimento da Identidade Visual Oficial My ETF:**
+  - Conceção e geração do logótipo icónico: Fusão entre o Escudo de Proteção (Longo Prazo), Arcos de Radar Concéntricos (Scanner) e Seta de Crescimento Financeiro (Juros Compostos e Lucros).
+  - Criação do componente reutilizável `AppLogo.tsx` com gradiente duplo (#10b981 esmeralda para #38bdf8 ciano elétrico) e efeito neon glow.
+  - Substituição do favicon por `/favicon.svg` vetorial no `index.html`.
+  - Integração do novo logótipo na barra lateral e no cabeçalho do ecrã inicial.
+
 ### Versão 0.7.4 (Dedicated Investment Sections: Long-Term vs Active Trading)
-* **Separação Estrutural da Plataforma:**
-  - Criação da secção e separador **Investimento a Longo Prazo** (`LongTermTab.tsx`): 3 leis do investidor passivo, regras fiscais em Portugal (domicílio IE, regime Acc sem 28% no IRS anual), cartões detalhados dos ETFs de base e simulador de património a 20-30 anos.
-  - Consolidação da secção **Investimento de Compra e Venda de Ativos** (`ActionableSignals.tsx`, `MarketRadar.tsx`, `SectorRotationTab.tsx`): Scanner de desequilíbrios em sobrevenda (RSI < 40), zonas de entrada, metas de lucro (+12%) e alertas de take-profit.
-  - Reestruturação da barra lateral de navegação (`App.tsx`) com cabeçalhos de secção distintos (`🌱 INVESTIMENTO A LONGO PRAZO`, `⚡ COMPRA E VENDA DE ATIVOS`, `🤖 APOIO & AUDITORIA`).
-  - Reformulação do `CleanHomeHub.tsx` com duas portas principais de boas-vindas para conduzir o utilizador com clareza a cada uma das duas abordagens.
+* Separação da plataforma nas secções **Investimento a Longo Prazo** e **Investimento de Compra e Venda de Ativos**.
 
 ### Versão 0.7.3 (Chat Responsive Layout & Zero Overflow Fix)
 * Correção do corte vertical no Consultor com `.chat-wrapper` dinâmico e scroll interno.

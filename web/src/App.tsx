@@ -7,6 +7,7 @@ import {
 } from './utils/marketEngine';
 import CleanHomeHub from './components/CleanHomeHub';
 import LongTermTab from './components/LongTermTab';
+import AppLogo from './components/AppLogo';
 import MarketRadar from './components/MarketRadar';
 import ActionableSignals from './components/ActionableSignals';
 import SectorRotationTab from './components/SectorRotationTab';
@@ -25,8 +26,7 @@ import {
   RefreshCw, 
   Sun, 
   Moon,
-  SlidersHorizontal,
-  Sparkles
+  SlidersHorizontal
 } from 'lucide-react';
 
 export default function App() {
@@ -153,23 +153,11 @@ export default function App() {
         
         {/* LOGO & BRAND */}
         <div>
-          <div className="brand" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('home')}>
-            <div style={{ 
-              width: '38px', height: '38px', borderRadius: '10px', 
-              background: 'linear-gradient(135deg, #10b981, #38bdf8)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 15px rgba(56, 189, 248, 0.3)',
-              color: '#000', fontWeight: 900, fontSize: '1.2rem'
-            }}>
-              <Sparkles size={22} color="#000" />
-            </div>
-            <div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em' }}>My ETF</div>
-              <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                {experienceMode === 'simple' ? 'Guia Seguro & Simples' : 'Radar & Hunter Avançado'}
-              </div>
-            </div>
-          </div>
+          <AppLogo 
+            size={42} 
+            subtitle={experienceMode === 'simple' ? 'Guia Seguro & Simples' : 'Radar & Hunter Avançado'}
+            onClick={() => setActiveTab('home')}
+          />
 
           {/* ALTERNADOR DE MODO (EXPERIENCE MODE SWITCHER) */}
           <div style={{ 
